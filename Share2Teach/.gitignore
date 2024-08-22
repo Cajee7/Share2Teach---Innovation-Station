@@ -14,3 +14,10 @@ obj/
 
 # Ignore Visual Studio Code settings
 .vscode/
+
+# Ignore generated files
+*.suo
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
