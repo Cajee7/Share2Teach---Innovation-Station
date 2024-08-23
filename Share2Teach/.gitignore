@@ -90,3 +90,6 @@ paket-files/
 
 # FAKE - F# Make
 .fake/
+
+# Ignore Solution files
+*.sln
