@@ -1,58 +1,32 @@
-using System;
-using System.Threading.Tasks;
-using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Bson;
+using System;
 
-namespace MongoDBExample
+namespace DatabaseConnection
 {
-    // Define the data model
-    public class User
-    {
-        public ObjectId Id { get; set; } // MongoDB uses ObjectId by default for _id
-        public string FName { get; set; }
-        public string LName { get; set; }
-    }
-
-    // MongoDB service class
-    public class MongoDBService
-    {
-        private readonly IMongoDatabase _database;
-
-        public MongoDBService(string connectionString, string databaseName)
-        {
-            var client = new MongoClient(connectionString);
-            _database = client.GetDatabase(databaseName);
-        }
-
-        public IMongoCollection<User> GetUsersCollection()
-        {
-            return _database.GetCollection<User>("Users");
-        }
-    }
-
-    // Main program class
     public class Program
     {
-        private static async Task Main(string[] args)
+        //connection string for databse and name of database to use
+        private const string connectionString = "mongodb+srv://muhammedcajee29:RU2AtjQc0d8ozPdD@share2teach.vtehmr8.mongodb.net/";
+        private const string databasename = "Share2Teach";
+
+        //method to connect to database
+        public static IMongoDatabase ConnectToDatabase()
         {
-            // Connection string and database name
-            string connectionString = "mongodb+srv://muhammedcajee29:RU2AtjQc0d8ozPdD@share2teach.vtehmr8.mongodb.net/";
-            string databaseName = "share2teach"; // Specify the database name here
-
-            // Initialize MongoDB service
-            var mongoDbService = new MongoDBService(connectionString, databaseName);
-
-            // Get the collection
-            var usersCollection = mongoDbService.GetUsersCollection();
-
-            // Query to find all documents
-            var users = await usersCollection.Find(_ => true).ToListAsync();
-
-            // Display FName and LName
-            foreach (var user in users)
+            try
             {
-                Console.WriteLine($"First Name: {user.FName}, Last Name: {user.LName}");
+                var client = new MongoClient(connectionString);
+                var database = client.GetDatabase(databasename);
+
+                Console.WriteLine("Succesfully connected to database");
+                return database;
             }
+            catch(Exception ex)
+            {
+                Console.WriteLine("Error! Could not connect to database: " + ex.Message);
+                return null; //returns null if connection fails
+            }
+            
         }
     }
 }
