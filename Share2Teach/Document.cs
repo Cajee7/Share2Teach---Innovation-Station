@@ -1,27 +1,26 @@
 using MongoDB.Driver;
 using MongoDB.Bson;
 using System;
-using DatabaseConnection;
+using System.IO; // Add this for File-related operations
+using DatabaseConnection; // Correct namespace for accessing Program class
 
-namespace Documents
+namespace Documents // Change namespace to match your class structure
 {
     public class Documents
     {
-        //setting max file size to 25mbs
+        // Setting max file size to 25MB
         private const long MaxFileSize = 25 * 1024 * 1024;
 
-        //method to upload document and check file size
+        // Method to upload document and check file size
         public static void UploadDocument(string filePath)
         {
-            if(File.Exists(filePath))
+            if (File.Exists(filePath))
             {
                 FileInfo fileInfo = new FileInfo(filePath);
 
-                //checking file size
-                if(fileInfo.Length <= MaxFileSize)
+                // Checking file size
+                if (fileInfo.Length <= MaxFileSize)
                 {
-                    //Remove
-                    //Giving file size
                     Console.WriteLine("File within size limit.");
                 }
                 else
@@ -34,20 +33,18 @@ namespace Documents
                 Console.WriteLine("Error: File not found!");
             }
         }
+ 
         public static void Main(string[] args)
         {
-            //connecting to database
-            var database = Program.ConnectToDatabase();
+            // Connecting to database
+            var database = DatabaseConnection.Program.ConnectToDatabase(); // Referencing the method correctly
 
-            if(database != null)
+            if (database != null)
             {
-                //lines for testing purposes
-                //To be removed
                 Console.WriteLine("Success! Connected to database");
 
-                //Api needed but for time being using file path
-                //Remove
-                string filePath = @"";
+                // Example file path for testing
+                string filePath = @"path\to\your\file.txt";
 
                 UploadDocument(filePath);
             }

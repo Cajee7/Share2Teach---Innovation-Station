@@ -1,32 +1,31 @@
-using MongoDB.Driver;
-using MongoDB.Bson;
-using System;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 
-namespace DatabaseConnection
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers();
+
+// Add Swagger services
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
 {
-    public class Program
-    {
-        //connection string for databse and name of database to use
-        private const string connectionString = "mongodb+srv://muhammedcajee29:RU2AtjQc0d8ozPdD@share2teach.vtehmr8.mongodb.net/";
-        private const string databasename = "Share2Teach";
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Share2Teach API", Version = "v1" });
+});
 
-        //method to connect to database
-        public static IMongoDatabase ConnectToDatabase()
-        {
-            try
-            {
-                var client = new MongoClient(connectionString);
-                var database = client.GetDatabase(databasename);
+var app = builder.Build();
 
-                Console.WriteLine("Succesfully connected to database");
-                return database;
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine("Error! Could not connect to database: " + ex.Message);
-                return null; //returns null if connection fails
-            }
-            
-        }
-    }
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Share2Teach API v1"));
 }
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
