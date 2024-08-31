@@ -1,27 +1,33 @@
 using MongoDB.Driver;
 using MongoDB.Bson;
 using System;
-using System.IO; // Add this for File-related operations
-using DatabaseConnection; // Correct namespace for accessing Program class
+using DatabaseConnection;
 
-namespace Documents // Change namespace to match your class structure
+namespace Documents
 {
     public class Documents
     {
-        // Setting max file size to 25MB
+        //setting max file size to 25mbs
         private const long MaxFileSize = 25 * 1024 * 1024;
 
-        // Method to upload document and check file size
+        //method to upload document and check file size
         public static void UploadDocument(string filePath)
         {
-            if (File.Exists(filePath))
+            if(File.Exists(filePath))
             {
                 FileInfo fileInfo = new FileInfo(filePath);
 
-                // Checking file size
-                if (fileInfo.Length <= MaxFileSize)
+                //checking file size
+                if(fileInfo.Length <= MaxFileSize)
                 {
+                    //Remove
+                    //Giving file size
                     Console.WriteLine("File within size limit.");
+
+                    //Getting user input
+                    Console.WriteLine("Enter the following data: ");
+                    
+
                 }
                 else
                 {
@@ -33,18 +39,20 @@ namespace Documents // Change namespace to match your class structure
                 Console.WriteLine("Error: File not found!");
             }
         }
- 
         public static void Main(string[] args)
         {
-            // Connecting to database
-            var database = DatabaseConnection.Program.ConnectToDatabase(); // Referencing the method correctly
+            //connecting to database
+            var database = DatabaseConnection.Program.ConnectToDatabase();
 
-            if (database != null)
+            if(database != null)
             {
-                Console.WriteLine("Success! Connected to database");
+                //lines for testing purposes
+                //To be removed
+                Console.WriteLine("Success! Document page connected to database");
 
-                // Example file path for testing
-                string filePath = @"path\to\your\file.txt";
+                //Api needed but for time being using file path
+                //Remove
+                string filePath = @"";
 
                 UploadDocument(filePath);
             }
