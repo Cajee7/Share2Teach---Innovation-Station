@@ -127,6 +127,10 @@ namespace Documents
                 //Remove
                 string filePath = @"";
                 UploadDocument(filePath);
+                string outputPdfPath = @"";
+
+                //convert file
+                DocumentConverter.ConvertToPdf(filePath, outputPdfPath);
 
             }
             else
