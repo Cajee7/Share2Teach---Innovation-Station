@@ -15,7 +15,7 @@ public class DocumentConverter
         {
             //Convert Word ot Pdf
             var wordDocument = new Aspose.Words.Document(filePath);
-            wordDocument.Save(outputPdfPath, Aspose.Words.SaveFormat.pdf);
+            wordDocument.Save(outputPdfPath, Aspose.Words.SaveFormat.Pdf);
         }
         else if(userFile == ".ppt" || userFile == ".pptx")
         {
