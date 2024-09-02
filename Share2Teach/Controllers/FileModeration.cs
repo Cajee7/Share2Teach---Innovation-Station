@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using DatabaseConnection.DTOs; // Ensure this matches the namespace of ModerationStatus
 
 namespace DatabaseConnection.Controllers
 {
@@ -8,57 +10,30 @@ namespace DatabaseConnection.Controllers
     [Route("api/[controller]")]
     public class FileModerationController : ControllerBase
     {
-        // This is just a placeholder for storing file data. Replace this with your actual data store or service.
-        private static readonly Dictionary<int, FileModerationDto> FilesDatabase = new Dictionary<int, FileModerationDto>();
+        // Placeholder for storing file data. Replace with your actual data store or service.
+        private static readonly List<FileModerationDto> FilesDatabase = new List<FileModerationDto>();
 
-        // POST: api/filemoderation/approve/{id}
-        [HttpPost("approve/{id}")]
-        public async Task<IActionResult> ApproveFile(int id, [FromBody] ModerationCommentDto commentDto)
+        // POST: api/filemoderation/moderate/{id}
+        [HttpPost("moderate/{id}")]
+        public async Task<IActionResult> ModerateFile(int id, [FromBody] ModerationActionDto actionDto)
         {
-            if (!FilesDatabase.ContainsKey(id))
+            var file = FilesDatabase.FirstOrDefault(f => f.Id == id);
+            if (file == null)
                 return NotFound(new { message = "File not found." });
 
-            var file = FilesDatabase[id];
-            file.IsApproved = true;
-            file.ModeratorComments = commentDto.Comments;
+            // Check if file has already been moderated
+            if (file.IsApproved.HasValue)
+                return BadRequest(new { message = "This file has already been moderated." });
 
-            // Here you would typically update your data store with the new approval status.
-            // For example: _fileService.Update(file);
+            // Update file moderation status based on the actionDto
+            file.IsApproved = actionDto.Status == ModerationStatus.Approve;
+            file.ModeratorComments = actionDto.Comments;
 
-            return Ok(new { message = "File approved successfully.", file });
+            // Update your data store with the new moderation result
+            // For example: await _fileService.Update(file);
+
+            var resultMessage = file.IsApproved == true ? "File approved successfully." : "File denied successfully.";
+            return Ok(new { message = resultMessage, file });
         }
-
-        // POST: api/filemoderation/deny/{id}
-        [HttpPost("deny/{id}")]
-        public async Task<IActionResult> DenyFile(int id, [FromBody] ModerationCommentDto commentDto)
-        {
-            if (!FilesDatabase.ContainsKey(id))
-                return NotFound(new { message = "File not found." });
-
-            var file = FilesDatabase[id];
-            file.IsApproved = false;
-            file.ModeratorComments = commentDto.Comments;
-
-            // Update your data store with the new disapproval status.
-            // For example: _fileService.Update(file);
-
-            return Ok(new { message = "File disapproved successfully.", file });
-        }
-    }
-
-    // DTO for File Moderation
-    public class FileModerationDto
-    {
-        public int Id { get; set; }
-        public string FileName { get; set; }
-        public string FilePath { get; set; }
-        public bool IsApproved { get; set; }
-        public string ModeratorComments { get; set; }
-    }
-
-    // DTO for Moderation Comments
-    public class ModerationCommentDto
-    {
-        public string Comments { get; set; }
     }
 }
