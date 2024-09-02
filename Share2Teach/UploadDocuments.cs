@@ -2,7 +2,7 @@ using MongoDB.Driver;
 using MongoDB.Bson;
 using System;
 using System.IO; // For file operations
-using DatabaseConnection;
+using System.Diagnostics; // For running command line processes
 using Document_Model.Models; // Referencing models to use model data
 using System.Collections.Generic;
 
@@ -28,7 +28,7 @@ namespace Documents
                     // Path for the converted PDF
                     string outputPdfPath = Path.ChangeExtension(filePath, ".pdf");
 
-                    // Convert the document to PDF
+                    // Convert the document to PDF using LibreOffice
                     ConvertToPdf(filePath, outputPdfPath);
 
                     // Show new file size
@@ -96,27 +96,40 @@ namespace Documents
             }
         }
 
-        // Method to convert to PDFs
+        // Method to convert to PDFs using LibreOffice
         public static void ConvertToPdf(string filePath, string outputPdfPath)
         {
-            string fileExtension = Path.GetExtension(filePath).ToLower();
+            try
+            {
+                // Prepare the command for LibreOffice
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "libreoffice",
+                    Arguments = $"--headless --convert-to pdf \"{filePath}\" --outdir \"{Path.GetDirectoryName(outputPdfPath)}\"",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
 
-            // Checking file type and converting accordingly
-            if (fileExtension == ".doc" || fileExtension == ".docx")
-            {
-                // Convert Word to PDF
-                var wordDocument = new Aspose.Words.Document(filePath);
-                wordDocument.Save(outputPdfPath, Aspose.Words.SaveFormat.Pdf);
+                using (var process = new Process())
+                {
+                    process.StartInfo = startInfo;
+                    process.Start();
+                    process.WaitForExit();
+
+                    if (process.ExitCode != 0)
+                    {
+                        string error = process.StandardError.ReadToEnd();
+                        throw new Exception($"LibreOffice conversion failed: {error}");
+                    }
+                }
+
+                Console.WriteLine("File successfully converted to PDF.");
             }
-            else if (fileExtension == ".ppt" || fileExtension == ".pptx")
+            catch (Exception ex)
             {
-                // Convert PowerPoint to PDF
-                var presentation = new Aspose.Slides.Presentation(filePath);
-                presentation.Save(outputPdfPath, Aspose.Slides.Export.SaveFormat.Pdf);
-            }
-            else
-            {
-                throw new NotSupportedException("Error! Unsupported file format");
+                Console.WriteLine($"Error during PDF conversion: {ex.Message}");
             }
         }
 
