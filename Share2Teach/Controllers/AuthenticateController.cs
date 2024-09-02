@@ -23,7 +23,7 @@ namespace DatabaseConnection.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var user = new IdentityUser { UserName = model.Username, Email = model.Email };
+            var user = new IdentityUser { FName = model.FName, Email = model.Email };
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
@@ -38,12 +38,4 @@ namespace DatabaseConnection.Controllers
         // Additional methods for login and logout can be added here
     }
 
-    // DTO for User Registration
-    public class UserRegistrationDto
-    {
-        public required string Username { get; set; } // Required property
-        public required string Email { get; set; }    // Required property
-        public required string Password { get; set; } // Required property
-        public required string ConfirmPassword { get; set; } // Required property
-    }
 }
