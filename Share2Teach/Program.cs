@@ -24,6 +24,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "File Upload API v1"));
+    
+    // Redirect root URL to Swagger
+    app.MapGet("/", async context =>
+    {
+        context.Response.Redirect("/swagger");
+    });
 }
 
 app.UseAuthorization();
