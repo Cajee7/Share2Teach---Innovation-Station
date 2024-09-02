@@ -22,32 +22,34 @@ namespace DatabaseConnection.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegistrationDto model)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            if (model.Password != model.ConfirmPassword)
-                return BadRequest(new { message = "Passwords do not match" });
-
-            var user = new IdentityUser
-            {
-                UserName = model.Email,
-                Email = model.Email
-            };
-
-            var result = await _userManager.CreateAsync(user, model.Password);
-
-            if (result.Succeeded)
-            {
-                // Optionally, add the user to a role based on `model.Subjects` if applicable
-                // For example: await _userManager.AddToRoleAsync(user, "Educator");
-                return Ok(new { message = "User registered successfully" });
-            }
-
-            foreach (var error in result.Errors)
-                ModelState.AddModelError(string.Empty, error.Description);
-
+        if (!ModelState.IsValid)
             return BadRequest(ModelState);
+
+         if (model.Password != model.ConfirmPassword)
+            return BadRequest(new { message = "Passwords do not match" });
+
+        // Combine first and last names for the username
+        string userName = $"{model.FName} {model.LName}";
+
+        var user = new IdentityUser
+        {
+            UserName = userName, // Set the username to the concatenated first and last name
+            Email = model.Email
+        };
+
+        var result = await _userManager.CreateAsync(user, model.Password);
+
+        if (result.Succeeded)
+        {
+            return Ok(new { message = "User registered successfully" });
         }
+
+        foreach (var error in result.Errors)
+             ModelState.AddModelError(string.Empty, error.Description);
+
+        return BadRequest(ModelState);
+}
+
 
         // POST: api/authenticate/login
         [HttpPost("login")]
