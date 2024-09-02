@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 // Namespace should match your project structure
 namespace DatabaseConnection.Controllers
-{
+{   
     [ApiController]
     [Route("api/[controller]")]
     public class AuthenticateController : ControllerBase
-    {
+    {   
         private readonly UserManager<IdentityUser> _userManager;
 
         public AuthenticateController(UserManager<IdentityUser> userManager)
@@ -19,7 +19,7 @@ namespace DatabaseConnection.Controllers
         // POST: api/authenticate/register
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegistrationDto model)
-        {
+        {   
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
