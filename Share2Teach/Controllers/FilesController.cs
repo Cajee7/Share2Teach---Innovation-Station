@@ -67,7 +67,7 @@ namespace DatabaseConnection.Controllers
 
             return Ok(new { message = "File upload successful.", fileInfo });
         }
-
+        
         // Additional methods for file reporting, searching, watermarking, tagging, and rating can be added here
     }
 }
