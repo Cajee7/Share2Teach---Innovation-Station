@@ -1,33 +1,47 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
-// Namespace should match your project structure
 namespace DatabaseConnection.Controllers
-{   
+{
     [ApiController]
     [Route("api/[controller]")]
     public class AuthenticateController : ControllerBase
-    {   
+    {
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<IdentityUser> _signInManager;
 
-        public AuthenticateController(UserManager<IdentityUser> userManager)
+        public AuthenticateController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
         {
             _userManager = userManager;
+            _signInManager = signInManager;
         }
 
         // POST: api/authenticate/register
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegistrationDto model)
-        {   
+        {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var user = new IdentityUser { FName = model.FName, Email = model.Email };
+            if (model.Password != model.ConfirmPassword)
+                return BadRequest(new { message = "Passwords do not match" });
+
+            var user = new IdentityUser
+            {
+                UserName = model.Email,
+                Email = model.Email
+            };
+
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
+            {
+                // Optionally, add the user to a role based on `model.Subjects` if applicable
+                // For example: await _userManager.AddToRoleAsync(user, "Educator");
                 return Ok(new { message = "User registered successfully" });
+            }
 
             foreach (var error in result.Errors)
                 ModelState.AddModelError(string.Empty, error.Description);
@@ -35,7 +49,22 @@ namespace DatabaseConnection.Controllers
             return BadRequest(ModelState);
         }
 
-        // Additional methods for login and logout can be added here
-    }
+        // POST: api/authenticate/login
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] UserLoginDto model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
+            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, isPersistent: false, lockoutOnFailure: false);
+
+            if (result.Succeeded)
+            {
+                // Optionally, generate and return a JWT token here if required
+                return Ok(new { message = "Login successful" });
+            }
+
+            return Unauthorized(new { message = "Invalid login attempt" });
+        }
+    }
 }
