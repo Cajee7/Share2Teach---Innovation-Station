@@ -3,8 +3,8 @@ using MongoDB.Bson;
 using System;
 using System.IO; //For file operations
 using DatabaseConnection;
-using Document_Model.Models;
-using System.Reflection.Metadata; //Referencing models to use model data
+using Document_Model.Models;//Referencing models to use model data
+using System.Reflection.Metadata; 
 
 namespace Documents
 {
@@ -112,6 +112,31 @@ namespace Documents
             }
             return tags;
         }
+
+        //Method to convert to pdfs
+        public static void ConvertToPdf(string filePath, string outputPdfPath)
+        {
+            string userFile = Path.GetExtension(filePath).ToLower();
+
+            //checking user file to determine type of file
+            if(userFile == ".doc" || userFile == ".docx")
+            {
+                //Convert Word ot Pdf
+                var wordDocument = new Aspose.Words.Document(filePath);
+                wordDocument.Save(outputPdfPath, Aspose.Words.SaveFormat.Pdf);
+            }
+            else if(userFile == ".ppt" || userFile == ".pptx")
+            {
+                //Converting powerpoint to PDF
+                var presentation = new Aspose.Slides.Presentation(filePath);
+                presentation.Save(outputPdfPath, Aspose.Slides.Export.SaveFormat.Pdf);
+            }
+            else
+            {
+                throw new NotSupportedException("Error! Unsupported file format");
+            }
+        
+        }
         public static void Main(string[] args)
         {
             //connecting to database
@@ -130,7 +155,7 @@ namespace Documents
                 string outputPdfPath = @"";
 
                 //convert file
-                DocumentConverter.ConvertToPdf(filePath, outputPdfPath);
+                ConvertToPdf(filePath, outputPdfPath);
 
             }
             else
