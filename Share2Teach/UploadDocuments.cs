@@ -1,49 +1,54 @@
 using MongoDB.Driver;
 using MongoDB.Bson;
 using System;
-using System.IO; //For file operations
+using System.IO; // For file operations
 using DatabaseConnection;
-using Aspose.Words;
-using Aspose.Slides;
-using Document_Model.Models;//Referencing models to use model data
-using System.Reflection.Metadata; 
+using Document_Model.Models; // Referencing models to use model data
+using System.Collections.Generic;
 
 namespace Documents
 {
     public class Documents
     {
-        //setting max file size to 25mbs
+        // Setting max file size to 25MB
         private const long MaxFileSize = 25 * 1024 * 1024;
-        
-        //method to upload document and check file size
+
+        // Method to upload document and check file size
         public static void UploadDocument(string filePath)
         {
-            if(File.Exists(filePath))
+            if (File.Exists(filePath))
             {
                 FileInfo fileInfo = new FileInfo(filePath);
 
-                //checking file size
-                if(fileInfo.Length <= MaxFileSize && fileInfo.Length > 0)
+                // Checking file size
+                if (fileInfo.Length <= MaxFileSize && fileInfo.Length > 0)
                 {
-                    //Remove
-                    //Giving file size
                     Console.WriteLine("File within size limit.");
 
-                    //Collecting user input
+                    // Path for the converted PDF
+                    string outputPdfPath = Path.ChangeExtension(filePath, ".pdf");
+
+                    // Convert the document to PDF
+                    ConvertToPdf(filePath, outputPdfPath);
+
+                    // Show new file size
+                    FileInfo pdfFileInfo = new FileInfo(outputPdfPath);
+                    Console.WriteLine($"Converted PDF Size: {pdfFileInfo.Length} bytes");
+
+                    // Collecting user input
                     var document = new Document_Model.Models.Documents
                     {
-                        //Entering initial and automatic values
-                        FileSize = fileInfo.Length,
+                        // Entering initial and automatic values
+                        FileSize = pdfFileInfo.Length,
                         DateUploaded = DateTime.UtcNow,
                         ModerationStatus = "Unmoderated",
                         Ratings = 0,
-                        Tags = GenerateTags(filePath)//method to generate tags
+                        Tags = GenerateTags(outputPdfPath) // Method to generate tags
                     };
 
-                    //Getting user input and ensuring no nulls are entered
+                    // Getting user input and ensuring no nulls are entered
                     Console.WriteLine("Enter Document Title: ");
                     document.Title = Console.ReadLine();
-
                     if (string.IsNullOrWhiteSpace(document.Title))
                     {
                         Console.WriteLine("Error! Please enter a title!");
@@ -52,7 +57,6 @@ namespace Documents
 
                     Console.WriteLine("Enter the Subject:");
                     document.Subject = Console.ReadLine();
-
                     if (string.IsNullOrWhiteSpace(document.Subject))
                     {
                         Console.WriteLine("Error! Please enter a subject!");
@@ -60,7 +64,6 @@ namespace Documents
                     }
 
                     Console.WriteLine("Enter the Grade:");
-
                     if (int.TryParse(Console.ReadLine(), out int grade))
                     {
                         document.Grade = grade;
@@ -73,12 +76,14 @@ namespace Documents
 
                     Console.WriteLine("Enter the Description:");
                     document.Description = Console.ReadLine();
-
                     if (string.IsNullOrWhiteSpace(document.Description))
                     {
                         Console.WriteLine("Error! Please enter a description!");
                         return;
                     }
+
+                    // Save the document to the database
+                    SaveDocumentToDatabase(document);
                 }
                 else
                 {
@@ -91,45 +96,21 @@ namespace Documents
             }
         }
 
-        //Method to generate tags from file content
-        private static List<string> GenerateTags(string filePath)
-        {
-            var tags = new List<string>();
-
-            try
-            {
-                var fileContent = File.ReadAllText(filePath);
-                var words = fileContent.Split(new[] {' ', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-                //tagging unique words
-                for (int i =0; i<words.Length; i++)
-                {
-                    string word = words[i];
-                    tags.Add(word);
-                }
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine("Error generating tags: " + ex.Message);
-            }
-            return tags;
-        }
-
-        //Method to convert to pdfs
+        // Method to convert to PDFs
         public static void ConvertToPdf(string filePath, string outputPdfPath)
         {
-            string userFile = Path.GetExtension(filePath).ToLower();
+            string fileExtension = Path.GetExtension(filePath).ToLower();
 
-            //checking user file to determine type of file
-            if(userFile == ".doc" || userFile == ".docx")
+            // Checking file type and converting accordingly
+            if (fileExtension == ".doc" || fileExtension == ".docx")
             {
-                //Convert Word ot Pdf
+                // Convert Word to PDF
                 var wordDocument = new Aspose.Words.Document(filePath);
                 wordDocument.Save(outputPdfPath, Aspose.Words.SaveFormat.Pdf);
             }
-            else if(userFile == ".ppt" || userFile == ".pptx")
+            else if (fileExtension == ".ppt" || fileExtension == ".pptx")
             {
-                //Converting powerpoint to PDF
+                // Convert PowerPoint to PDF
                 var presentation = new Aspose.Slides.Presentation(filePath);
                 presentation.Save(outputPdfPath, Aspose.Slides.Export.SaveFormat.Pdf);
             }
@@ -137,34 +118,59 @@ namespace Documents
             {
                 throw new NotSupportedException("Error! Unsupported file format");
             }
-        
         }
-        public static void Main(string[] args)
+
+        // Method to generate tags from file content
+        private static List<string> GenerateTags(string filePath)
         {
-            //connecting to database
+            var tags = new List<string>();
+
+            try
+            {
+                // Reading file content
+                var fileContent = File.ReadAllText(filePath);
+                var words = fileContent.Split(new[] { ' ', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+                // Tagging unique words
+                foreach (var word in words)
+                {
+                    if (word.Length > 3) // Filter short words
+                    {
+                        tags.Add(word);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error generating tags: " + ex.Message);
+            }
+
+            return tags;
+        }
+
+        // Method to save the document to the database
+        private static void SaveDocumentToDatabase(Document_Model.Models.Documents document)
+        {
+            // Connect to database
             var database = DatabaseConnection.Program.ConnectToDatabase();
 
-            if(database != null)
+            if (database != null)
             {
-                //lines for testing purposes
-                //To be removed
-                Console.WriteLine("Success! Document page connected to database");
-
-                //Api needed but for time being using file path
-                //Remove
-                string filePath = @"";
-                UploadDocument(filePath);
-                string outputPdfPath = @"";
-
-                //convert file
-                ConvertToPdf(filePath, outputPdfPath);
-
+                var collection = database.GetCollection<Document_Model.Models.Documents>("Documents");
+                collection.InsertOne(document);
+                Console.WriteLine("Document saved to database successfully.");
             }
             else
             {
-                Console.WriteLine("Document page failed to connect to database!");
-                Console.WriteLine("Please refresh page and if the problem persists, try again later!");
+                Console.WriteLine("Failed to connect to the database. Document not saved.");
             }
+        }
+
+        public static void Main(string[] args)
+        {
+            // Example file path (update as needed)
+            string filePath = @"path\to\your\file";
+            UploadDocument(filePath);
         }
     }
 }
