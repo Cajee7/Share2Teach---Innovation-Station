@@ -3,6 +3,8 @@ using MongoDB.Bson;
 using System;
 using System.IO; //For file operations
 using DatabaseConnection;
+using Aspose.Words;
+using Aspose.Slides;
 using Document_Model.Models;//Referencing models to use model data
 using System.Reflection.Metadata; 
 
