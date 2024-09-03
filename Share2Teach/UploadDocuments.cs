@@ -6,7 +6,7 @@ using System.Diagnostics; // For running command line processes
 using Document_Model.Models; // Referencing models to use model data
 using System.Collections.Generic;
 
-namespace Documents
+namespace UploadDocuments
 {
     public class Documents
     {

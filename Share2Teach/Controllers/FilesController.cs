@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace DatabaseConnection.Controllers
 {
@@ -11,26 +12,31 @@ namespace DatabaseConnection.Controllers
     [ApiController]
     public class FilesController : ControllerBase
     {
-        private const long MaxFileSize = 5 * 1024 * 1024; // 5 MB
-        private static readonly List<string> AllowedFileTypes = new List<string> { "application/pdf", "image/jpeg", "image/png" };
+        private const long MaxFileSize = 25 * 1024 * 1024; // 25 MB
+        private static readonly List<string> AllowedFileTypes = new List<string>
+        {
+            "application/pdf", // PDF
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // Word (docx)
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation", // PowerPoint (pptx)
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" // Excel (xlsx)
+        };
 
         // POST: api/files/upload
         [HttpPost("upload")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UploadFile(
             [FromForm] IFormFile file,
-            [FromForm] string fileType,
-            [FromForm] string fileName,
-            [FromForm] string subject,
-            [FromForm] string grade,
-            [FromForm] DateTime dateCreated)
+            [FromForm] string title,
+            [FromForm] string description,
+            [FromForm] int grade,
+            [FromForm] string subject)
         {
             if (file == null || file.Length == 0)
             {
                 return BadRequest("No file uploaded.");
             }
 
-            if (string.IsNullOrEmpty(fileType) || string.IsNullOrEmpty(fileName) || string.IsNullOrEmpty(subject) || string.IsNullOrEmpty(grade))
+            if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(description) || string.IsNullOrEmpty(subject))
             {
                 return BadRequest("Required fields are empty.");
             }
@@ -45,7 +51,9 @@ namespace DatabaseConnection.Controllers
                 return BadRequest("File too large.");
             }
 
-            var filePath = Path.Combine("Uploads", fileName);
+            // Generate a unique file name
+            string fileName = $"{Guid.NewGuid()}_{file.FileName}";
+            string filePath = Path.Combine("Uploads", fileName);
             Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 
             using (var stream = new FileStream(filePath, FileMode.Create))
@@ -53,21 +61,53 @@ namespace DatabaseConnection.Controllers
                 await file.CopyToAsync(stream);
             }
 
+            // Automatically populate fields
             var fileInfo = new
             {
-                FileName = fileName,
-                FilePath = filePath,
-                FileType = fileType,
-                Subject = subject,
+                Title = title,
+                Description = description,
                 Grade = grade,
-                DateCreated = dateCreated,
+                Subject = subject,
                 FileSize = file.Length,
-                ContentType = file.ContentType
+                DateUploaded = DateTime.UtcNow,
+                ModerationStatus = "Unmoderated",
+                InitialFileType = file.ContentType,
+                //Tags = GenerateTags(filePath),
+                Ratings = 0
             };
+
+            // Here you would save the fileInfo to your database, for example:
+            // SaveFileInfoToDatabase(fileInfo);
 
             return Ok(new { message = "File upload successful.", fileInfo });
         }
-        
-        // Additional methods for file reporting, searching, watermarking, tagging, and rating can be added here
+
+        // Method to generate tags from file content
+        /*private List<string> GenerateTags(string filePath)
+        {
+            var tags = new List<string>();
+
+            try
+            {
+                // Reading file content
+                var fileContent = File.ReadAllText(filePath);
+                var words = fileContent.Split(new[] { ' ', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+                // Tagging unique words
+                foreach (var word in words)
+                {
+                    if (word.Length > 3) // Filter short words
+                    {
+                        tags.Add(word);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error generating tags: " + ex.Message);
+            }
+
+            return tags;
+        }*/
     }
 }
