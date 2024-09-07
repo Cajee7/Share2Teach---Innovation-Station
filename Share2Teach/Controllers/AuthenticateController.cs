@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
+using MongoDB.Bson;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 
 namespace DatabaseConnection.Controllers
 {
@@ -9,47 +9,48 @@ namespace DatabaseConnection.Controllers
     [Route("api/[controller]")]
     public class AuthenticateController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly IMongoCollection<BsonDocument> _usersCollection;
 
-        public AuthenticateController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
+        public AuthenticateController(IMongoDatabase database)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
+            // Get the Users collection
+            _usersCollection = database.GetCollection<BsonDocument>("Users");
         }
 
         // POST: api/authenticate/register
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegistrationDto model)
         {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-         if (model.Password != model.ConfirmPassword)
-            return BadRequest(new { message = "Passwords do not match" });
+            if (model.Password != model.ConfirmPassword)
+                return BadRequest(new { message = "Passwords do not match" });
 
-        // Combine first and last names for the username
-        string userName = $"{model.FName} {model.LName}";
+            // Check if the user already exists
+            var existingUser = await _usersCollection.Find(new BsonDocument("Email", model.Email)).FirstOrDefaultAsync();
+            if (existingUser != null)
+                return BadRequest(new { message = "User already exists" });
 
-        var user = new IdentityUser
-        {
-            UserName = userName, // Set the username to the concatenated first and last name
-            Email = model.Email
-        };
+            // Combine first and last names for the username
+            string userName = $"{model.FName} {model.LName}";
 
-        var result = await _userManager.CreateAsync(user, model.Password);
+            // Create a new user document
+            var newUser = new BsonDocument
+            {
+                { "FName", model.FName },
+                { "LName", model.LName },
+                { "Email", model.Email },
+                { "Password", model.Password }, // Consider hashing the password before storing
+                { "Role", "User" },
+                { "Subject", model.Subject }
+            };
 
-        if (result.Succeeded)
-        {
+            // Insert the new user document into the Users collection
+            await _usersCollection.InsertOneAsync(newUser);
+
             return Ok(new { message = "User registered successfully" });
         }
-
-        foreach (var error in result.Errors)
-             ModelState.AddModelError(string.Empty, error.Description);
-
-        return BadRequest(ModelState);
-}
-
 
         // POST: api/authenticate/login
         [HttpPost("login")]
@@ -58,15 +59,19 @@ namespace DatabaseConnection.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, isPersistent: false, lockoutOnFailure: false);
+            // Find the user by email
+            var user = await _usersCollection.Find(new BsonDocument("Email", model.Email)).FirstOrDefaultAsync();
 
-            if (result.Succeeded)
-            {
-                // Optionally, generate and return a JWT token here if required
-                return Ok(new { message = "Login successful" });
-            }
+            if (user == null)
+                return Unauthorized(new { message = "Invalid login attempt" });
 
-            return Unauthorized(new { message = "Invalid login attempt" });
+            // Check if the password matches
+            var storedPassword = user["Password"].AsString;
+            if (storedPassword != model.Password) // Implement password hashing and comparison
+                return Unauthorized(new { message = "Invalid login attempt" });
+
+            // Optionally, generate and return a JWT token here if required
+            return Ok(new { message = "Login successful" });
         }
     }
 }

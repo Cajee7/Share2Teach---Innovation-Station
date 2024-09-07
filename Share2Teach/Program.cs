@@ -2,8 +2,23 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure MongoDB settings
+builder.Services.AddSingleton<IMongoClient>(s =>
+{
+    var mongoConnectionString = builder.Configuration.GetConnectionString("MongoDb");
+    return new MongoClient(mongoConnectionString);
+});
+
+builder.Services.AddSingleton<IMongoDatabase>(s =>
+{
+    var client = s.GetRequiredService<IMongoClient>();
+    var databaseName = builder.Configuration.GetValue<string>("DatabaseName");
+    return client.GetDatabase(databaseName);
+});
 
 // Add services to the container
 builder.Services.AddControllers();
