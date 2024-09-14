@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using MongoDB.Bson;
+using BCrypt.Net;
 using System.Threading.Tasks;
 
 namespace DatabaseConnection.Controllers
@@ -22,10 +23,10 @@ namespace DatabaseConnection.Controllers
         public async Task<IActionResult> Register([FromBody] UserRegistrationDto model)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(ModelState); //checks for input errors
 
             if (model.Password != model.ConfirmPassword)
-                return BadRequest(new { message = "Passwords do not match" });
+                return BadRequest(new { message = "Passwords do not match" }); //compares passwords to make sure it is valid
 
             // Check if the user already exists
             var existingUser = await _usersCollection.Find(new BsonDocument("Email", model.Email)).FirstOrDefaultAsync();
@@ -35,15 +36,18 @@ namespace DatabaseConnection.Controllers
             // Combine first and last names for the username
             string userName = $"{model.FName} {model.LName}";
 
+            // Hash the password before storing
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.Password);
+
             // Create a new user document
             var newUser = new BsonDocument
             {
                 { "FName", model.FName },
                 { "LName", model.LName },
                 { "Email", model.Email },
-                { "Password", model.Password }, // Consider hashing the password before storing
+                { "Password", hashedPassword }, // Store the hashed password
                 { "Role", "User" },
-                { "Subject", model.Subject }
+                { "Subjects", new BsonArray(model.Subjects) } // Store subjects as a BsonArray
             };
 
             // Insert the new user document into the Users collection
@@ -67,7 +71,9 @@ namespace DatabaseConnection.Controllers
 
             // Check if the password matches
             var storedPassword = user["Password"].AsString;
-            if (storedPassword != model.Password) // Implement password hashing and comparison
+
+            // Verify the password against the hashed password
+            if (!BCrypt.Net.BCrypt.Verify(model.Password, storedPassword))
                 return Unauthorized(new { message = "Invalid login attempt" });
 
             // Optionally, generate and return a JWT token here if required

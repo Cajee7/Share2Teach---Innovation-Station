@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
+using DatabaseConnection; // Ensure this namespace is included
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,47 +29,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Share2Teach API", Version = "v1" });
-    // Swagger configuration to handle file uploads
     c.OperationFilter<FileUploadOperationFilter>();
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 var app = builder.Build();
 
@@ -76,9 +38,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "File Upload API v1"));
-    
-    // Redirect root URL to Swagger
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Share2Teach API v1"));
     app.MapGet("/", async context =>
     {
         context.Response.Redirect("/swagger");
@@ -86,7 +46,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
