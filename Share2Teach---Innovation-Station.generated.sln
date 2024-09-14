@@ -2,7 +2,7 @@
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Share2Teach", "Share2Teach\Share2Teach.csproj", "{DFF670C2-D566-456D-BFDE-3F9DB703DA81}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Share2Teach", "Share2Teach\Share2Teach.csproj", "{563E816F-8B0C-43B0-A3E6-4915810C916D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -10,10 +10,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{DFF670C2-D566-456D-BFDE-3F9DB703DA81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DFF670C2-D566-456D-BFDE-3F9DB703DA81}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DFF670C2-D566-456D-BFDE-3F9DB703DA81}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DFF670C2-D566-456D-BFDE-3F9DB703DA81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{563E816F-8B0C-43B0-A3E6-4915810C916D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{563E816F-8B0C-43B0-A3E6-4915810C916D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{563E816F-8B0C-43B0-A3E6-4915810C916D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{563E816F-8B0C-43B0-A3E6-4915810C916D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
