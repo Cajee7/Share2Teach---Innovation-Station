@@ -38,41 +38,41 @@ namespace FAQApp.Controllers
             return Ok("FAQ added successfully.");
         }
 
-        // DELETE endpoint to delete an FAQ by ID
-        [HttpDelete("delete/{id}")]
-        public IActionResult DeleteFAQ(string id)
+        // DELETE endpoint to delete an FAQ by question
+        [HttpDelete("delete")]
+        public IActionResult DeleteFAQ([FromQuery] string question)
         {
-            var filter = Builders<BsonDocument>.Filter.Eq("_id", new ObjectId(id));
+            var filter = Builders<BsonDocument>.Filter.Eq("question", question);
             var result = _faqCollection.DeleteOne(filter);
 
             if (result.DeletedCount == 0)
             {
-                return NotFound("FAQ not found.");
+                return NotFound("FAQ with the specified question not found.");
             }
 
             return Ok("FAQ deleted successfully.");
         }
 
-        // PUT endpoint to update an FAQ by ID
-        [HttpPut("update/{id}")]
-        public IActionResult UpdateFAQ(string id, [FromBody] FAQInputModel faqInput)
+        // PUT endpoint to update an FAQ by question
+        [HttpPut("update")]
+        public IActionResult UpdateFAQ([FromQuery] string question, [FromBody] FAQInputModel faqInput)
         {
             if (string.IsNullOrEmpty(faqInput.Question) || string.IsNullOrEmpty(faqInput.Answer))
             {
-                return BadRequest("Question and Answer are required fields.");
+                return BadRequest("Both new question and answer fields are required.");
             }
 
-            var filter = Builders<BsonDocument>.Filter.Eq("_id", new ObjectId(id));
+            var filter = Builders<BsonDocument>.Filter.Eq("question", question);
             var update = Builders<BsonDocument>.Update
-                .Set("question", faqInput.Question)
-                .Set("answer", faqInput.Answer)
-                .Set("dateUpdated", DateTime.UtcNow);  // Optionally store the date of the update
+                .Set("question", faqInput.Question)  // new question
+                .Set("answer", faqInput.Answer)      // new answer
+                .Set("dateUpdated", DateTime.UtcNow);  // date of update
 
             var result = _faqCollection.UpdateOne(filter, update);
 
-            if (result.ModifiedCount == 0)
+            if (result.MatchedCount == 0)
             {
-                return NotFound("FAQ not found or no changes made.");
+                return NotFound("FAQ with the specified question not found.");
             }
 
             return Ok("FAQ updated successfully.");
