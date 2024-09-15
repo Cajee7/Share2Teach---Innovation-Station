@@ -1,7 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using MongoDB.Bson;
+using BCrypt.Net;
 using System.Threading.Tasks;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.Security.Claims;
 
 namespace DatabaseConnection.Controllers
 {
@@ -10,11 +15,13 @@ namespace DatabaseConnection.Controllers
     public class AuthenticateController : ControllerBase
     {
         private readonly IMongoCollection<BsonDocument> _usersCollection;
+        private readonly IConfiguration _configuration;
 
-        public AuthenticateController(IMongoDatabase database)
+        public AuthenticateController(IMongoDatabase database, IConfiguration configuration)
         {
             // Get the Users collection
             _usersCollection = database.GetCollection<BsonDocument>("Users");
+            _configuration = configuration;
         }
 
         // POST: api/authenticate/register
@@ -32,8 +39,8 @@ namespace DatabaseConnection.Controllers
             if (existingUser != null)
                 return BadRequest(new { message = "User already exists" });
 
-            // Combine first and last names for the username
-            string userName = $"{model.FName} {model.LName}";
+            // Hash the password before storing
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.Password);
 
             // Create a new user document
             var newUser = new BsonDocument
@@ -41,9 +48,9 @@ namespace DatabaseConnection.Controllers
                 { "FName", model.FName },
                 { "LName", model.LName },
                 { "Email", model.Email },
-                { "Password", model.Password }, // Consider hashing the password before storing
+                { "Password", hashedPassword }, // Store the hashed password
                 { "Role", "User" },
-                { "Subject", model.Subject }
+                { "Subjects", new BsonArray(model.Subjects) }
             };
 
             // Insert the new user document into the Users collection
@@ -67,11 +74,38 @@ namespace DatabaseConnection.Controllers
 
             // Check if the password matches
             var storedPassword = user["Password"].AsString;
-            if (storedPassword != model.Password) // Implement password hashing and comparison
+            if (!BCrypt.Net.BCrypt.Verify(model.Password, storedPassword))
                 return Unauthorized(new { message = "Invalid login attempt" });
 
-            // Optionally, generate and return a JWT token here if required
-            return Ok(new { message = "Login successful" });
+            // Generate JWT token
+            var token = GenerateJwtToken(user);
+
+            return Ok(new { token });
+        }
+
+        private string GenerateJwtToken(BsonDocument user)
+        {
+            var jwtSettings = _configuration.GetSection("JwtSettings");
+            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]));
+            var credentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user["Email"].AsString),
+                new Claim(ClaimTypes.Name, $"{user["FName"]} {user["LName"]}"),
+                new Claim(ClaimTypes.Role, user["Role"].AsString),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            var token = new JwtSecurityToken(
+                issuer: jwtSettings["Issuer"],
+                audience: jwtSettings["Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(Convert.ToDouble(jwtSettings["ExpiryMinutes"])),
+                signingCredentials: credentials
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }
