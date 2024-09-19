@@ -1,4 +1,4 @@
 public class FileDowloadDto
     {
-        public required IFormFile File { get; set; }
+        public  IFormFile File { get; set; }
     }
