@@ -1,102 +1,173 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
 using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Diagnostics;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
-using System.Linq;
+using Document_Model.Models;
+using Microsoft.Extensions.Logging;
 
-namespace DatabaseConnection.Controllers
+namespace UploadDocumentsAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class FilesController : ControllerBase
+    public class DocumentUploadController : ControllerBase
     {
-        private const long MaxFileSize = 25 * 1024 * 1024; // 25 MB
-        private static readonly List<string> AllowedFileTypes = new List<string>
-        {
-            "application/pdf", // PDF
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // Word (docx)
-            "application/vnd.openxmlformats-officedocument.presentationml.presentation", // PowerPoint (pptx)
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" // Excel (xlsx)
-        };
+        private const long MaxFileSize = 25 * 1024 * 1024;
+        private const string NextcloudBaseUrl = "http://localhost:8080/remote.php/dav/files/MuhammedCajee29";
+        private const string NextcloudUsername = "MuhammedCajee29";
+        private const string NextcloudPassword = "Jaedene12!";
+        private readonly ILogger<DocumentUploadController> _logger;
 
-        // POST: api/files/upload
+        public DocumentUploadController(ILogger<DocumentUploadController> logger)
+        {
+            _logger = logger;
+        }
+
         [HttpPost("upload")]
-        [Consumes("multipart/form-data")]
-        public async Task<IActionResult> UploadFile(
-            [FromForm] IFormFile file,
-            [FromForm] string title,
-            [FromForm] string description,
-            [FromForm] int grade,
-            [FromForm] string subject)
+        public async Task<IActionResult> UploadDocument([FromForm] IFormFile file, [FromForm] string title, [FromForm] string subject, [FromForm] string description, [FromForm] int grade)
         {
             if (file == null || file.Length == 0)
             {
-                return BadRequest("No file uploaded.");
-            }
-
-            if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(description) || string.IsNullOrEmpty(subject))
-            {
-                return BadRequest("Required fields are empty.");
-            }
-
-            if (!AllowedFileTypes.Contains(file.ContentType))
-            {
-                return BadRequest("Incorrect file type.");
+                return BadRequest("Error: No file uploaded.");
             }
 
             if (file.Length > MaxFileSize)
             {
-                return BadRequest("File too large.");
+                return BadRequest("Error: File size exceeds 25 MB!");
             }
 
-            // Generate a unique file name
-            string fileName = $"{Guid.NewGuid()}_{file.FileName}";
-            string filePath = Path.Combine("Uploads", fileName);
-            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+            var filePath = Path.GetTempFileName();
+            var outputPdfPath = Path.ChangeExtension(filePath, ".pdf");
 
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            try
             {
-                await file.CopyToAsync(stream);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Convert the file to PDF
+                ConvertToPdf(filePath, outputPdfPath);
+
+                // Upload the converted PDF to Nextcloud
+                string nextcloudUrl = await UploadToNextcloud(outputPdfPath);
+                if (string.IsNullOrEmpty(nextcloudUrl))
+                {
+                    return StatusCode(500, "Error uploading file to Nextcloud.");
+                }
+
+                // Create document metadata
+                var document = new Documents
+                {
+                    Title = title,
+                    Subject = subject,
+                    Description = description,
+                    FileSize = new FileInfo(outputPdfPath).Length,
+                    FileUrl = nextcloudUrl,
+                    DateUploaded = DateTime.UtcNow,
+                    ModerationStatus = "Unmoderated",
+                    Ratings = 0,
+                    Tags = GenerateTags(outputPdfPath),
+                    Grade = grade
+                };
+
+                // Save document metadata to MongoDB
+                SaveDocumentToDatabase(document);
+
+                return Ok(new { Message = "Document uploaded successfully.", FileUrl = nextcloudUrl });
             }
-
-            // Automatically populate fields
-            var fileInfo = new
+            catch (Exception ex)
             {
-                Title = title,
-                Description = description,
-                Grade = grade,
-                Subject = subject,
-                FileSize = file.Length,
-                DateUploaded = DateTime.UtcNow,
-                ModerationStatus = "Unmoderated",
-                InitialFileType = file.ContentType,
-                //Tags = GenerateTags(filePath),
-                Ratings = 0
-            };
-
-            // Here you would save the fileInfo to your database, for example:
-            // SaveFileInfoToDatabase(fileInfo);
-
-            return Ok(new { message = "File upload successful.", fileInfo });
+                _logger.LogError($"Error occurred during file upload: {ex.Message}");
+                return StatusCode(500, "An internal server error occurred.");
+            }
+            finally
+            {
+                if (System.IO.File.Exists(filePath)) System.IO.File.Delete(filePath);
+                if (System.IO.File.Exists(outputPdfPath)) System.IO.File.Delete(outputPdfPath);
+            }
         }
 
-        // Method to generate tags from file content
-        /*private List<string> GenerateTags(string filePath)
+        // Upload file to Nextcloud using WebDAV
+        private static async Task<string> UploadToNextcloud(string filePath)
+        {
+            string fileName = Path.GetFileName(filePath);
+            string uploadUrl = $"{NextcloudBaseUrl}/{fileName}";
+
+            using (HttpClient client = new HttpClient())
+            {
+                var byteArray = Encoding.ASCII.GetBytes($"{NextcloudUsername}:{NextcloudPassword}");
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+
+                using (var content = new StreamContent(System.IO.File.OpenRead(filePath)))
+                {
+                    content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+
+                    try
+                    {
+                        HttpResponseMessage response = await client.PutAsync(uploadUrl, content);
+                        if (response.IsSuccessStatusCode)
+                        {
+                            return uploadUrl;
+                        }
+                        else
+                        {
+                            string errorMessage = await response.Content.ReadAsStringAsync();
+                            throw new Exception($"Upload failed: {response.StatusCode} - {errorMessage}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception($"Error during file upload: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        // Convert file to PDF using LibreOffice
+        private static void ConvertToPdf(string filePath, string outputPdfPath)
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "libreoffice",
+                Arguments = $"--headless --convert-to pdf \"{filePath}\" --outdir \"{Path.GetDirectoryName(outputPdfPath)}\"",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using (var process = new Process())
+            {
+                process.StartInfo = startInfo;
+                process.Start();
+                process.WaitForExit();
+
+                if (process.ExitCode != 0)
+                {
+                    string error = process.StandardError.ReadToEnd();
+                    throw new Exception($"LibreOffice conversion failed: {error}");
+                }
+            }
+        }
+
+        // Generate tags from file content
+        private static List<string> GenerateTags(string filePath)
         {
             var tags = new List<string>();
 
             try
             {
-                // Reading file content
-                var fileContent = File.ReadAllText(filePath);
+                var fileContent = System.IO.File.ReadAllText(filePath);
                 var words = fileContent.Split(new[] { ' ', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-                // Tagging unique words
                 foreach (var word in words)
                 {
-                    if (word.Length > 3) // Filter short words
+                    if (word.Length > 3)
                     {
                         tags.Add(word);
                     }
@@ -104,10 +175,25 @@ namespace DatabaseConnection.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error generating tags: " + ex.Message);
+                throw new Exception("Error generating tags: " + ex.Message);
             }
 
             return tags;
-        }*/
+        }
+
+        // Save the document to the database
+        private static void SaveDocumentToDatabase(Documents document)
+        {
+            var database = DatabaseConnection.Program.ConnectToDatabase();
+            if (database != null)
+            {
+                var collection = database.GetCollection<Documents>("Documents");
+                collection.InsertOne(document);
+            }
+            else
+            {
+                throw new Exception("Failed to connect to the database.");
+            }
+        }
     }
 }
