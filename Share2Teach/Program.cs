@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using MongoDB.Driver;
-
+using DatabaseConnection.Services; // Ensure this using statement points to where your GoogleAnalyticsService is located
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +47,9 @@ builder.Services.AddAuthentication(options =>
 // Add services to the container
 builder.Services.AddControllers();
 
+// Register GoogleAnalyticsService as a singleton service
+builder.Services.AddSingleton<GoogleAnalyticsService>(); // This line adds your Google Analytics service
+
 // Add Swagger services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -70,3 +73,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.Run();
+app.UseStaticFiles();
