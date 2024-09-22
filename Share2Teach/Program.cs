@@ -2,10 +2,25 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using MongoDB.Driver;
+<<<<<<< HEAD
 using Share2Teach.Analytics; // Updated to reflect the correct namespace
 
+=======
+using Microsoft.AspNetCore.Hosting; //for logging 
+using Microsoft.Extensions.Hosting; 
+using Serilog;
+>>>>>>> 745574e604942839b4d81aeb981bc2623583389a
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Creating Serilog for file logging
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+// Add Serilog to logging pipeline
+builder.Host.UseSerilog();
 
 // Configure MongoDB settings
 builder.Services.AddSingleton<IMongoClient>(s =>
@@ -57,6 +72,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+<<<<<<< HEAD
 // Add the authentication middleware
 app.UseAuthentication();
 app.UseAuthorization();
@@ -69,15 +85,44 @@ app.UseMiddleware<GoogleAnalyticsMiddleware>(); // This works if the namespace i
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
+=======
+// Exception handling
+try
+>>>>>>> 745574e604942839b4d81aeb981bc2623583389a
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Share2Teach API v1"));
-    app.MapGet("/", async context =>
+    Log.Information("Starting web host");
+
+    // Configure the HTTP request pipeline
+    if (app.Environment.IsDevelopment())
     {
-        context.Response.Redirect("/swagger");
-    });
+        app.UseSwagger();
+        app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Share2Teach API v1"));
+        app.MapGet("/", async context =>
+        {
+            context.Response.Redirect("/swagger");
+        });
+    }
+
+    // Add the authentication middleware
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.MapControllers();
+    app.Run();
+    app.UseStaticFiles();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application start-up failed. Program.cs file");
+}
+finally
+{
+    Log.CloseAndFlush();
 }
 
+<<<<<<< HEAD
 app.MapControllers();
 app.Run();
+=======
+>>>>>>> 745574e604942839b4d81aeb981bc2623583389a
 app.UseStaticFiles();
