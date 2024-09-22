@@ -1,46 +1,62 @@
-using System.Net.Http;
+using System.Net.Http; 
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging; // For optional logging
+using Microsoft.Extensions.Logging; 
+using System.Collections.Generic; 
 
-public class GoogleAnalyticsService
+namespace Share2Teach.Analytics 
 {
-    private static readonly HttpClient client = new HttpClient();
-    private readonly string trackingId = "G-7BM1508TJZ"; // Replace with your actual Google Analytics Tracking ID
-    private readonly ILogger<GoogleAnalyticsService> _logger;
-
-    public GoogleAnalyticsService(ILogger<GoogleAnalyticsService> logger)
+    public class GoogleAnalyticsService
     {
-        _logger = logger;
-    }
+        // Static HttpClient instance for sending HTTP requests
+        private static readonly HttpClient client = new HttpClient();
+        
+        // Google Analytics tracking ID 
+        private readonly string trackingId = "G-7BM1508TJZ"; 
+        
+        // Logger instance for logging messages and errors
+        private readonly ILogger<GoogleAnalyticsService> _logger;
 
-    // Send an event to Google Analytics
-    public async Task SendEventAsync(string eventCategory, string clientId, string endpointLabel)
-    {
-        var values = new Dictionary<string, string>
-{
-    { "v", "1" }, // Protocol version
-    { "tid", trackingId }, // Tracking ID
-    { "cid", clientId }, // Client ID
-    { "t", "event" }, // Hit type (event)
-    { "ec", eventCategory }, // Event Category
-    { "ea", "endpoint_call" }, // Event Action
-    { "el", endpointLabel }, // Event Label
-    { "ev", "1" }, // Event value
-    { "ni", "1" }, // Non-interaction hit
-    { "debug", "true" } // Enable debug mode
-};
-
-
-        var content = new FormUrlEncodedContent(values);
-        var response = await client.PostAsync("https://www.google-analytics.com/debug/collect", content);
-
-        if (response.IsSuccessStatusCode)
+        // Constructor that takes a logger as a dependency
+        public GoogleAnalyticsService(ILogger<GoogleAnalyticsService> logger)
         {
-            _logger.LogInformation("Analytics event sent successfully for {eventCategory} - {endpointLabel}", eventCategory, endpointLabel);
+            _logger = logger; // Assign the logger to the private field
         }
-        else
+
+        // Method to send an event to Google Analytics
+        public async Task SendEventAsync(string eventCategory, string clientId, string endpointLabel)
         {
-            _logger.LogError("Failed to send event: {statusCode}", response.StatusCode);
+            // Prepare the data to be sent in the request
+            var values = new Dictionary<string, string>
+            {
+                { "v", "1" }, // Protocol version
+                { "tid", trackingId }, // Tracking ID
+                { "cid", clientId }, // Client ID
+                { "t", "event" }, // Hit type (event)
+                { "ec", eventCategory }, // Event Category
+                { "ea", "endpoint_call" }, // Event Action
+                { "el", endpointLabel }, // Event Label
+                { "ev", "1" }, // Event value
+                { "ni", "1" }, // Non-interaction hit
+                { "debug", "true" } // Enable debug mode
+            };
+
+            // Create the content for the POST request
+            var content = new FormUrlEncodedContent(values);
+
+            // Send the POST request to Google Analytics
+            var response = await client.PostAsync("https://www.google-analytics.com/debug/collect", content);
+
+            // Check if the response was successful
+            if (response.IsSuccessStatusCode)
+            {
+                // Log success message if the event was sent successfully
+                _logger.LogInformation("Analytics event sent successfully for {eventCategory} - {endpointLabel}", eventCategory, endpointLabel);
+            }
+            else
+            {
+                // Log an error message if the event failed to send
+                _logger.LogError("Failed to send event: {statusCode}", response.StatusCode);
+            }
         }
     }
 }
