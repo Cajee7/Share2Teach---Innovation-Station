@@ -1,52 +1,66 @@
 using MongoDB.Driver;
 using MongoDB.Bson;
 using System;
-using System.IO; // For file operations
-using System.Diagnostics; // For running command line processes
-using Document_Model.Models; // Referencing models to use model data
+using System.IO;
+using System.Diagnostics;
+using Document_Model.Models;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace UploadDocuments
 {
-    public class Documents
+    public class DocumentUploader
     {
-        // Setting max file size to 25MB
         private const long MaxFileSize = 25 * 1024 * 1024;
+        private const string NextcloudBaseUrl = "http://localhost:8080/remote.php/dav/files/aramsunar/";
+        private const string NextcloudUsername = "aramsunar";
+        private const string NextcloudPassword = "Jaedene12!";
 
         // Method to upload document and check file size
-        public static void UploadDocument(string filePath)
+        public static async Task UploadDocument(string filePath)
         {
             if (File.Exists(filePath))
             {
                 FileInfo fileInfo = new FileInfo(filePath);
 
-                // Checking file size
                 if (fileInfo.Length <= MaxFileSize && fileInfo.Length > 0)
                 {
                     Console.WriteLine("File within size limit.");
-
-                    // Path for the converted PDF
                     string outputPdfPath = Path.ChangeExtension(filePath, ".pdf");
 
-                    // Convert the document to PDF using LibreOffice
+                    // Convert to PDF using LibreOffice
                     ConvertToPdf(filePath, outputPdfPath);
 
-                    // Show new file size
                     FileInfo pdfFileInfo = new FileInfo(outputPdfPath);
                     Console.WriteLine($"Converted PDF Size: {pdfFileInfo.Length} bytes");
 
-                    // Collecting user input
+                    // Upload to Nextcloud and get the file URL
+                    string nextcloudUrl = await UploadToNextcloud(outputPdfPath);
+
+                    if (string.IsNullOrEmpty(nextcloudUrl))
+                    {
+                        Console.WriteLine("Error uploading file to Nextcloud.");
+                        return;
+                    }
+
+                    // Initialize the document with required fields as empty strings
                     var document = new Document_Model.Models.Documents
                     {
-                        // Entering initial and automatic values
+                        Title = string.Empty, // Placeholder for user input
+                        Subject = string.Empty, // Placeholder for user input
+                        Description = string.Empty, // Placeholder for user input
                         FileSize = pdfFileInfo.Length,
+                        FileUrl = nextcloudUrl,
                         DateUploaded = DateTime.UtcNow,
                         ModerationStatus = "Unmoderated",
                         Ratings = 0,
-                        Tags = GenerateTags(outputPdfPath) // Method to generate tags
+                        Tags = GenerateTags(outputPdfPath)
                     };
 
-                    // Getting user input and ensuring no nulls are entered
+                    // Get user input for required fields
                     Console.WriteLine("Enter Document Title: ");
                     document.Title = Console.ReadLine();
                     if (string.IsNullOrWhiteSpace(document.Title))
@@ -64,15 +78,12 @@ namespace UploadDocuments
                     }
 
                     Console.WriteLine("Enter the Grade:");
-                    if (int.TryParse(Console.ReadLine(), out int grade))
-                    {
-                        document.Grade = grade;
-                    }
-                    else
+                    if (!int.TryParse(Console.ReadLine(), out int grade))
                     {
                         Console.WriteLine("Invalid grade input. Please enter a number.");
                         return;
                     }
+                    document.Grade = grade;
 
                     Console.WriteLine("Enter the Description:");
                     document.Description = Console.ReadLine();
@@ -96,12 +107,51 @@ namespace UploadDocuments
             }
         }
 
-        // Method to convert to PDFs using LibreOffice
+        // Upload file to Nextcloud using WebDAV
+        private static async Task<string> UploadToNextcloud(string filePath)
+        {
+            string fileName = Path.GetFileName(filePath);
+            string uploadUrl = $"{NextcloudBaseUrl}/{fileName}";
+
+            using (HttpClient client = new HttpClient())
+            {
+                var byteArray = Encoding.ASCII.GetBytes($"{NextcloudUsername}:{NextcloudPassword}");
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+
+                using (var content = new StreamContent(File.OpenRead(filePath)))
+                {
+                    content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+
+                    try
+                    {
+                        HttpResponseMessage response = await client.PutAsync(uploadUrl, content);
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            Console.WriteLine("File uploaded successfully to Nextcloud.");
+                            return uploadUrl;
+                        }
+                        else
+                        {
+                            string errorMessage = await response.Content.ReadAsStringAsync();
+                            Console.WriteLine($"Upload failed: {response.StatusCode} - {errorMessage}");
+                            return null;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error during file upload: {ex.Message}");
+                        return null;
+                    }
+                }
+            }
+        }
+
+        // Convert to PDFs using LibreOffice
         public static void ConvertToPdf(string filePath, string outputPdfPath)
         {
             try
             {
-                // Prepare the command for LibreOffice
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = "libreoffice",
@@ -133,21 +183,19 @@ namespace UploadDocuments
             }
         }
 
-        // Method to generate tags from file content
+        // Generate tags from file content
         private static List<string> GenerateTags(string filePath)
         {
             var tags = new List<string>();
 
             try
             {
-                // Reading file content
                 var fileContent = File.ReadAllText(filePath);
                 var words = fileContent.Split(new[] { ' ', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-                // Tagging unique words
                 foreach (var word in words)
                 {
-                    if (word.Length > 3) // Filter short words
+                    if (word.Length > 3)
                     {
                         tags.Add(word);
                     }
@@ -161,10 +209,9 @@ namespace UploadDocuments
             return tags;
         }
 
-        // Method to save the document to the database
+        // Save the document to the database
         private static void SaveDocumentToDatabase(Document_Model.Models.Documents document)
         {
-            // Connect to database
             var database = DatabaseConnection.Program.ConnectToDatabase();
 
             if (database != null)
@@ -175,15 +222,14 @@ namespace UploadDocuments
             }
             else
             {
-                Console.WriteLine("Failed to connect to the database. Document not saved.");
+                Console.WriteLine("Failed to connect to the database.");
             }
         }
 
         public static void Main(string[] args)
         {
-            // Example file path (update as needed)
             string filePath = @"path\to\your\file";
-            UploadDocument(filePath);
+            Task.Run(() => UploadDocument(filePath)).Wait();
         }
     }
 }
