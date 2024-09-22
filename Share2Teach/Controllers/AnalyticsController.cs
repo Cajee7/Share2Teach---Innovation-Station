@@ -1,7 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Share2Teach.Analytics;
 
+namespace Share2Teach.Controllers // Adjust this if your controllers have a different namespace
+{
+    
 [ApiController]
 [Route("api/[controller]")]
 public class AnalyticsController : ControllerBase
@@ -46,4 +50,6 @@ public class AnalyticsEventRequest
     public string EventCategory { get; set; }
     public string ClientId { get; set; }
     public string EndpointLabel { get; set; }
+}
+
 }

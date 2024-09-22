@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using MongoDB.Driver;
-using DatabaseConnection.Services; // Ensure this using statement points to where your GoogleAnalyticsService is located
+using Share2Teach.Analytics; // Updated to reflect the correct namespace
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +57,16 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Add the authentication middleware
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Add middleware for Google Analytics
+app.UseMiddleware<GoogleAnalyticsMiddleware>(); // This works if the namespace is correct
+
+
+
+
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
@@ -66,10 +77,6 @@ if (app.Environment.IsDevelopment())
         context.Response.Redirect("/swagger");
     });
 }
-
-// Add the authentication middleware
-app.UseAuthentication();
-app.UseAuthorization();
 
 app.MapControllers();
 app.Run();
