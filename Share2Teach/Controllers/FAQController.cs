@@ -8,7 +8,7 @@ namespace FAQApp.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class FAQController : BaseLogController // Inherit from BaseLogController
+    public class FAQController : BaseLogController <FAQController> // Inherit from BaseLogController
     {
         private readonly IMongoCollection<BsonDocument> _faqCollection;
 
@@ -21,37 +21,36 @@ namespace FAQApp.Controllers
 
         // GET endpoint to list all FAQs with their IDs
         [HttpGet("list")]
-    public IActionResult GetAllFAQs()
-    {
-        try
+        public IActionResult GetAllFAQs()
         {
-            // Fetch all documents from the FAQS collection
-            var faqs = _faqCollection.Find(new BsonDocument()).ToList();
-
-            // Check if the collection is empty
-            if (faqs.Count == 0)
+            _logger.LogInformation("Fetching all FAQs at {Timestamp}.", DateTime.UtcNow);
+            try
             {
-                _logger.LogInformation("No FAQs found in the database.");
-                return NotFound("No FAQs found.");
+                var faqs = _faqCollection.Find(new BsonDocument()).ToList();
+
+                if (faqs.Count == 0)
+                {
+                    _logger.LogInformation("No FAQs found in the database at {Timestamp}.", DateTime.UtcNow);
+                    return NotFound("No FAQs found.");
+                }
+
+                var faqList = faqs.Select(faq => new
+                {
+                    Id = faq["_id"].ToString(),
+                    Question = faq.Contains("question") ? faq["question"].ToString() : "No question field",
+                    Answer = faq.Contains("answer") ? faq["answer"].ToString() : "No answer field",
+                    DateAdded = faq.Contains("dateAdded") ? faq["dateAdded"].ToUniversalTime() : DateTime.MinValue
+                }).ToList();
+
+                _logger.LogInformation("Successfully fetched {Count} FAQs at {Timestamp}.", faqList.Count, DateTime.UtcNow);
+                return Ok(faqList);
             }
-
-            // Convert to a model that includes the ObjectId and handles missing fields
-            var faqList = faqs.Select(faq => new
+            catch (Exception ex)
             {
-                Id = faq["_id"].ToString(),
-                Question = faq.Contains("question") ? faq["question"].ToString() : "No question field",
-                Answer = faq.Contains("answer") ? faq["answer"].ToString() : "No answer field",
-                DateAdded = faq.Contains("dateAdded") ? faq["dateAdded"].ToUniversalTime() : DateTime.MinValue
-            }).ToList();
-
-            return Ok(faqList);
+                _logger.LogError("Error while fetching FAQs at {Timestamp}: {Message}", DateTime.UtcNow, ex.Message);
+                return StatusCode(500, "An error occurred while fetching FAQs.");
+            }
         }
-        catch (Exception ex)
-        {
-            _logger.LogError("Error while fetching FAQs: {Message}", ex.Message);
-            return StatusCode(500, "An error occurred while fetching FAQs.");
-        }
-    }
 
         // POST endpoint to add a new FAQ
         [HttpPost("add")]
@@ -63,47 +62,69 @@ namespace FAQApp.Controllers
                 return BadRequest("Question and Answer are required fields.");
             }
 
-            var faqDocument = new BsonDocument
+            try
             {
-                { "question", faqInput.Question },
-                { "answer", faqInput.Answer },
-                { "dateAdded", DateTime.UtcNow }
-            };
+                var faqDocument = new BsonDocument
+                {
+                    { "question", faqInput.Question },
+                    { "answer", faqInput.Answer },
+                    { "dateAdded", DateTime.UtcNow }
+                };
 
-            _faqCollection.InsertOne(faqDocument);
-            _logger.LogInformation("Added FAQ: {Question} at {Timestamp}.", faqInput.Question, DateTime.UtcNow);
+                _faqCollection.InsertOne(faqDocument);
+                _logger.LogInformation("Added FAQ: {Question} at {Timestamp}.", faqInput.Question, DateTime.UtcNow);
 
-            return Ok("FAQ added successfully.");
+                return Ok("FAQ added successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error while adding FAQ at {Timestamp}: {Message}", DateTime.UtcNow, ex.Message);
+                return StatusCode(500, "An error occurred while adding the FAQ.");
+            }
         }
 
         // DELETE endpoint to delete an FAQ by ObjectId
         [HttpDelete("delete")]
         public IActionResult DeleteFAQById([FromQuery] string id)
         {
+            _logger.LogInformation("Attempting to delete FAQ with id: {Id} at {Timestamp}.", id, DateTime.UtcNow);
+            
             if (!ObjectId.TryParse(id, out ObjectId objectId))
             {
+                _logger.LogWarning("Invalid ObjectId format: {Id} at {Timestamp}.", id, DateTime.UtcNow);
                 return BadRequest("Invalid ObjectId format.");
             }
 
-            var filter = Builders<BsonDocument>.Filter.Eq("_id", objectId);
-            var result = _faqCollection.DeleteOne(filter);
-
-            if (result.DeletedCount == 0)
+            try
             {
-                _logger.LogWarning("FAQ with id '{Id}' not found for deletion at {Timestamp}.", id, DateTime.UtcNow);
-                return NotFound("FAQ with the specified id not found.");
-            }
+                var filter = Builders<BsonDocument>.Filter.Eq("_id", objectId);
+                var result = _faqCollection.DeleteOne(filter);
 
-            _logger.LogInformation("Deleted FAQ with id: {Id} at {Timestamp}.", id, DateTime.UtcNow);
-            return Ok("FAQ deleted successfully.");
+                if (result.DeletedCount == 0)
+                {
+                    _logger.LogWarning("FAQ with id '{Id}' not found for deletion at {Timestamp}.", id, DateTime.UtcNow);
+                    return NotFound("FAQ with the specified id not found.");
+                }
+
+                _logger.LogInformation("Successfully deleted FAQ with id: {Id} at {Timestamp}.", id, DateTime.UtcNow);
+                return Ok("FAQ deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error while deleting FAQ with id: {Id} at {Timestamp}: {Message}", id, DateTime.UtcNow, ex.Message);
+                return StatusCode(500, "An error occurred while deleting the FAQ.");
+            }
         }
 
         // PUT endpoint to update an FAQ by ObjectId
         [HttpPut("update")]
         public IActionResult UpdateFAQById([FromQuery] string id, [FromBody] FAQInputModel faqInput)
         {
+            _logger.LogInformation("Attempting to update FAQ with id: {Id} at {Timestamp}.", id, DateTime.UtcNow);
+
             if (!ObjectId.TryParse(id, out ObjectId objectId))
             {
+                _logger.LogWarning("Invalid ObjectId format: {Id} at {Timestamp}.", id, DateTime.UtcNow);
                 return BadRequest("Invalid ObjectId format.");
             }
 
@@ -113,22 +134,30 @@ namespace FAQApp.Controllers
                 return BadRequest("Both new question and answer fields are required.");
             }
 
-            var filter = Builders<BsonDocument>.Filter.Eq("_id", objectId);
-            var update = Builders<BsonDocument>.Update
-                .Set("question", faqInput.Question)
-                .Set("answer", faqInput.Answer)
-                .Set("dateUpdated", DateTime.UtcNow);
-
-            var result = _faqCollection.UpdateOne(filter, update);
-
-            if (result.MatchedCount == 0)
+            try
             {
-                _logger.LogWarning("FAQ with id '{Id}' not found for update at {Timestamp}.", id, DateTime.UtcNow);
-                return NotFound("FAQ with the specified id not found.");
-            }
+                var filter = Builders<BsonDocument>.Filter.Eq("_id", objectId);
+                var update = Builders<BsonDocument>.Update
+                    .Set("question", faqInput.Question)
+                    .Set("answer", faqInput.Answer)
+                    .Set("dateUpdated", DateTime.UtcNow);
 
-            _logger.LogInformation("Updated FAQ with id: {Id} at {Timestamp}.", id, DateTime.UtcNow);
-            return Ok("FAQ updated successfully.");
+                var result = _faqCollection.UpdateOne(filter, update);
+
+                if (result.MatchedCount == 0)
+                {
+                    _logger.LogWarning("FAQ with id '{Id}' not found for update at {Timestamp}.", id, DateTime.UtcNow);
+                    return NotFound("FAQ with the specified id not found.");
+                }
+
+                _logger.LogInformation("Successfully updated FAQ with id: {Id} at {Timestamp}.", id, DateTime.UtcNow);
+                return Ok("FAQ updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error while updating FAQ with id: {Id} at {Timestamp}: {Message}", id, DateTime.UtcNow, ex.Message);
+                return StatusCode(500, "An error occurred while updating the FAQ.");
+            }
         }
     }
 
