@@ -21,21 +21,37 @@ namespace FAQApp.Controllers
 
         // GET endpoint to list all FAQs with their IDs
         [HttpGet("list")]
-        public IActionResult GetAllFAQs()
+    public IActionResult GetAllFAQs()
+    {
+        try
         {
+            // Fetch all documents from the FAQS collection
             var faqs = _faqCollection.Find(new BsonDocument()).ToList();
 
-            // Convert FAQs to a model that includes the ObjectId
+            // Check if the collection is empty
+            if (faqs.Count == 0)
+            {
+                _logger.LogInformation("No FAQs found in the database.");
+                return NotFound("No FAQs found.");
+            }
+
+            // Convert to a model that includes the ObjectId and handles missing fields
             var faqList = faqs.Select(faq => new
             {
                 Id = faq["_id"].ToString(),
-                Question = faq["question"].ToString(),
-                Answer = faq["answer"].ToString(),
-                DateAdded = faq["dateAdded"].ToUniversalTime()
-            });
+                Question = faq.Contains("question") ? faq["question"].ToString() : "No question field",
+                Answer = faq.Contains("answer") ? faq["answer"].ToString() : "No answer field",
+                DateAdded = faq.Contains("dateAdded") ? faq["dateAdded"].ToUniversalTime() : DateTime.MinValue
+            }).ToList();
 
             return Ok(faqList);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError("Error while fetching FAQs: {Message}", ex.Message);
+            return StatusCode(500, "An error occurred while fetching FAQs.");
+        }
+    }
 
         // POST endpoint to add a new FAQ
         [HttpPost("add")]
