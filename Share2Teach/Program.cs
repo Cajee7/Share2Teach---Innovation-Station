@@ -2,14 +2,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using MongoDB.Driver;
-<<<<<<< HEAD
 using Share2Teach.Analytics; // Updated to reflect the correct namespace
 
-=======
 using Microsoft.AspNetCore.Hosting; //for logging 
 using Microsoft.Extensions.Hosting; 
 using Serilog;
->>>>>>> 745574e604942839b4d81aeb981bc2623583389a
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,7 +69,6 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-<<<<<<< HEAD
 // Add the authentication middleware
 app.UseAuthentication();
 app.UseAuthorization();
@@ -85,10 +81,8 @@ app.UseMiddleware<GoogleAnalyticsMiddleware>(); // This works if the namespace i
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
-=======
 // Exception handling
 try
->>>>>>> 745574e604942839b4d81aeb981bc2623583389a
 {
     Log.Information("Starting web host");
 
@@ -120,9 +114,6 @@ finally
     Log.CloseAndFlush();
 }
 
-<<<<<<< HEAD
 app.MapControllers();
 app.Run();
-=======
->>>>>>> 745574e604942839b4d81aeb981bc2623583389a
 app.UseStaticFiles();
