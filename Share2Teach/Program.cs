@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using MongoDB.Driver;
-using Share2Teach.Analytics; // Updated to reflect the correct namespace
+using Share2Teach.Analytics; 
 
 using Microsoft.AspNetCore.Hosting; //for logging 
 using Microsoft.Extensions.Hosting; 
@@ -75,8 +75,6 @@ app.UseAuthorization();
 
 // Add middleware for Google Analytics
 app.UseMiddleware<GoogleAnalyticsMiddleware>(); // This works if the namespace is correct
-
-
 
 
 // Configure the HTTP request pipeline
