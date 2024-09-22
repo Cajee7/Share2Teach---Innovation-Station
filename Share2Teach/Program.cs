@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using MongoDB.Driver;
-using DatabaseConnection.Services; // Ensure this using statement points to where your GoogleAnalyticsService is located
 using Microsoft.AspNetCore.Hosting; //for logging 
 using Microsoft.Extensions.Hosting; 
 using Serilog;
