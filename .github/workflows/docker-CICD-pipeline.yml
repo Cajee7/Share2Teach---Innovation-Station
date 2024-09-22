@@ -39,14 +39,21 @@ jobs:
       #Run unit tests before building
       - name: Run unit tests
         run: dotnet test --no-restore --verbosity normal
+
+        # Run unit tests
+      - name: Run tests
+        run: dotnet test --no-restore --verbosity normal
         
       # Build the project
       - name: Build project
         run: dotnet build --configuration Release --no-restore
 
-      # Run unit tests
-      - name: Run tests
-        run: dotnet test --no-restore --verbosity normal
+      # Install cosign (Optional: to sign Docker images)
+      - name: Install cosign
+        if: github.event_name != 'pull_request'
+        uses: sigstore/cosign-installer@v3.5.0
+        with:
+          cosign-release: 'v2.2.4'
 
       # Set up Docker Buildx for building multi-platform images
       - name: Set up Docker Buildx
