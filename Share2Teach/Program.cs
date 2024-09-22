@@ -3,8 +3,17 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models; // Add this
 using System.Text;
 using MongoDB.Driver;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console() // Log to console
+    .WriteTo.File("Logs/myapp-.txt", rollingInterval: RollingInterval.Day) // Log to file with daily rolling
+    .CreateLogger();
+
+builder.Host.UseSerilog(); // Use Serilog for logging
 
 // Configure MongoDB settings
 builder.Services.AddSingleton<IMongoClient>(s =>
@@ -40,7 +49,7 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(secretKey),
-        ClockSkew = TimeSpan.Zero // Optional: Set clock skew to zero for precise expiration handling
+        ClockSkew = TimeSpan.Zero
     };
 });
 
@@ -92,7 +101,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Add the authentication middleware
 app.UseAuthentication();
 app.UseAuthorization();
 
