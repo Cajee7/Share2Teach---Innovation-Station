@@ -27,12 +27,12 @@ namespace ReportManagement.Controllers
         private string GetCurrentModeratorEmail()
         {
             // Replace this with your actual logic to get the moderator's email
-            return User.Identity.Name; // Assuming you're using claims-based authentication
+            return User.Identity?.Name ?? string.Empty;  // Assuming you're using claims-based authentication
         }
 
         // GET: api/reporting
 [HttpGet]
-public IActionResult GetReports([FromQuery] string userId = null, [FromQuery] string status = null)
+public IActionResult GetReports([FromQuery] string? userId = null, [FromQuery] string? status = null)
 {
     var reportCollection = GetReportCollection();
     var filterBuilder = Builders<BsonDocument>.Filter;
