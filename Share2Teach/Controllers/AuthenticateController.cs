@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using MongoDB.Bson;
@@ -83,8 +84,10 @@ namespace DatabaseConnection.Controllers
             if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user["Password"].AsString))
                 return Unauthorized(new { message = "Invalid login attempt" });
 
+            // Generate the JWT token
             var token = GenerateJwtToken(user);
 
+            // Set the cookie options (optional, if you want to store it in cookies)
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
@@ -92,7 +95,12 @@ namespace DatabaseConnection.Controllers
             };
             Response.Cookies.Append("jwt", token, cookieOptions);
 
-            return Ok(new { message = "Logged in successfully" });
+            // Return the token along with the success message
+            return Ok(new 
+            { 
+                message = "Logged in successfully", 
+                token = token // Include the JWT token in the response
+            });
         }
 
         // POST: api/authenticate/forgot-password
@@ -175,6 +183,39 @@ namespace DatabaseConnection.Controllers
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        // PUT: api/authenticate/upgrade
+        [HttpPut("upgrade")]
+        [Authorize(Roles = "Admin")] // Authorization check for Admin
+        public async Task<IActionResult> UpgradeUser([FromQuery] string email, [FromBody] string newRole)
+        {
+            var user = await _usersCollection.Find(new BsonDocument("Email", email)).FirstOrDefaultAsync();
+            if (user == null)
+                return NotFound(new { message = "User not found" });
+
+            if (newRole != "Moderator" && newRole != "Admin")
+                return BadRequest(new { message = "Only Moderator or Admin roles are allowed for upgrade." });
+
+            var update = Builders<BsonDocument>.Update.Set("Role", newRole);
+            await _usersCollection.UpdateOneAsync(new BsonDocument("Email", email), update);
+
+            return Ok(new { message = $"User upgraded to {newRole} successfully." });
+        }
+
+        // GET: api/authenticate/current-user
+        [HttpGet("current-user")]
+        [Authorize] // Requires a valid token
+        public IActionResult GetCurrentUser()
+        {
+            var userName = User.FindFirst(ClaimTypes.Name)?.Value; // Retrieve user's name
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value; // Retrieve user's role
+
+            return Ok(new 
+            { 
+                Name = userName,
+                Role = userRole
+            });
         }
     }
 }
