@@ -3,8 +3,20 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using MongoDB.Driver;
 using DatabaseConnection.Services; // Ensure this using statement points to where your GoogleAnalyticsService is located
+using Microsoft.AspNetCore.Hosting; //for logging 
+using Microsoft.Extensions.Hosting; 
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Creating Serilog for file logging
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+// Add Serilog to logging pipeline
+builder.Host.UseSerilog();
 
 // Configure MongoDB settings
 builder.Services.AddSingleton<IMongoClient>(s =>
@@ -56,21 +68,37 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
+// Exception handling
+try
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Share2Teach API v1"));
-    app.MapGet("/", async context =>
+    Log.Information("Starting web host");
+
+    // Configure the HTTP request pipeline
+    if (app.Environment.IsDevelopment())
     {
-        context.Response.Redirect("/swagger");
-    });
+        app.UseSwagger();
+        app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Share2Teach API v1"));
+        app.MapGet("/", async context =>
+        {
+            context.Response.Redirect("/swagger");
+        });
+    }
+
+    // Add the authentication middleware
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.MapControllers();
+    app.Run();
+    app.UseStaticFiles();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application start-up failed. Program.cs file");
+}
+finally
+{
+    Log.CloseAndFlush();
 }
 
-// Add the authentication middleware
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-app.Run();
 app.UseStaticFiles();
