@@ -1,24 +1,31 @@
-using System.Net.Http;
+using System.Net.Http; 
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
+using Microsoft.Extensions.Logging; 
+using System.Collections.Generic; 
 
-namespace Share2Teach.Analytics // Updated namespace
+namespace Share2Teach.Analytics 
 {
     public class GoogleAnalyticsService
     {
+        // Static HttpClient instance for sending HTTP requests
         private static readonly HttpClient client = new HttpClient();
-        private readonly string trackingId = "G-7BM1508TJZ"; // Replace with your actual Google Analytics Tracking ID
+        
+        // Google Analytics tracking ID 
+        private readonly string trackingId = "G-7BM1508TJZ"; 
+        
+        // Logger instance for logging messages and errors
         private readonly ILogger<GoogleAnalyticsService> _logger;
 
+        // Constructor that takes a logger as a dependency
         public GoogleAnalyticsService(ILogger<GoogleAnalyticsService> logger)
         {
-            _logger = logger;
+            _logger = logger; // Assign the logger to the private field
         }
 
-        // Send an event to Google Analytics
+        // Method to send an event to Google Analytics
         public async Task SendEventAsync(string eventCategory, string clientId, string endpointLabel)
         {
+            // Prepare the data to be sent in the request
             var values = new Dictionary<string, string>
             {
                 { "v", "1" }, // Protocol version
@@ -33,15 +40,21 @@ namespace Share2Teach.Analytics // Updated namespace
                 { "debug", "true" } // Enable debug mode
             };
 
+            // Create the content for the POST request
             var content = new FormUrlEncodedContent(values);
+
+            // Send the POST request to Google Analytics
             var response = await client.PostAsync("https://www.google-analytics.com/debug/collect", content);
 
+            // Check if the response was successful
             if (response.IsSuccessStatusCode)
             {
+                // Log success message if the event was sent successfully
                 _logger.LogInformation("Analytics event sent successfully for {eventCategory} - {endpointLabel}", eventCategory, endpointLabel);
             }
             else
             {
+                // Log an error message if the event failed to send
                 _logger.LogError("Failed to send event: {statusCode}", response.StatusCode);
             }
         }
