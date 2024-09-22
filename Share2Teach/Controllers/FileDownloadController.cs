@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -10,46 +9,72 @@ namespace DatabaseConnection.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class DownloadFile : ControllerBase
+    public class FileDownloadController : ControllerBase
     {
         private static readonly string username = "aramsunar";
         private static readonly string password = "Jaedene12!";
-        private static readonly string webdavUrl = "http://localhost:8080/remote.php/dav/files/aramsunar/";
+        private static readonly string webdavUrl = "http://localhost:8080/remote.php/dav/files/aramsunar";
 
         // Download file from Nextcloud
         [HttpGet("download/{fileName}")]
         public async Task<IActionResult> Download(string fileName)
         {
-            var downloadUrl = $"{webdavUrl}/{fileName}";
+            // Encode the file name to handle spaces and special characters
+            var encodedFileName = Uri.EscapeDataString(fileName);
+            var downloadUrl = $"{webdavUrl.TrimEnd('/')}/{encodedFileName}";
 
             using (var client = new HttpClient())
             {
+                // Adding basic authentication headers
                 var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
 
                 try
                 {
+                    // Log the URL for debugging purposes
+                    Console.WriteLine($"Attempting to download from URL: {downloadUrl}");
+
+                    // Make the HTTP GET request
                     var response = await client.GetAsync(downloadUrl);
 
                     if (response.IsSuccessStatusCode)
                     {
+                        // Read the file content as bytes
                         var fileBytes = await response.Content.ReadAsByteArrayAsync();
-                        return File(fileBytes, "application/octet-stream", fileName);
+
+                        // Get content type from response if available, default to 'application/octet-stream'
+                        var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
+
+                        // Return the file as a downloadable response
+                        return File(fileBytes, contentType, fileName);
+                    }
+                    else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        // Specific handling for 404 Not Found
+                        return NotFound(new { message = $"File '{fileName}' not found on the server." });
                     }
                     else
                     {
+                        // Log the failed status code and return it
+                        Console.WriteLine($"Failed to download. Status Code: {response.StatusCode}");
                         return StatusCode((int)response.StatusCode, new { message = $"Download failed: {response.StatusCode}" });
                     }
                 }
+                catch (HttpRequestException ex)
+                {
+                    // Network-related exception
+                    return StatusCode(500, new { message = $"Network error during download: {ex.Message}" });
+                }
                 catch (Exception ex)
                 {
+                    // Log general exceptions
+                    Console.WriteLine($"Exception during download: {ex}");
                     return StatusCode(500, new { message = $"Exception during download: {ex.Message}" });
                 }
             }
         }
     }
 }
-
 
 /*class FileDownload
 {
