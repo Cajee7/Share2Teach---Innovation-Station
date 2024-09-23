@@ -20,6 +20,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write   # Add id-token permission for OIDC tokens
 
     steps:
       - name: Checkout repository
@@ -89,10 +90,11 @@ jobs:
           chmod +x cosign
           sudo mv cosign /usr/local/bin/
 
-      # Signing the Docker image
+      # Signing the Docker image using keyless OIDC authentication
       - name: Sign the Docker image
         if: ${{ github.event_name != 'pull_request' }}
         env:
           TAGS: ${{ steps.meta.outputs.tags }}
           DIGEST: ${{ steps.build-and-push.outputs.digest }}
-        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+        run: |
+          cosign sign --yes --oidc-github ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${DIGEST}
