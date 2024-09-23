@@ -9,106 +9,68 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using DatabaseConnection; // Import database connection class
 
 namespace UploadDocuments
 {
     public class DocumentUploader
     {
-        private const long MaxFileSize = 25 * 1024 * 1024;
+        private const long MaxFileSize = 25 * 1024 * 1024; // 25 MB max size
+        private const string AllowedFileTypes = ".docx,.pptx,.xlsx,.pdf"; // Allowed file types
         private const string NextcloudBaseUrl = "http://localhost:8080/remote.php/dav/files/aramsunar/";
         private const string NextcloudUsername = "aramsunar";
         private const string NextcloudPassword = "Jaedene12!";
 
-        // Method to upload document and check file size
+        // Method to handle the full process of document upload
         public static async Task UploadDocument(string filePath)
         {
-            if (File.Exists(filePath))
-            {
-                FileInfo fileInfo = new FileInfo(filePath);
-
-                if (fileInfo.Length <= MaxFileSize && fileInfo.Length > 0)
-                {
-                    Console.WriteLine("File within size limit.");
-                    string outputPdfPath = Path.ChangeExtension(filePath, ".pdf");
-
-                    // Convert to PDF using LibreOffice
-                    ConvertToPdf(filePath, outputPdfPath);
-
-                    FileInfo pdfFileInfo = new FileInfo(outputPdfPath);
-                    Console.WriteLine($"Converted PDF Size: {pdfFileInfo.Length} bytes");
-
-                    // Upload to Nextcloud and get the file URL
-                    string nextcloudUrl = await UploadToNextcloud(outputPdfPath);
-
-                    if (string.IsNullOrEmpty(nextcloudUrl))
-                    {
-                        Console.WriteLine("Error uploading file to Nextcloud.");
-                        return;
-                    }
-
-                    // Initialize the document with required fields as empty strings
-                    var document = new Document_Model.Models.Documents
-                    {
-                        Title = string.Empty, // Placeholder for user input
-                        Subject = string.Empty, // Placeholder for user input
-                        Description = string.Empty, // Placeholder for user input
-                        FileSize = pdfFileInfo.Length,
-                        FileUrl = nextcloudUrl,
-                        DateUploaded = DateTime.UtcNow,
-                        ModerationStatus = "Unmoderated",
-                        Ratings = 0,
-                        Tags = GenerateTags(outputPdfPath)
-                    };
-
-                    // Get user input for required fields
-                    Console.WriteLine("Enter Document Title: ");
-                    document.Title = Console.ReadLine();
-                    if (string.IsNullOrWhiteSpace(document.Title))
-                    {
-                        Console.WriteLine("Error! Please enter a title!");
-                        return;
-                    }
-
-                    Console.WriteLine("Enter the Subject:");
-                    document.Subject = Console.ReadLine();
-                    if (string.IsNullOrWhiteSpace(document.Subject))
-                    {
-                        Console.WriteLine("Error! Please enter a subject!");
-                        return;
-                    }
-
-                    Console.WriteLine("Enter the Grade:");
-                    if (!int.TryParse(Console.ReadLine(), out int grade))
-                    {
-                        Console.WriteLine("Invalid grade input. Please enter a number.");
-                        return;
-                    }
-                    document.Grade = grade;
-
-                    Console.WriteLine("Enter the Description:");
-                    document.Description = Console.ReadLine();
-                    if (string.IsNullOrWhiteSpace(document.Description))
-                    {
-                        Console.WriteLine("Error! Please enter a description!");
-                        return;
-                    }
-
-                    // Save the document to the database
-                    SaveDocumentToDatabase(document);
-                }
-                else
-                {
-                    Console.WriteLine("Error: File size exceeds 25 MB!");
-                }
-            }
-            else
+            // Check if file exists
+            if (!File.Exists(filePath))
             {
                 Console.WriteLine("Error: File not found!");
+                return;
             }
+
+            FileInfo fileInfo = new FileInfo(filePath);
+
+            // Check file size
+            if (fileInfo.Length > MaxFileSize || fileInfo.Length <= 0)
+            {
+                Console.WriteLine("Error: File size exceeds 25 MB or is empty!");
+                return;
+            }
+
+            // Check file type
+            if (!AllowedFileTypes.Contains(fileInfo.Extension.ToLower()))
+            {
+                Console.WriteLine("Error: Unsupported file type!");
+                return;
+            }
+
+            Console.WriteLine("File within size and type limits.");
+
+            // Convert to PDF if necessary
+            string outputPdfPath = Path.ChangeExtension(filePath, ".pdf");
+            ConvertToPdf(filePath, outputPdfPath);
+
+            // Upload to Nextcloud and get the file URL
+            string? nextcloudUrl = await UploadToNextcloud(outputPdfPath);
+
+            if (string.IsNullOrEmpty(nextcloudUrl))
+            {
+                Console.WriteLine("Error uploading file to Nextcloud.");
+                return; 
+            }
+
+            // Initialize document metadata
+            var document = CollectDocumentDetails(outputPdfPath, nextcloudUrl);
+
+            // Save the document to MongoDB
+            SaveDocumentToDatabase(document);
         }
 
-        // Upload file to Nextcloud using WebDAV
-        private static async Task<string> UploadToNextcloud(string filePath)
+        // Method to upload a file to Nextcloud using WebDAV
+        private static async Task<string?> UploadToNextcloud(string filePath)
         {
             string fileName = Path.GetFileName(filePath);
             string uploadUrl = $"{NextcloudBaseUrl}/{fileName}";
@@ -125,7 +87,6 @@ namespace UploadDocuments
                     try
                     {
                         HttpResponseMessage response = await client.PutAsync(uploadUrl, content);
-
                         if (response.IsSuccessStatusCode)
                         {
                             Console.WriteLine("File uploaded successfully to Nextcloud.");
@@ -147,9 +108,16 @@ namespace UploadDocuments
             }
         }
 
-        // Convert to PDFs using LibreOffice
-        public static void ConvertToPdf(string filePath, string outputPdfPath)
+        // Method to convert documents to PDFs using LibreOffice
+        private static void ConvertToPdf(string filePath, string outputPdfPath)
         {
+            if (Path.GetExtension(filePath).ToLower() == ".pdf")
+            {
+                // If it's already a PDF, skip the conversion
+                Console.WriteLine("File is already in PDF format.");
+                return;
+            }
+
             try
             {
                 var startInfo = new ProcessStartInfo
@@ -183,7 +151,64 @@ namespace UploadDocuments
             }
         }
 
-        // Generate tags from file content
+        // Prompt user to input required document details
+        private static Documents CollectDocumentDetails(string filePath, string fileUrl)
+        {
+            FileInfo pdfFileInfo = new FileInfo(filePath);
+
+            var document = new Document_Model.Models.Documents
+            {
+                Title = "Placeholder Title",
+                Subject = "Placeholder Subject",
+                Description = "Placeholder Desc.",
+                FileSize = pdfFileInfo.Length,
+                FileUrl = fileUrl,
+                DateUploaded = DateTime.UtcNow,
+                ModerationStatus = "Unmoderated",
+                Ratings = 0,
+                Tags = GenerateTags(filePath)
+            };
+
+            // Collect user input
+            Console.WriteLine("Enter Document Title: ");
+            string? titleInput = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(titleInput))
+            {
+                Console.WriteLine("Error! Please enter a valid title!");
+                throw new Exception("Title is required.");
+            }
+            document.Title = titleInput;
+
+            Console.WriteLine("Enter the Subject:");
+            string? subjectInput = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(subjectInput))
+            {
+                Console.WriteLine("Error! Please enter a valid subject!");
+                throw new Exception("Subject is required.");
+            }
+            document.Subject = subjectInput;
+
+            Console.WriteLine("Enter the Grade:");
+            if (!int.TryParse(Console.ReadLine(), out int grade))
+            {
+                Console.WriteLine("Invalid grade input. Please enter a number.");
+                throw new Exception("Valid grade is required.");
+            }
+            document.Grade = grade;
+
+            Console.WriteLine("Enter the Description:");
+            string? descriptionInput = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(descriptionInput))
+            {
+                Console.WriteLine("Error! Please enter a valid description!");
+                throw new Exception("Description is required.");
+            }
+            document.Description = descriptionInput;
+
+            return document;
+        }
+
+        // Generate tags from the document content
         private static List<string> GenerateTags(string filePath)
         {
             var tags = new List<string>();
@@ -209,14 +234,14 @@ namespace UploadDocuments
             return tags;
         }
 
-        // Save the document to the database
-        private static void SaveDocumentToDatabase(Document_Model.Models.Documents document)
+        // Save document metadata to MongoDB
+        private static void SaveDocumentToDatabase(Documents document)
         {
             var database = DatabaseConnection.Program.ConnectToDatabase();
 
             if (database != null)
             {
-                var collection = database.GetCollection<Document_Model.Models.Documents>("Documents");
+                var collection = database.GetCollection<Documents>("Documents");
                 collection.InsertOne(document);
                 Console.WriteLine("Document saved to database successfully.");
             }

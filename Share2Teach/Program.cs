@@ -4,6 +4,9 @@ using Microsoft.OpenApi.Models; // Add this
 using System.Text;
 using MongoDB.Driver;
 using Serilog;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Share2Teach.Analytics; // Import your analytics namespace
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -88,6 +91,9 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// Register GoogleAnalyticsService
+builder.Services.AddSingleton<GoogleAnalyticsService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
@@ -100,6 +106,9 @@ if (app.Environment.IsDevelopment())
         context.Response.Redirect("/swagger");
     });
 }
+
+// Add Google Analytics Middleware to track analytics
+app.UseMiddleware<GoogleAnalyticsMiddleware>();  // Add this line to include the middleware
 
 app.UseAuthentication();
 app.UseAuthorization();

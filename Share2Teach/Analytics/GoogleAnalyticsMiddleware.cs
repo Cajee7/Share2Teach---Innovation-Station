@@ -1,8 +1,9 @@
-using Microsoft.AspNetCore.Http; 
-using System.Threading.Tasks; 
-using Microsoft.Extensions.Logging; 
+using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using System;
 
-namespace Share2Teach.Analytics 
+namespace Share2Teach.Analytics
 {
     public class GoogleAnalyticsMiddleware
     {
@@ -21,25 +22,29 @@ namespace Share2Teach.Analytics
         // Method to handle the incoming HTTP context
         public async Task Invoke(HttpContext context)
         {
-            // Call the next middleware in the pipeline first
-            await _next(context);
+            // Log the request details before proceeding to the next middleware
+            var eventCategory = "API Request";
+            var clientId = $"{context.Connection.RemoteIpAddress}-{context.Request.Headers["User-Agent"]}"; // Create a unique identifier using IP and User-Agent
+            var endpointLabel = $"{context.Request.Method} {context.Request.Path}";
 
-            // Logic for sending event to Google Analytics
-            var eventCategory = "API Request"; // Set the event category for tracking
-            var clientId = context.Request.Headers["User-Agent"].ToString(); // Get a unique identifier from the request headers (User-Agent)
-            var endpointLabel = $"{context.Request.Method} {context.Request.Path}"; // Create a label for the endpoint being called
+            _logger.LogInformation("Handling request for {Endpoint} with ClientId: {ClientId}", endpointLabel, clientId);
 
-            // Send the event to Google Analytics
             try
             {
-                // Call the service method to send the event
+                // Call the next middleware in the pipeline (this will process the request and generate the response)
+                await _next(context);
+
+                // Send the event to Google Analytics after the request is processed
                 await _googleAnalyticsService.SendEventAsync(eventCategory, clientId, endpointLabel);
-                _logger.LogInformation("Google Analytics event sent for {Endpoint}", endpointLabel); // Log success
+
+                // Log success after sending the event
+                _logger.LogInformation("Google Analytics event sent for {Endpoint} with status {StatusCode}", endpointLabel, context.Response.StatusCode);
             }
             catch (Exception ex)
             {
-                // Log an error if the event fails to send
-                _logger.LogError("Failed to send Google Analytics event: {Exception}", ex.Message);
+                // Handle and log any errors
+                _logger.LogError("Failed to process request for {Endpoint}: {Exception}", endpointLabel, ex.Message);
+                throw; // Re-throw the exception to allow the request pipeline to handle it
             }
         }
     }
