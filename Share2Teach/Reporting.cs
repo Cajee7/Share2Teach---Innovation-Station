@@ -31,7 +31,7 @@ namespace ReportManagement.Controllers
         }
 
         // GET: api/reporting
-[HttpGet]
+[HttpGet("GetReports")]
 public IActionResult GetReports([FromQuery] string? userId = null, [FromQuery] string? status = null)
 {
     var reportCollection = GetReportCollection();
@@ -73,11 +73,11 @@ public IActionResult GetReports([FromQuery] string? userId = null, [FromQuery] s
 
 
         // POST: api/reporting
-        [HttpPost]
+        [HttpPost("CreateReport")]
         public IActionResult CreateReport([FromBody] ReportDto reportDto)
         {
-            if (reportDto == null || reportDto.Report_id <= 0 || string.IsNullOrEmpty(reportDto.DocumentId) ||
-                string.IsNullOrEmpty(reportDto.UserId) || string.IsNullOrEmpty(reportDto.Reason) ||
+            if (reportDto == null || reportDto.Report_id <= 0 || reportDto.DocumentId<=0 ||
+                reportDto.UserId <=0 || string.IsNullOrEmpty(reportDto.Reason) ||
                 string.IsNullOrEmpty(reportDto.Subject))
             {
                 return BadRequest(new { message = "All fields are required." });
@@ -90,7 +90,7 @@ public IActionResult GetReports([FromQuery] string? userId = null, [FromQuery] s
                 { "DocumentId", reportDto.DocumentId },
                 { "UserId", reportDto.UserId },
                 { "Reason", reportDto.Reason },
-                { "Comment", reportDto.Comment },
+               // { "Comment", reportDto.Comment },
                 { "Subject", reportDto.Subject },
                 { "Status", BsonNull.Value },
                 { "DateSubmitted", DateTime.UtcNow }
