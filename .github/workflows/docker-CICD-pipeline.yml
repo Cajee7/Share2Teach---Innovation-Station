@@ -20,37 +20,29 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write   
+      id-token: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Set up .NET SDK
-      - name: Setup .NET 8
+      # Install .NET SDK
+      - name: Set up .NET Core
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
 
       # Restore dependencies
       - name: Restore dependencies
-        run: dotnet restore Share2Teach/Share2Teach.csproj
+        run: dotnet restore
 
       # Build the project
       - name: Build project
-        run: dotnet build Share2Teach/Share2Teach.csproj --configuration Release --no-restore
+        run: dotnet build --configuration Release --no-restore
 
       # Run unit tests
-      - name: Run unit tests
-        run: dotnet test Share2Teach/Share2Teach.csproj --no-restore --verbosity normal --logger trx --results-directory "TestResults"
-
-      # Upload test results
-      - name: Upload dotnet test results
-        uses: actions/upload-artifact@v4
-        with:
-          name: dotnet-results
-          path: TestResults
-        if: ${{ always() }}
+      - name: Run tests
+        run: dotnet test --no-restore --verbosity normal
 
       # Set up Docker Buildx for building multi-platform images
       - name: Set up Docker Buildx
@@ -76,25 +68,24 @@ jobs:
         id: build-and-push
         uses: docker/build-push-action@v5
         with:
-          context: ./Share2Teach  
+          context: ./Share2Teach
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Install cosign to sign Docker images
+      # Install cosign
       - name: Install cosign
         if: github.event_name != 'pull_request'
         uses: sigstore/cosign-installer@v2.2.0
         with:
           cosign-release: 'v2.2.4'
 
-      # Signing the Docker image using keyless OIDC authentication
+      # Sign the Docker image
       - name: Sign the Docker image
         if: ${{ github.event_name != 'pull_request' }}
         env:
           TAGS: ${{ steps.meta.outputs.tags }}
           DIGEST: ${{ steps.build-and-push.outputs.digest }}
-        run: |
-          cosign sign --yes --oidc-github ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${DIGEST}
+        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
