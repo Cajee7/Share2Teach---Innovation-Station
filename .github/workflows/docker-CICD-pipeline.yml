@@ -15,7 +15,6 @@ env:
 
 jobs:
   build-and-test:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -31,6 +30,15 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
+
+      # Cache NuGet packages
+      - name: Cache NuGet packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
 
       # Restore dependencies
       - name: Restore dependencies
