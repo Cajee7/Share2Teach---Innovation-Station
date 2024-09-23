@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dotnet-version: [ '8.0.x', '6.0.x' ]  # Add or remove versions as needed
+        dotnet-version: [ '8.0.x', '6.0.x' ]  
 
     steps:
       - name: Checkout repository
@@ -83,7 +83,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Optional: Sign the Docker image
+      # Signing the Docker image
       - name: Sign the Docker image
         if: ${{ github.event_name != 'pull_request' }}
         env:
