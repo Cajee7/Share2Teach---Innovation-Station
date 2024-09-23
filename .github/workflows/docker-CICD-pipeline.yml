@@ -15,21 +15,17 @@ env:
 
 jobs:
   build-and-test:
-
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dotnet-version: [ '8.0.x', '6.0.x' ]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       # Set up .NET SDK
-      - name: Setup dotnet ${{ matrix.dotnet-version }}
+      - name: Setup .NET 8
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: ${{ matrix.dotnet-version }}
+          dotnet-version: '8.0.x'
 
       # Restore dependencies
       - name: Restore dependencies
@@ -41,14 +37,14 @@ jobs:
 
       # Run unit tests
       - name: Run unit tests
-        run: dotnet test Share2Teach/Share2Teach.csproj --no-restore --verbosity normal --logger trx --results-directory "TestResults-${{ matrix.dotnet-version }}"
+        run: dotnet test Share2Teach/Share2Teach.csproj --no-restore --verbosity normal --logger trx --results-directory "TestResults"
 
       # Upload test results
       - name: Upload dotnet test results
         uses: actions/upload-artifact@v4
         with:
-          name: dotnet-results-${{ matrix.dotnet-version }}
-          path: TestResults-${{ matrix.dotnet-version }}
+          name: dotnet-results
+          path: TestResults
         if: ${{ always() }}
 
       # Set up Docker Buildx for building multi-platform images
