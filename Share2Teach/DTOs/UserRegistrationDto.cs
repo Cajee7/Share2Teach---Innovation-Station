@@ -5,11 +5,11 @@ public class UserRegistrationDto
 {
     [Required(ErrorMessage = "First name is required.")]
     [StringLength(15, MinimumLength = 2, ErrorMessage = "First name must be between 2 and 15 characters.")]
-    public string FName { get; set; }
+    public string FirstName { get; set; }
 
     [Required(ErrorMessage = "Last name is required.")]
     [StringLength(20, MinimumLength = 2, ErrorMessage = "Last name must be between 2 and 20 characters.")]
-    public string LName { get; set; }
+    public string LastName { get; set; }
 
     [Required(ErrorMessage = "Email is required.")]
     [EmailAddress(ErrorMessage = "Invalid email format.")]

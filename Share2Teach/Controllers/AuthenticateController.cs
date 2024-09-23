@@ -34,7 +34,9 @@ namespace DatabaseConnection.Controllers
             if (model.Password != model.ConfirmPassword)
                 return BadRequest(new { message = "Passwords do not match" });
 
-            if (model.Role != "Teacher" && model.Role != "User" && model.Role != "teacher" && model.Role != "user")
+            // Normalize role to lowercase for comparison
+            var normalizedRole = model.Role.ToLower();
+            if (normalizedRole != "teacher" && normalizedRole != "user")
                 return BadRequest(new { message = "Only Teacher or User roles are allowed for registration." });
 
             var existingUser = await _usersCollection.Find(new BsonDocument("Email", model.Email)).FirstOrDefaultAsync();
@@ -44,7 +46,7 @@ namespace DatabaseConnection.Controllers
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.Password);
 
             // Teacher role validation: checks for institutional email and subjects
-            if (model.Role == "Teacher")
+            if (normalizedRole == "teacher")
             {
                 if (!model.Email.EndsWith(".edu") && !model.Email.EndsWith(".gov"))
                     return BadRequest(new { message = "Invalid email! Cannot register as a teacher." });
@@ -55,21 +57,21 @@ namespace DatabaseConnection.Controllers
 
             var newUser = new BsonDocument
             {
-                { "FName", model.FName },
-                { "LName", model.LName },
+                { "FirstName", model.FirstName }, // Updated to FirstName
+                { "LastName", model.LastName }, // Updated to LastName
                 { "Email", model.Email },
                 { "Password", hashedPassword },
-                { "Role", model.Role }
+                { "Role", normalizedRole } // Store role in lowercase
             };
 
-            if (model.Role == "Teacher")
+            if (normalizedRole == "teacher")
             {
                 newUser["Subjects"] = new BsonArray(model.Subjects); // Add subjects for teachers
             }
 
             await _usersCollection.InsertOneAsync(newUser);
 
-            return Ok(new { message = model.Role == "Teacher" ? "Successfully registered as a teacher" : "User registered successfully" });
+            return Ok(new { message = normalizedRole == "teacher" ? "Successfully registered as a teacher" : "User registered successfully" });
         }
 
         // POST: api/authenticate/login
@@ -169,8 +171,8 @@ namespace DatabaseConnection.Controllers
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user["Email"].AsString),
-                new Claim(ClaimTypes.Name, $"{user["FName"]} {user["LName"]}"),
-                new Claim(ClaimTypes.Role, user["Role"].AsString),
+                new Claim(ClaimTypes.Name, $"{user["FirstName"]} {user["LastName"]}"), // Updated to FirstName and LastName
+                new Claim(ClaimTypes.Role, user["Role"].AsString.ToLower()), // Ensure role is used as lowercase
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
@@ -187,20 +189,41 @@ namespace DatabaseConnection.Controllers
 
         // PUT: api/authenticate/upgrade
         [HttpPut("upgrade")]
-        [Authorize(Roles = "Admin")] // Authorization check for Admin
+        [Authorize(Roles = "admin")] // Authorization check for Admin
         public async Task<IActionResult> UpgradeUser([FromQuery] string email, [FromBody] string newRole)
         {
+            // Normalize new role to lowercase for storage
+            var normalizedNewRole = newRole.ToLower();
+
+            // Find the user by email
             var user = await _usersCollection.Find(new BsonDocument("Email", email)).FirstOrDefaultAsync();
             if (user == null)
                 return NotFound(new { message = "User not found" });
 
-            if (newRole != "Moderator" && newRole != "Admin")
-                return BadRequest(new { message = "Only Moderator or Admin roles are allowed for upgrade." });
+            // Get the current role of the user
+            var currentRole = user["Role"].AsString;
 
-            var update = Builders<BsonDocument>.Update.Set("Role", newRole);
+            // Define validation logic based on current role
+            if (currentRole == "user")
+            {
+                if (normalizedNewRole != "admin")
+                    return BadRequest(new { message = "A user can only be upgraded to an Admin role." });
+            }
+            else if (currentRole == "teacher")
+            {
+                if (normalizedNewRole != "moderator")
+                    return BadRequest(new { message = "A teacher can only be upgraded to a Moderator role." });
+            }
+            else
+            {
+                return BadRequest(new { message = "Only users or teachers can be upgraded." });
+            }
+
+            // Perform the role update if validation passes
+            var update = Builders<BsonDocument>.Update.Set("Role", normalizedNewRole);
             await _usersCollection.UpdateOneAsync(new BsonDocument("Email", email), update);
 
-            return Ok(new { message = $"User upgraded to {newRole} successfully." });
+            return Ok(new { message = $"User upgraded to {normalizedNewRole} successfully." });
         }
 
         // GET: api/authenticate/current-user
@@ -209,7 +232,7 @@ namespace DatabaseConnection.Controllers
         public IActionResult GetCurrentUser()
         {
             var userName = User.FindFirst(ClaimTypes.Name)?.Value; // Retrieve user's name
-            var userRole = User.FindFirst(ClaimTypes.Role)?.Value; // Retrieve user's role
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value.ToLower(); // Retrieve user's role as lowercase
 
             return Ok(new 
             { 
