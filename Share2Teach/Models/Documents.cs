@@ -9,11 +9,17 @@ namespace Document_Model.Models
         public required string Subject { get; set; }
         public int Grade { get; set; }
         public required string Description { get; set; }
-        public double FileSize { get; set; }
-        public required string FileUrl {get; set;}
-        public string ModerationStatus {get; set;} = "Unmoderated";
+        public double File_Size { get; set; }
+        public required string File_Url {get; set;}
+
+        public required string File_Type{get; set;}
+        public string Moderation_Status {get; set;} = "Unmoderated";
+
+        //[BsonElement("File_Path")] 
+        //public string File_Path { get; set; } 
         public int Ratings {get; set;}
-        public List<string> Tags {get; set;} = new(); // Default to an empty list
-        public DateTime DateUploaded { get; set; }
+        
+         public List<string> Tags { get; set; } = new List<string>();
+        public DateTime Date_Uploaded { get; set; }
     }
 }

@@ -161,10 +161,11 @@ namespace UploadDocuments
                 Title = "Placeholder Title",
                 Subject = "Placeholder Subject",
                 Description = "Placeholder Desc.",
-                FileSize = pdfFileInfo.Length,
-                FileUrl = fileUrl,
-                DateUploaded = DateTime.UtcNow,
-                ModerationStatus = "Unmoderated",
+                File_Size = pdfFileInfo.Length,
+                File_Url = fileUrl,
+                File_Type = pdfFileInfo.Extension,
+                Date_Uploaded = DateTime.UtcNow,
+                Moderation_Status = "Unmoderated",
                 Ratings = 0,
                 Tags = GenerateTags(filePath)
             };
