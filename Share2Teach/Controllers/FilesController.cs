@@ -17,6 +17,68 @@ namespace UploadDocuments.Controllers
             _documentsCollection = database.GetCollection<Documents>("Documents");
         }
 
+        // POST: api/files/upload
+        [HttpPost("upload")]
+        public async Task<IActionResult> UploadDocument([FromForm] DocumentUploadRequest request)
+        {
+            try
+            {
+                // Check if file is provided
+                if (request.File == null || request.File.Length == 0)
+                {
+                    return BadRequest("No file was uploaded.");
+                }
+
+                // Define the folder where files will be saved (this could be Nextcloud or another file storage location)
+                var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "UploadedFiles");
+                if (!Directory.Exists(uploadPath))
+                {
+                    Directory.CreateDirectory(uploadPath);
+                }
+
+                // Get file information
+                var fileName = Path.GetFileName(request.File.FileName);
+                var filePath = Path.Combine(uploadPath, fileName);
+                var fileSize = request.File.Length;
+                var fileType = Path.GetExtension(fileName);
+
+                // Save the file locally (or to a cloud location)
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await request.File.CopyToAsync(stream);
+                }
+
+                // Create a new document record to save in MongoDB
+                var newDocument = new Documents
+                {
+                    Title = request.Title,
+                    Subject = request.Subject,
+                    Grade = request.Grade,
+                    Description = request.Description,
+                    File_Size = Math.Round(fileSize / (1024.0 * 1024.0), 2), // Convert size to MB
+                    File_Url = filePath, // Ideally, this would be the URL to access the file in storage
+                    File_Type = fileType,
+                    Moderation_Status = "Unmoderated", // Initial moderation status
+                    Date_Uploaded = DateTime.UtcNow,
+                    Ratings = 0, // Initial rating
+                    Tags = new List<string>() // Can be populated later
+                };
+
+                // Insert the document record into MongoDB
+                await _documentsCollection.InsertOneAsync(newDocument);
+
+                return Ok($"File '{fileName}' uploaded successfully and document added to the database.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
+    
+
+
         // GET: api/files
         [HttpGet]
         public async Task<IActionResult> GetAllDocuments()
