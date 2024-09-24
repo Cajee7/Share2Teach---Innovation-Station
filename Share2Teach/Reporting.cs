@@ -31,47 +31,18 @@ namespace ReportManagement.Controllers
         }
 
         // GET: api/reporting
-[HttpGet("GetReports")]
-public IActionResult GetReports([FromQuery] string? userId = null, [FromQuery] string? status = null)
-{
-    var reportCollection = GetReportCollection();
-    var filterBuilder = Builders<BsonDocument>.Filter;
-    var filters = new List<FilterDefinition<BsonDocument>>();
-
-    // Add filters based on query parameters
-    if (!string.IsNullOrEmpty(userId))
-    {
-        filters.Add(filterBuilder.Eq("UserId", userId));
-    }
-
-    if (!string.IsNullOrEmpty(status))
-    {
-        switch (status.ToLower())
+        // GET: api/reporting/GetReports
+        [HttpGet("GetReports")]
+        public IActionResult GetReports()
         {
-            case "approved":
-                filters.Add(filterBuilder.Eq("Status", true));
-                break;
-            case "rejected":
-                filters.Add(filterBuilder.Eq("Status", false));
-                break;
-            case "unreviewed":
-                filters.Add(filterBuilder.Eq("Status", BsonNull.Value));
-                break;
-            default:
-                return BadRequest(new { message = "Invalid status value. Use 'approved', 'rejected', or 'unreviewed'." });
+             var reportCollection = GetReportCollection();
+
+             // No filters applied, fetch all reports
+            var reports = reportCollection.Find(Builders<BsonDocument>.Filter.Empty).ToList();
+
+             return Ok(reports);
         }
-    }
-
-    // Combine all filters
-    var filter = filters.Count > 0 ? filterBuilder.And(filters) : filterBuilder.Empty;
-
-    var reports = reportCollection.Find(filter).ToList();
-
-    return Ok(reports);
-}
-
-
-
+        
         // POST: api/reporting
         [HttpPost("CreateReport")]
         public IActionResult CreateReport([FromBody] ReportDto reportDto)
