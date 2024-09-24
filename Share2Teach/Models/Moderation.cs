@@ -1,7 +1,7 @@
 using System;
 
 
-namespace Share2Teach.Models
+namespace Moderation.Models
 {
     public partial class Moderation
     {
