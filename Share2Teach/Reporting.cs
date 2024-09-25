@@ -4,7 +4,6 @@ using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace ReportManagement.Controllers
 {
@@ -12,261 +11,113 @@ namespace ReportManagement.Controllers
     [Route("api/[controller]")]
     public class ReportingController : ControllerBase
     {
+
         private static IMongoCollection<BsonDocument> GetReportCollection()
         {
             var database = DatabaseConnection.Program.ConnectToDatabase();
             return database.GetCollection<BsonDocument>("Reports");
         }
-
-        private static readonly Dictionary<string, List<string>> moderatorSubjects = new Dictionary<string, List<string>>
+        private static readonly List<SaveReportDto> ReportDatabase = new List<SaveReportDto>
         {
-            { "moderator1@example.com", new List<string> { "Inappropriate content", "Outdated" } },
-            { "moderator2@example.com", new List<string> { "Inaccurate", "Misleading" } }
+            new SaveReportDto {DocumentId = "66d3a09a4ddfb71ae03ccfd2",Reason = "Inappropriate content" },
+            new SaveReportDto {DocumentId = "66f1f2140440e3538e5fdb4c",Reason = "Outdated" },
+            new SaveReportDto {DocumentId = "66f1f2680440e3538e5fdb4d",Reason = "Inaccurate"}
         };
 
-        private string GetCurrentModeratorEmail()
+        // POST: api/reporting/save-report
+        [HttpPost("save-report")]
+        public IActionResult SaveReport([FromBody] SaveReportDto saveReportDto)
         {
-            // Replace this with your actual logic to get the moderator's email
-            return User.Identity?.Name ?? string.Empty;  // Assuming you're using claims-based authentication
-        }
-
-        // GET: api/reporting
-[HttpGet("GetReports")]
-public IActionResult GetReports([FromQuery] string? userId = null, [FromQuery] string? status = null)
-{
-    var reportCollection = GetReportCollection();
-    var filterBuilder = Builders<BsonDocument>.Filter;
-    var filters = new List<FilterDefinition<BsonDocument>>();
-
-    // Add filters based on query parameters
-    if (!string.IsNullOrEmpty(userId))
-    {
-        filters.Add(filterBuilder.Eq("UserId", userId));
-    }
-
-    if (!string.IsNullOrEmpty(status))
-    {
-        switch (status.ToLower())
-        {
-            case "approved":
-                filters.Add(filterBuilder.Eq("Status", true));
-                break;
-            case "rejected":
-                filters.Add(filterBuilder.Eq("Status", false));
-                break;
-            case "unreviewed":
-                filters.Add(filterBuilder.Eq("Status", BsonNull.Value));
-                break;
-            default:
-                return BadRequest(new { message = "Invalid status value. Use 'approved', 'rejected', or 'unreviewed'." });
-        }
-    }
-
-    // Combine all filters
-    var filter = filters.Count > 0 ? filterBuilder.And(filters) : filterBuilder.Empty;
-
-    var reports = reportCollection.Find(filter).ToList();
-
-    return Ok(reports);
-}
-
-
-
-        // POST: api/reporting
-        [HttpPost("CreateReport")]
-        public IActionResult CreateReport([FromBody] ReportDto reportDto)
-        {
-            if (reportDto == null || reportDto.Report_id <= 0 || reportDto.DocumentId<=0 ||
-                reportDto.UserId <=0 || string.IsNullOrEmpty(reportDto.Reason) ||
-                string.IsNullOrEmpty(reportDto.Subject))
+            // Validate input: ensure that DocumentId (as string) and Reason are provided
+            if (saveReportDto == null || string.IsNullOrEmpty(saveReportDto.DocumentId) || string.IsNullOrEmpty(saveReportDto.Reason))
             {
-                return BadRequest(new { message = "All fields are required." });
+                return BadRequest(new { message = "DocumentId and Reason are required." });
+            }
+
+            // Validate and convert DocumentId from string to ObjectId
+            if (!ObjectId.TryParse(saveReportDto.DocumentId, out ObjectId documentObjectId))
+            {
+                return BadRequest(new { message = "Invalid DocumentId format." });
             }
 
             var reportCollection = GetReportCollection();
+
+            // Create the document with ObjectId, Reason, and set Status to "Pending"
             var reportDocument = new BsonDocument
             {
-                { "Report_id", reportDto.Report_id },
-                { "DocumentId", reportDto.DocumentId },
-                { "UserId", reportDto.UserId },
-                { "Reason", reportDto.Reason },
-               // { "Comment", reportDto.Comment },
-                { "Subject", reportDto.Subject },
-                { "Status", BsonNull.Value },
-                { "DateSubmitted", DateTime.UtcNow }
+                { "DocumentId", saveReportDto.DocumentId },
+                { "Reason", saveReportDto.Reason },
+                { "Status", "Pending" },  // Set Status to "Pending" initially
+                { "DateReported", DateTime.UtcNow },  // Automatically set the current date and time
+                //{ "DateSubmitted", DateTime.UtcNow }
             };
 
+            // Insert the document into the MongoDB collection
             reportCollection.InsertOne(reportDocument);
-            return CreatedAtAction(nameof(GetReports), new { id = reportDto.Report_id }, reportDto);
+
+            return CreatedAtAction(nameof(SaveReport), new { id = reportDocument["_id"].ToString() }, reportDocument);
         }
 
-        // POST: api/reporting/review/{id}
-        [HttpPost("review/{id}")]
-        public IActionResult ReviewReport(int id, [FromBody] ReportReviewDto reviewDto)
+        // GET: api/reporting/GetReports
+        [HttpGet("GetReports")]
+        public IActionResult GetReports()
         {
             var reportCollection = GetReportCollection();
-            var filter = Builders<BsonDocument>.Filter.Eq("Report_id", id);
+
+            // No filters applied, fetch all reports
+            var reports = reportCollection.Find(Builders<BsonDocument>.Filter.Empty).ToList();
+
+            return Ok(reports);
+        }
+
+        // PUT: api/reporting/update-status/{id}
+        [HttpPut("update-status/{id}")]
+        public IActionResult UpdateReportStatus(string id, [FromBody] UpdateReportStatusDto updateReportStatusDto)
+        {
+            // Validate and convert the string id to ObjectId
+            if (!ObjectId.TryParse(id, out ObjectId reportObjectId))
+            {
+                return BadRequest(new { message = "Invalid report id format." });
+            }
+
+            var reportCollection = GetReportCollection();
+            var filter = Builders<BsonDocument>.Filter.Eq("_id", reportObjectId);
 
             var report = reportCollection.Find(filter).FirstOrDefault();
             if (report == null)
                 return NotFound(new { message = "Report not found." });
 
-            string moderatorEmail = GetCurrentModeratorEmail();
-
-            // Check authorization
-            if (!moderatorSubjects.ContainsKey(moderatorEmail) || !moderatorSubjects[moderatorEmail].Contains(report["Subject"].AsString))
-            {
-                return StatusCode(403, new { message = "You are not authorized to review this report." });
-
-            }
-
             var update = Builders<BsonDocument>.Update
-                .Set("Status", reviewDto.Approve)
-                .Set("ModeratorComments", reviewDto.ModeratorComments)
+                .Set("Status", updateReportStatusDto.Status)
                 .Set("DateReviewed", DateTime.UtcNow);
 
             var result = reportCollection.UpdateOne(filter, update);
+
             if (result.MatchedCount > 0)
             {
-                return Ok(new { message = "Report reviewed successfully." });
+                return Ok(new { message = "Report status updated successfully." });
             }
-            return BadRequest(new { message = "Report not reviewed. Report ID not found." });
+            return BadRequest(new { message = "Report status update failed." });
         }
-    }
-}
-    
 
-
-/*using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-
-namespace ReportManagement.Controllers
-{
-    [ApiController]
-    [Route("api/[controller]")]
-    public class ReportingController : ControllerBase
-    {
-        private static readonly List<ReportDto> ReportDatabase = new List<ReportDto>
+        // DELETE: api/reporting/delete-approved
+        [HttpDelete("delete-approved")]
+        public IActionResult DeleteApprovedReports()
         {
-            new ReportDto { Report_id = 1, DocumentId = "file1.txt", UserId = "user1", Reason = "Inappropriate content", Comment = "Contains offensive material.", Status = null, DateSubmitted = DateTime.UtcNow, Subject = "Content Review" },
-            new ReportDto { Report_id = 2, DocumentId = "file2.txt", UserId = "user2", Reason = "Outdated", Comment = "Information is outdated.", Status = null, DateSubmitted = DateTime.UtcNow, Subject = "Technical Review" },
-            new ReportDto { Report_id = 3, DocumentId = "file3.txt", UserId = "user3", Reason = "Inaccurate", Comment = "Incorrect data.", Status = true, DateSubmitted = DateTime.UtcNow, ModeratorComments = "Confirmed issue.", Subject = "Content Review" }
-        };
+            var reportCollection = GetReportCollection();
+            var filter = Builders<BsonDocument>.Filter.Eq("Status", "Approved");  // Assuming Status is a string
 
-        // GET: api/reporting/unreviewed
-        [HttpGet("unreviewed")]
-        public IActionResult GetUnreviewedReports([FromQuery] string documentId = null)
-        {
-            var unreviewedReports = ReportDatabase.Where(r => r.Status == null);
+            var deletedReports = reportCollection.Find(filter).ToList();  // Retrieve reports to return them
+            var deleteResult = reportCollection.DeleteMany(filter);
 
-            if (!string.IsNullOrEmpty(documentId))
+            if (deleteResult.DeletedCount > 0)
             {
-                unreviewedReports = unreviewedReports.Where(r => r.DocumentId.Equals(documentId, StringComparison.OrdinalIgnoreCase));
+                return Ok(new { message = $"{deleteResult.DeletedCount} approved reports deleted.", reports = deletedReports });
             }
 
-            return Ok(unreviewedReports.ToList());
+            return BadRequest(new { message = "No approved reports found to delete." });
         }
-
-        // GET: api/reporting/{id}
-        [HttpGet("{id}")]
-        public IActionResult GetReport(int id)
-        {
-            var report = ReportDatabase.FirstOrDefault(r => r.Report_id == id);
-            if (report == null)
-                return NotFound(new { message = "Report not found." });
-
-            return Ok(report);
-        }
-
-        // POST: api/reporting
-        [HttpPost("SubmitReport")]
-        public IActionResult SubmitReport([FromBody] ReportDto newReport)
-        {
-            if (newReport == null || newReport.Report_id <= 0 || string.IsNullOrEmpty(newReport.Reason))
-                return BadRequest(new { message = "Please provide all required information (Report_id and Reason)." });
-
-            if (ReportDatabase.Any(r => r.Report_id == newReport.Report_id))
-                return Conflict(new { message = "A report with this Report_id already exists." });
-
-            newReport.DateSubmitted = DateTime.UtcNow;
-            ReportDatabase.Add(newReport);
-
-            return CreatedAtAction(nameof(GetReport), new { id = newReport.Report_id }, newReport);
-        }
-
-        // POST: api/reporting/review/{id}
-[HttpPost("review/{id}")]
-public IActionResult ReviewReport(int id, [FromBody] ReportReviewDto reviewDto)
-{
-    var report = ReportDatabase.FirstOrDefault(r => r.Report_id == id);
-    if (report == null)
-        return NotFound(new { message = "Report not found." });
-
-    // Check if the report has already been reviewed
-    if (report.Status.HasValue)
-        return BadRequest(new { message = "This report has already been reviewed." });
-
-    // Retrieve the moderator's assigned subjects from claims
-    var moderatorSubjects = User.FindFirstValue("Subjects");
-
-    if (string.IsNullOrEmpty(moderatorSubjects))
-    {
-        return Unauthorized(new { message = "Moderator subjects not found in claims." });
     }
 
-    // Split the subjects claim into a list (assuming it's a comma-separated string)
-    var subjectList = moderatorSubjects.Split(',');
-
-    // Check if the moderator is authorized to review this report (Updated Line 87)
-    if (subjectList == null || !subjectList.Contains(report.Subject ?? string.Empty, StringComparer.OrdinalIgnoreCase))
-    {
-       return StatusCode(403, new { message = "You are not authorized to review this report." });
-
-    }
-
-    // Proceed with reviewing the report
-    report.Status = reviewDto.Approve;
-    report.ModeratorComments = reviewDto.ModeratorComments;
-    report.DateReviewed = DateTime.UtcNow;
-
-    return Ok(new { message = "Report reviewed successfully.", report });
+   
 }
-
-        // GET: api/reporting/search
-        [HttpGet("search")]
-        public IActionResult SearchReports([FromQuery] string documentId, [FromQuery] string userId, [FromQuery] string reason, [FromQuery] bool? status)
-        {
-            var filteredReports = ReportDatabase.AsQueryable();
-
-            if (!string.IsNullOrEmpty(documentId))
-                filteredReports = filteredReports.Where(r => r.DocumentId.Equals(documentId, StringComparison.OrdinalIgnoreCase));
-            if (!string.IsNullOrEmpty(userId))
-                filteredReports = filteredReports.Where(r => r.UserId.Equals(userId, StringComparison.OrdinalIgnoreCase));
-            if (!string.IsNullOrEmpty(reason))
-                filteredReports = filteredReports.Where(r => r.Reason.Contains(reason, StringComparison.OrdinalIgnoreCase));
-            if (status.HasValue)
-                filteredReports = filteredReports.Where(r => r.Status == status.Value);
-
-            return Ok(filteredReports.ToList());
-        }
-
-        // GET: api/reporting/file/{documentId}
-        [HttpGet("file/{documentId}")]
-        public IActionResult GetFile(string documentId)
-        {
-            var filePath = Path.Combine("path/to/files", documentId); // Adjust this path as necessary
-
-            if (!System.IO.File.Exists(filePath))
-            {
-                return NotFound(new { message = "File not found." });
-            }
-
-            var fileBytes = System.IO.File.ReadAllBytes(filePath);
-            return File(fileBytes, "application/octet-stream", documentId);
-        }
-    }
-
-}*/

@@ -14,14 +14,9 @@ namespace Document_Model.Models
 
         public required string File_Type{get; set;}
         public string Moderation_Status {get; set;} = "Unmoderated";
-
-        //[BsonElement("File_Path")] 
-        //public string File_Path { get; set; } 
         public int Ratings {get; set;}
         
          public List<string> Tags { get; set; } = new List<string>();
         public DateTime Date_Uploaded { get; set; }
-
-        public DateTime? Date_Updated { get; set; }
     }
 }
