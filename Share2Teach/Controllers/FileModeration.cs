@@ -1,66 +1,93 @@
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using DatabaseConnection.DTOs;
+using Moderation.Models;
+using Document_Model.Models;
+using MongoDB.Bson;
 
-namespace DatabaseConnection.Controllers
+namespace FileModeration.Controllers
 {
-    //Api controller to handle HTTP rewuests and returns HTTP responses 
     [ApiController]
-    [Route("api/[controller]")]//Name of the route like a placeholder
-    public class FileModerationController : ControllerBase
+    [Route("api/[controller]")]
+    public class ModerationController : ControllerBase
     {
-        // Replace this with a call to the database
-        private static readonly List<FileModerationDto> FilesDatabase = new List<FileModerationDto>
+        private readonly IMongoCollection<Documents> _documentsCollection;
+        private readonly IMongoCollection<ModerationEntry> _moderationCollection;
+
+        public ModerationController(IMongoDatabase database)
         {
-            new FileModerationDto { Id = 1, FileName = "file1.txt", FilePath = "/files/file1.txt", Subject = "Math", IsApproved = null },
-            new FileModerationDto { Id = 2, FileName = "file2.txt", FilePath = "/files/file2.txt", Subject = "Science", IsApproved = null },
-            new FileModerationDto { Id = 3, FileName = "file3.txt", FilePath = "/files/file3.txt", Subject = "Math", IsApproved = true }
+            _documentsCollection = database.GetCollection<Documents>("Documents");
+            _moderationCollection = database.GetCollection<ModerationEntry>("Moderations"); // Assuming you have a Moderations collection
+        }
+
+        // GET: api/moderation/unmoderated
+        [HttpGet("unmoderated")]
+        public async Task<IActionResult> GetUnmoderatedDocuments()
+        {
+            try
+            {
+                var filter = Builders<Documents>.Filter.Eq(doc => doc.Moderation_Status, "Unmoderated");
+                var unmoderatedDocuments = await _documentsCollection.Find(filter).ToListAsync();
+                return Ok(unmoderatedDocuments);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // PUT: api/moderation/update/{documentId}
+        // PUT: api/moderation/update/{documentId}
+[HttpPut("update/{documentId}")]
+public async Task<IActionResult> UpdateModerationStatus(string documentId, [FromBody] UpdateModerationRequest request)
+{
+    if (request == null)
+    {
+        return BadRequest("Update request is null.");
+    }
+
+    try
+    {
+        // Parse documentId to ObjectId
+        var objectId = ObjectId.Parse(documentId);
+        var filter = Builders<Documents>.Filter.Eq(doc => doc.Id, objectId); // Use ObjectId directly
+        
+        var update = Builders<Documents>.Update
+            .Set(doc => doc.Moderation_Status, request.Status)
+            .CurrentDate("DateUpdated"); // Assuming you have a field for the last updated date
+
+        var result = await _documentsCollection.UpdateOneAsync(filter, update);
+
+        if (result.ModifiedCount == 0)
+        {
+            return NotFound("Document not found or status not changed.");
+        }
+
+        // Insert the moderation entry
+        var moderationEntry = new ModerationEntry
+        {
+            Moderator_id = ""/* Get this from your authentication context */,
+            User_id = ""/* Get this from your authentication context */,
+            Document_id = documentId,
+            Date = DateTime.UtcNow,
+            Comments = request.Comment,
+            Ratings = null // Set to null or default value if not applicable
         };
 
-        //Returns a list of files that havent been moderated yet
-        [HttpGet("unmoderated")]
-        public IActionResult GetUnmoderatedFiles()
-        {
-            // Assuming the user's subjects are available from authentication/authorization layer.
-            var userSubjects = GetUserSubjects(); // Mock method to get user subjects
+        await _moderationCollection.InsertOneAsync(moderationEntry);
 
-            // Filter the files based on whether they are unmoderated and the subjects the moderator teaches.
-            var unmoderatedFiles = FilesDatabase
-                .Where(f => f.IsApproved == null && userSubjects.Contains(f.Subject))
-                .ToList();
+        return Ok("Document status updated and moderation entry added.");
+    }
+    catch (FormatException)
+    {
+        return BadRequest("Invalid document ID format.");
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, $"Internal server error: {ex.Message}");
+    }
+}
 
-            return Ok(unmoderatedFiles);
-        }
-
-        //Allows the moderator to approve or deny a file
-        [HttpPost("moderate/{id}")]
-        public async Task<IActionResult> ModerateFile(int id, [FromBody] ModerationActionDto actionDto)
-        {
-            var file = FilesDatabase.FirstOrDefault(f => f.Id == id);
-            if (file == null)
-                return NotFound(new { message = "File not found." });
-
-            // Checks if file has already been moderated
-            if (file.IsApproved.HasValue)
-                return BadRequest(new { message = "This file has already been moderated." });
-
-            // Update file moderation status based on the actionDto
-            file.IsApproved = actionDto.Status == ModerationStatus.Approve;
-            file.ModeratorComments = actionDto.Comments;
-            file.Rating = actionDto.Rating;
-
-            // Simulate database update or some data store update
-            var resultMessage = file.IsApproved == true ? "File approved successfully." : "File denied successfully.";
-            return Ok(new { message = resultMessage, file });
-        }
-
-        // Mock method to get user subjects from authentication/authorization
-        private List<string> GetUserSubjects()
-        {
-            // I need to replace this code with actual user subjects fetching logic
-            return new List<string> { "Math", "Science" };  // Example subjects for the moderator
-        }
     }
 }

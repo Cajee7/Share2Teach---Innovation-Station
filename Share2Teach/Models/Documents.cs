@@ -18,6 +18,5 @@ namespace Document_Model.Models
         
          public List<string> Tags { get; set; } = new List<string>();
         public DateTime Date_Uploaded { get; set; }
-        public DateTime? Date_Updated { get; set; }
     }
 }
