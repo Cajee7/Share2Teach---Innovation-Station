@@ -1,23 +1,23 @@
+using Aspose.Words;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
+using Document_Model.Models;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using MongoDB.Driver;
-using Document_Model.Models;
-using System.Collections.Generic;
 
 namespace Combined.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class FileController : ControllerBase
-    
     {
-        private static readonly string username = "aramsunar"; // Nextcloud username
-        private static readonly string password = "Jaedene12!"; // Nextcloud password
+        private static readonly string username = Environment.GetEnvironmentVariable("NEXTCLOUD_USERNAME"); // Nextcloud username
+        private static readonly string password = Environment.GetEnvironmentVariable("NEXTCLOUD_PASSWORD"); // Nextcloud password
         private static readonly string webdavUrl = "http://localhost:8080/remote.php/dav/files/aramsunar/"; // Nextcloud WebDAV endpoint
 
         private readonly IMongoCollection<Documents> _documentsCollection;
@@ -33,19 +33,19 @@ namespace Combined.Controllers
 
         // POST: api/file/upload
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadFile([FromForm] DocumentUploadRequest request)
+        public async Task<IActionResult> UploadFile([FromForm] CombinedUploadRequest request)
         {
             try
             {
                 // Check if file is provided
-                if (request.File == null || request.File.Length == 0)
+                if (request.UploadedFile == null || request.UploadedFile.Length == 0)
                 {
                     return BadRequest(new { message = "No file was uploaded." });
                 }
 
                 // Get file information
-                var fileName = Path.GetFileName(request.File.FileName);
-                var fileSize = request.File.Length;
+                var fileName = Path.GetFileName(request.UploadedFile.FileName);
+                var fileSize = request.UploadedFile.Length;
                 var fileType = Path.GetExtension(fileName).ToLowerInvariant();
 
                 // Check file size
@@ -60,14 +60,33 @@ namespace Combined.Controllers
                     return BadRequest(new { message = $"File type '{fileType}' is not allowed. Allowed types are: {string.Join(", ", _allowedFileTypes)}" });
                 }
 
-                // Upload file to Nextcloud
+                // Convert Word file to PDF if needed
+                string pdfFilePath = null;
+                if (fileType == ".doc" || fileType == ".docx")
+                {
+                    // Load the document using Aspose.Words
+                    var asposeDoc = new Document(request.UploadedFile.OpenReadStream());
+
+                    // Generate PDF file name
+                    var pdfFileName = Path.GetFileNameWithoutExtension(fileName) + ".pdf";
+                    pdfFilePath = Path.Combine(Path.GetTempPath(), pdfFileName);
+
+                    // Save the document as PDF
+                    asposeDoc.Save(pdfFilePath);
+
+                    // Update fileName to the new PDF file
+                    fileName = pdfFileName;
+                    fileType = ".pdf";
+                }
+
+                // Upload file to Nextcloud (PDF or original)
                 var uploadUrl = $"{webdavUrl}{fileName}";
                 using (var client = new HttpClient())
                 {
                     var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
 
-                    using (var content = new StreamContent(request.File.OpenReadStream()))
+                    using (var content = new StreamContent(pdfFilePath != null ? System.IO.File.OpenRead(pdfFilePath) : request.UploadedFile.OpenReadStream()))
                     {
                         content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
@@ -89,7 +108,7 @@ namespace Combined.Controllers
                     Description = request.Description,
                     File_Size = Math.Round(fileSize / (1024.0 * 1024.0), 2), // Convert size to MB
                     File_Url = uploadUrl, // Save the Nextcloud link
-                    File_Type = fileType, // Save original file type
+                    File_Type = fileType, // Save the file type (PDF or original)
                     Moderation_Status = "Unmoderated", // Initial moderation status
                     Date_Uploaded = DateTime.UtcNow,
                     Ratings = 0, // Initial rating
@@ -107,13 +126,5 @@ namespace Combined.Controllers
             }
         }
     }
-
-    public class DocumentUploadRequest
-    {
-        public IFormFile File { get; set; }
-        public string Title { get; set; }
-        public string Subject { get; set; }
-        public int Grade { get; set; }
-        public string Description { get; set; }
-    }
 }
+
