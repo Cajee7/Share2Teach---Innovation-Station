@@ -11,11 +11,18 @@ namespace ReportManagement.Controllers
     [Route("api/[controller]")]
     public class ReportingController : ControllerBase
     {
+
         private static IMongoCollection<BsonDocument> GetReportCollection()
         {
             var database = DatabaseConnection.Program.ConnectToDatabase();
             return database.GetCollection<BsonDocument>("Reports");
         }
+        private static readonly List<SaveReportDto> ReportDatabase = new List<SaveReportDto>
+        {
+            new SaveReportDto {DocumentId = "66d3a09a4ddfb71ae03ccfd2",Reason = "Inappropriate content" },
+            new SaveReportDto {DocumentId = "66f1f2140440e3538e5fdb4c",Reason = "Outdated" },
+            new SaveReportDto {DocumentId = "66f1f2680440e3538e5fdb4d",Reason = "Inaccurate"}
+        };
 
         // POST: api/reporting/save-report
         [HttpPost("save-report")]
@@ -38,11 +45,11 @@ namespace ReportManagement.Controllers
             // Create the document with ObjectId, Reason, and set Status to "Pending"
             var reportDocument = new BsonDocument
             {
-                { "DocumentId", documentObjectId },
+                { "DocumentId", saveReportDto.DocumentId },
                 { "Reason", saveReportDto.Reason },
                 { "Status", "Pending" },  // Set Status to "Pending" initially
                 { "DateReported", DateTime.UtcNow },  // Automatically set the current date and time
-                { "DateSubmitted", DateTime.UtcNow }
+                //{ "DateSubmitted", DateTime.UtcNow }
             };
 
             // Insert the document into the MongoDB collection
