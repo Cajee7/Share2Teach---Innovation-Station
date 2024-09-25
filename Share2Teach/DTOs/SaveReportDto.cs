@@ -6,5 +6,5 @@ public class SaveReportDto
         public required string  DocumentId { get; set; }
         public required string Reason { get; set; }
 
-        public required string Report_status{get;set;}
+        //public required string Report_status{get;set;}
     }

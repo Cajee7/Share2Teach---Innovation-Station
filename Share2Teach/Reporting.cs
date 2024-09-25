@@ -11,43 +11,45 @@ namespace ReportManagement.Controllers
     [Route("api/[controller]")]
     public class ReportingController : ControllerBase
     {
-        // Helper method to get the MongoDB Reports collection
         private static IMongoCollection<BsonDocument> GetReportCollection()
         {
             var database = DatabaseConnection.Program.ConnectToDatabase();
             return database.GetCollection<BsonDocument>("Reports");
         }
 
-       [HttpPost("save-report")]
-public IActionResult SaveReport([FromBody] SaveReportDto saveReportDto)
-{
-    if (saveReportDto == null || string.IsNullOrEmpty(saveReportDto.DocumentId) ||
-        string.IsNullOrEmpty(saveReportDto.Reason))
-    {
-        return BadRequest(new { message = "DocumentId and Reason are required." });
-    }
+        // POST: api/reporting/save-report
+        [HttpPost("save-report")]
+        public IActionResult SaveReport([FromBody] SaveReportDto saveReportDto)
+        {
+            // Validate input: ensure that DocumentId (as string) and Reason are provided
+            if (saveReportDto == null || string.IsNullOrEmpty(saveReportDto.DocumentId) || string.IsNullOrEmpty(saveReportDto.Reason))
+            {
+                return BadRequest(new { message = "DocumentId and Reason are required." });
+            }
 
-    // Ensure that DocumentId is a valid ObjectId string
-    if (!ObjectId.TryParse(saveReportDto.DocumentId, out ObjectId documentObjectId))
-    {
-        return BadRequest(new { message = "Invalid DocumentId format." });
-    }
+            // Validate and convert DocumentId from string to ObjectId
+            if (!ObjectId.TryParse(saveReportDto.DocumentId, out ObjectId documentObjectId))
+            {
+                return BadRequest(new { message = "Invalid DocumentId format." });
+            }
 
-    var reportCollection = GetReportCollection();
+            var reportCollection = GetReportCollection();
 
-    var reportDocument = new BsonDocument
-    {
-        { "DocumentId", documentObjectId },
-        { "Reason", saveReportDto.Reason },
-        { "ReportStatus", saveReportDto.Report_status ?? "Pending" },
-        { "DateReported", DateTime.UtcNow }
-    };
+            // Create the document with ObjectId, Reason, and set Status to "Pending"
+            var reportDocument = new BsonDocument
+            {
+                { "DocumentId", documentObjectId },
+                { "Reason", saveReportDto.Reason },
+                { "Status", "Pending" },  // Set Status to "Pending" initially
+                { "DateReported", DateTime.UtcNow },  // Automatically set the current date and time
+                { "DateSubmitted", DateTime.UtcNow }
+            };
 
-    reportCollection.InsertOne(reportDocument);
+            // Insert the document into the MongoDB collection
+            reportCollection.InsertOne(reportDocument);
 
-    return CreatedAtAction(nameof(GetReports), new { id = reportDocument["_id"].ToString() }, reportDocument);
-}
-
+            return CreatedAtAction(nameof(SaveReport), new { id = reportDocument["_id"].ToString() }, reportDocument);
+        }
 
         // GET: api/reporting/GetReports
         [HttpGet("GetReports")]
@@ -58,16 +60,7 @@ public IActionResult SaveReport([FromBody] SaveReportDto saveReportDto)
             // No filters applied, fetch all reports
             var reports = reportCollection.Find(Builders<BsonDocument>.Filter.Empty).ToList();
 
-            // Ensure that fields are accessed properly, and ObjectId is cast to string
-            var formattedReports = reports.Select(report => new {
-                Id = report["_id"].AsObjectId.ToString(),  // Ensure correct handling of ObjectId
-                DocumentId = report["DocumentId"].AsString,  // DocumentId is treated as a string
-                Reason = report["Reason"].AsString,
-                Report_Status = report["Report_Status"].AsString,  // Corrected field name
-                Date_Reported = report["Date_Reported"].ToUniversalTime()
-            }).ToList();
-
-            return Ok(formattedReports);
+            return Ok(reports);
         }
 
         // PUT: api/reporting/update-status/{id}
@@ -87,15 +80,8 @@ public IActionResult SaveReport([FromBody] SaveReportDto saveReportDto)
             if (report == null)
                 return NotFound(new { message = "Report not found." });
 
-            // Validate Report_Status
-            if (string.IsNullOrEmpty(updateReportStatusDto.Report_Status))
-            {
-                return BadRequest(new { message = "Report status is required." });
-            }
-
-            // Update the Status as a string
             var update = Builders<BsonDocument>.Update
-                .Set("Report_Status", updateReportStatusDto.Report_Status)  // Status as string
+                .Set("Status", updateReportStatusDto.Status)
                 .Set("DateReviewed", DateTime.UtcNow);
 
             var result = reportCollection.UpdateOne(filter, update);
@@ -104,7 +90,6 @@ public IActionResult SaveReport([FromBody] SaveReportDto saveReportDto)
             {
                 return Ok(new { message = "Report status updated successfully." });
             }
-
             return BadRequest(new { message = "Report status update failed." });
         }
 
@@ -113,9 +98,7 @@ public IActionResult SaveReport([FromBody] SaveReportDto saveReportDto)
         public IActionResult DeleteApprovedReports()
         {
             var reportCollection = GetReportCollection();
-
-            // Ensure we are filtering for documents where Status is explicitly a string with value "Approved"
-            var filter = Builders<BsonDocument>.Filter.Eq("Report_Status", "Approved");
+            var filter = Builders<BsonDocument>.Filter.Eq("Status", "Approved");  // Assuming Status is a string
 
             var deletedReports = reportCollection.Find(filter).ToList();  // Retrieve reports to return them
             var deleteResult = reportCollection.DeleteMany(filter);
@@ -128,4 +111,6 @@ public IActionResult SaveReport([FromBody] SaveReportDto saveReportDto)
             return BadRequest(new { message = "No approved reports found to delete." });
         }
     }
+
+   
 }
