@@ -107,7 +107,7 @@ namespace UploadDocuments.Controllers
                     Ratings = 0, // Initial rating
                     Tags = new List<string>() // Can be populated later
                 };
-
+                
                 // Insert the document record into MongoDB
                 await _documentsCollection.InsertOneAsync(newDocument);
 
@@ -136,7 +136,7 @@ namespace UploadDocuments.Controllers
 
                 using (var process = Process.Start(processInfo))
                 {
-                    process.WaitForExit();
+                     process.WaitForExit();
 
                     // Check if conversion succeeded
                     if (process.ExitCode != 0)
