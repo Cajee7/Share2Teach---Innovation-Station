@@ -54,8 +54,8 @@ public async Task<IActionResult> UpdateModerationStatus(string documentId, [From
         var filter = Builders<Documents>.Filter.Eq(doc => doc.Id, objectId); // Use ObjectId directly
         
         var update = Builders<Documents>.Update
-            .Set(doc => doc.Moderation_Status, request.Status)
-            .CurrentDate("DateUpdated"); // Assuming you have a field for the last updated date
+    .Set(doc => doc.Moderation_Status, request.Status)
+    .CurrentDate("Date_Updated"); // Ensure this matches the MongoDB collection field
 
         var result = await _documentsCollection.UpdateOneAsync(filter, update);
 
