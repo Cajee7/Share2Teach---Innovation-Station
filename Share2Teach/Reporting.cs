@@ -19,7 +19,7 @@ namespace ReportManagement.Controllers
         }
 
         // POST: api/reporting
-        [HttpPost]
+        [HttpPost("CreateReport")]
         public async Task<IActionResult> SubmitReport([FromBody] CreateReportDto newReport)
         {
             if (newReport == null || string.IsNullOrEmpty(newReport.DocumentId) || string.IsNullOrEmpty(newReport.Reason))
@@ -46,7 +46,7 @@ namespace ReportManagement.Controllers
         }
 
         // GET: api/reporting
-        [HttpGet]
+        [HttpGet("GetAllReports")]
         public async Task<IActionResult> GetAllReports()
         {
             var reports = await _reportCollection.Find(r => true).ToListAsync();
@@ -54,7 +54,7 @@ namespace ReportManagement.Controllers
         }
 
         // PUT: api/reporting/update/{id}
-        [HttpPut("update/{id}")]
+        [HttpPut("updateStatus/{id}")]
         public async Task<IActionResult> UpdateReportStatus(string id, [FromBody] UpdateReportDto updateDto)
         {
             if (updateDto == null)
@@ -85,7 +85,7 @@ namespace ReportManagement.Controllers
         }
 
         // DELETE: api/reporting
-        [HttpDelete]
+        [HttpDelete("DeleteApprovedReports")]
         public async Task<IActionResult> DeleteApprovedReports()
         {
             // Attempt to delete all reports that have the status "approved" (case insensitive)
