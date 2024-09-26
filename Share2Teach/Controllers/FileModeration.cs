@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Moderation.Models;
 using Document_Model.Models;
 using MongoDB.Bson;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FileModeration.Controllers
 {
@@ -18,7 +20,7 @@ namespace FileModeration.Controllers
         public ModerationController(IMongoDatabase database)
         {
             _documentsCollection = database.GetCollection<Documents>("Documents");
-            _moderationCollection = database.GetCollection<ModerationEntry>("Moderations"); // Assuming you have a Moderations collection
+            _moderationCollection = database.GetCollection<ModerationEntry>("Moderations");
         }
 
         // GET: api/moderation/unmoderated
@@ -38,56 +40,84 @@ namespace FileModeration.Controllers
         }
 
         // PUT: api/moderation/update/{documentId}
-        // PUT: api/moderation/update/{documentId}
-[HttpPut("update/{documentId}")]
-public async Task<IActionResult> UpdateModerationStatus(string documentId, [FromBody] UpdateModerationRequest request)
-{
-    if (request == null)
-    {
-        return BadRequest("Update request is null.");
-    }
-
-    try
-    {
-        // Parse documentId to ObjectId
-        var objectId = ObjectId.Parse(documentId);
-        var filter = Builders<Documents>.Filter.Eq(doc => doc.Id, objectId); // Use ObjectId directly
-        
-        var update = Builders<Documents>.Update
-    .Set(doc => doc.Moderation_Status, request.Status)
-    .CurrentDate("Date_Updated"); // Ensure this matches the MongoDB collection field
-
-        var result = await _documentsCollection.UpdateOneAsync(filter, update);
-
-        if (result.ModifiedCount == 0)
+        [HttpPut("update/{documentId}")]
+        [Authorize] // Ensure this endpoint requires authorization
+        public async Task<IActionResult> UpdateModerationStatus(string documentId, [FromBody] UpdateModerationRequest request)
         {
-            return NotFound("Document not found or status not changed.");
+            if (request == null)
+            {
+                return BadRequest("Update request is null.");
+            }
+
+            try
+            {
+                // Parse documentId to ObjectId
+                var objectId = ObjectId.Parse(documentId);
+                var filter = Builders<Documents>.Filter.Eq(doc => doc.Id, objectId); // Use ObjectId directly
+
+                var update = Builders<Documents>.Update
+                    .Set(doc => doc.Moderation_Status, request.Status)
+                    .CurrentDate("Date_Updated");
+
+                var result = await _documentsCollection.UpdateOneAsync(filter, update);
+
+                if (result.ModifiedCount == 0)
+                {
+                    return NotFound("Document not found or status not changed.");
+                }
+
+                // Extract moderator's name and ID from JWT token claims
+                var moderatorId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var moderatorName = User.FindFirst(ClaimTypes.Name)?.Value; // This should contain the moderator's name
+                var userId = User.FindFirst("user_id")?.Value; // Assuming you have a claim for the user_id
+
+                if (string.IsNullOrEmpty(moderatorId) || string.IsNullOrEmpty(moderatorName))
+                {
+                    return Unauthorized("Moderator information is missing in the token.");
+                }
+
+                // Insert the moderation entry
+                var moderationEntry = new ModerationEntry
+                {
+                    Moderator_id = moderatorId, // Store the moderator's ID
+                    Moderator_Name = moderatorName, // Store the moderator's name for easy retrieval
+                    User_id = userId,
+                    Document_id = documentId,
+                    Date = DateTime.UtcNow,
+                    Comments = request.Comment,
+                    Ratings = null // Set to null or default value if not applicable
+                };
+
+                await _moderationCollection.InsertOneAsync(moderationEntry);
+
+                return Ok("Document status updated and moderation entry added.");
+            }
+            catch (FormatException)
+            {
+                return BadRequest("Invalid document ID format.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
-        // Insert the moderation entry
-        var moderationEntry = new ModerationEntry
+        // GET: api/moderation/current-user
+        [HttpGet("current-user")]
+        [Authorize] // Ensure this reads token put into authorization
+        public IActionResult GetCurrentUser()
         {
-            Moderator_id = ""/* Get this from your authentication context */,
-            User_id = ""/* Get this from your authentication context */,
-            Document_id = documentId,
-            Date = DateTime.UtcNow,
-            Comments = request.Comment,
-            Ratings = null // Set to null or default value if not applicable
-        };
+            // Retrieves the users' information from the token
+            var email = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var firstName = User.FindFirst(ClaimTypes.Name)?.Value;
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
 
-        await _moderationCollection.InsertOneAsync(moderationEntry);
-
-        return Ok("Document status updated and moderation entry added.");
-    }
-    catch (FormatException)
-    {
-        return BadRequest("Invalid document ID format.");
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"Internal server error: {ex.Message}");
-    }
-}
-
+            return Ok(new
+            {
+                Email = email,
+                Name = firstName,
+                Role = role
+            });
+        }
     }
 }

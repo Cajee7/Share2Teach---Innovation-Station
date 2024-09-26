@@ -13,6 +13,9 @@ namespace Document_Model.Models
         public required string File_Url {get; set;}
 
         public required string File_Type{get; set;}
+
+        public string User_id { get; set; } // Store the ID of the user who uploaded the document
+        public string User_Name { get; set; } 
         public string Moderation_Status {get; set;} = "Unmoderated";
         public int Ratings {get; set;}
         
