@@ -12,6 +12,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Search.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Combined.Controllers
 {
@@ -44,6 +45,7 @@ namespace Combined.Controllers
 
         // POST: api/file/upload
         [HttpPost("upload")]
+        [Authorize(Roles = "teacher")]
         public async Task<IActionResult> UploadFile([FromForm] CombinedUploadRequest request)
         {
             try
@@ -99,10 +101,10 @@ namespace Combined.Controllers
                 }
 
                 // Construct the new file name
-string newFileName = $"{request.Title}{request.Subject}{request.Grade}{fileType}";
+                string newFileName = $"{request.Title}{request.Subject}{request.Grade}{fileType}";
 
                 // Encode the new file name to handle spaces and special characters
-var encodedNewFileName = Uri.EscapeDataString(newFileName);
+                var encodedNewFileName = Uri.EscapeDataString(newFileName);
 
                 // Upload file to Nextcloud (PDF or original)
                 var uploadUrl = $"{webdavUrl}{encodedNewFileName}";
