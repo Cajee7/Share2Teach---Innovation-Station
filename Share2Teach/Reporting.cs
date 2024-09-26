@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ReportManagement.Controllers
 {
@@ -11,113 +11,108 @@ namespace ReportManagement.Controllers
     [Route("api/[controller]")]
     public class ReportingController : ControllerBase
     {
+        private readonly IMongoCollection<ReportDto> _reportCollection;
 
-        private static IMongoCollection<BsonDocument> GetReportCollection()
+        public ReportingController(IMongoDatabase database)
         {
-            var database = DatabaseConnection.Program.ConnectToDatabase();
-            return database.GetCollection<BsonDocument>("Reports");
-        }
-        private static readonly List<SaveReportDto> ReportDatabase = new List<SaveReportDto>
-        {
-            new SaveReportDto {DocumentId = "66d3a09a4ddfb71ae03ccfd2",Reason = "Inappropriate content" },
-            new SaveReportDto {DocumentId = "66f1f2140440e3538e5fdb4c",Reason = "Outdated" },
-            new SaveReportDto {DocumentId = "66f1f2680440e3538e5fdb4d",Reason = "Inaccurate"}
-        };
-
-        // POST: api/reporting/save-report
-        [HttpPost("save-report")]
-        public IActionResult SaveReport([FromBody] SaveReportDto saveReportDto)
-        {
-            // Validate input: ensure that DocumentId (as string) and Reason are provided
-            if (saveReportDto == null || string.IsNullOrEmpty(saveReportDto.DocumentId) || string.IsNullOrEmpty(saveReportDto.Reason))
-            {
-                return BadRequest(new { message = "DocumentId and Reason are required." });
-            }
-
-            // Validate and convert DocumentId from string to ObjectId
-            if (!ObjectId.TryParse(saveReportDto.DocumentId, out ObjectId documentObjectId))
-            {
-                return BadRequest(new { message = "Invalid DocumentId format." });
-            }
-
-            var reportCollection = GetReportCollection();
-
-            // Create the document with ObjectId, Reason, and set Status to "Pending"
-            var reportDocument = new BsonDocument
-            {
-                { "DocumentId", saveReportDto.DocumentId },
-                { "Reason", saveReportDto.Reason },
-                { "Status", "Pending" },  // Set Status to "Pending" initially
-                { "DateReported", DateTime.UtcNow },  // Automatically set the current date and time
-                //{ "DateSubmitted", DateTime.UtcNow }
-            };
-
-            // Insert the document into the MongoDB collection
-            reportCollection.InsertOne(reportDocument);
-
-            return CreatedAtAction(nameof(SaveReport), new { id = reportDocument["_id"].ToString() }, reportDocument);
+            _reportCollection = database.GetCollection<ReportDto>("Reports");
         }
 
-        // GET: api/reporting/GetReports
-        [HttpGet("GetReports")]
-        public IActionResult GetReports()
+        // GET: api/reporting
+        [HttpGet]
+        public async Task<IActionResult> GetAllReports()
         {
-            var reportCollection = GetReportCollection();
-
-            // No filters applied, fetch all reports
-            var reports = reportCollection.Find(Builders<BsonDocument>.Filter.Empty).ToList();
-
+            var reports = await _reportCollection.Find(r => true).ToListAsync();
             return Ok(reports);
         }
 
-        // PUT: api/reporting/update-status/{id}
-        [HttpPut("update-status/{id}")]
-        public IActionResult UpdateReportStatus(string id, [FromBody] UpdateReportStatusDto updateReportStatusDto)
+        // POST: api/reporting
+        [HttpPost]
+        public async Task<IActionResult> SubmitReport([FromBody] CreateReportDto newReport)
         {
-            // Validate and convert the string id to ObjectId
-            if (!ObjectId.TryParse(id, out ObjectId reportObjectId))
+            if (newReport == null || string.IsNullOrEmpty(newReport.DocumentId) || string.IsNullOrEmpty(newReport.Reason))
+                return BadRequest(new { message = "Please provide all required information (DocumentId and Reason)." });
+
+            var report = new ReportDto
             {
-                return BadRequest(new { message = "Invalid report id format." });
-            }
+                Id = ObjectId.GenerateNewId().ToString(),
+                DocumentId = newReport.DocumentId,
+                Reason = newReport.Reason,
+                Status = "pending",  // Set initial status to pending
+                DateReported = DateTime.UtcNow
+            };
 
-            var reportCollection = GetReportCollection();
-            var filter = Builders<BsonDocument>.Filter.Eq("_id", reportObjectId);
-
-            var report = reportCollection.Find(filter).FirstOrDefault();
-            if (report == null)
-                return NotFound(new { message = "Report not found." });
-
-            var update = Builders<BsonDocument>.Update
-                .Set("Status", updateReportStatusDto.Status)
-                .Set("DateReviewed", DateTime.UtcNow);
-
-            var result = reportCollection.UpdateOne(filter, update);
-
-            if (result.MatchedCount > 0)
+            try
             {
-                return Ok(new { message = "Report status updated successfully." });
+                await _reportCollection.InsertOneAsync(report);
+                return CreatedAtAction(nameof(GetAllReports), new { id = report.Id }, report);
             }
-            return BadRequest(new { message = "Report status update failed." });
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error saving report to the database.", error = ex.Message });
+            }
         }
 
-        // DELETE: api/reporting/delete-approved
-        [HttpDelete("delete-approved")]
-        public IActionResult DeleteApprovedReports()
+        // PUT: api/reporting/update/{id}
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> UpdateReportStatus(string id, [FromBody] UpdateReportDto updateDto)
         {
-            var reportCollection = GetReportCollection();
-            var filter = Builders<BsonDocument>.Filter.Eq("Status", "Approved");  // Assuming Status is a string
+            if (updateDto == null)
+                return BadRequest(new { message = "Please provide a status to update." });
 
-            var deletedReports = reportCollection.Find(filter).ToList();  // Retrieve reports to return them
-            var deleteResult = reportCollection.DeleteMany(filter);
-
-            if (deleteResult.DeletedCount > 0)
+            // If the status is empty or null, we clear it by setting it to "pending"
+            if (string.IsNullOrEmpty(updateDto.Status))
             {
-                return Ok(new { message = $"{deleteResult.DeletedCount} approved reports deleted.", reports = deletedReports });
+                updateDto.Status = "pending"; // Define what clearing means (set to pending)
+            }
+            else
+            {
+                var validStatuses = new[] { "approved", "denied", "pending" }; // Include pending if you want to set it back to this status
+                if (!validStatuses.Contains(updateDto.Status.ToLower()))
+                    return BadRequest(new { message = "Status must be either 'approved', 'denied', or 'pending'." });
             }
 
-            return BadRequest(new { message = "No approved reports found to delete." });
+            // Update the status using a case-insensitive comparison
+            var update = Builders<ReportDto>.Update.Set(r => r.Status, updateDto.Status);
+            var result = await _reportCollection.UpdateOneAsync(
+                r => r.Id == id,
+                update);
+
+            if (result.ModifiedCount == 0)
+                return NotFound(new { message = "Report not found or status unchanged." });
+
+            return Ok(new { message = "Report status updated successfully." });
+        }
+
+        // PUT: api/reporting/clear/{documentId}
+        [HttpPut("clear/{documentId}")]
+        public async Task<IActionResult> ClearReport(string documentId)
+        {
+            var update = Builders<ReportDto>.Update.Set(r => r.Status, "pending"); // Set to pending or default value
+            var result = await _reportCollection.UpdateOneAsync(r => r.DocumentId == documentId, update);
+
+            if (result.ModifiedCount == 0)
+                return NotFound(new { message = "Report not found for the given Document ID." });
+
+            return Ok(new { message = "Report status cleared successfully." });
+        }
+
+        // DELETE: api/reporting
+        [HttpDelete]
+        public async Task<IActionResult> DeleteApprovedReports()
+        {
+            // Attempt to delete all reports that have the status "approved" (case insensitive)
+            var result = await _reportCollection.DeleteManyAsync(r => r.Status.ToLower() == "approved");
+
+            if (result.DeletedCount > 0)
+            {
+                return Ok(new { message = $"{result.DeletedCount} approved reports deleted." });
+            }
+            else
+            {
+                return NotFound(new { message = "No approved reports found to delete." });
+            }
         }
     }
 
-   
 }
