@@ -231,7 +231,7 @@ namespace UploadDocuments
             {
                 Console.WriteLine("Error generating tags: " + ex.Message);
             }
-
+             Console.WriteLine($"Generated Tags: {string.Join(", ", tags)}");
             return tags;
         }
 
