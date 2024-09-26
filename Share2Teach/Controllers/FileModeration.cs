@@ -80,7 +80,7 @@ namespace FileModeration.Controllers
                 var moderationEntry = new ModerationEntry
                 {
                     Moderator_id = moderatorId, // Store the moderator's ID
-                    Moderator_Name = moderatorName, // Store the moderator's name for easy retrieval
+                    Moderator_Name = moderatorName, // Store the moderator's name for easy retrievals
                     User_id = userId,
                     Document_id = documentId,
                     Date = DateTime.UtcNow,
