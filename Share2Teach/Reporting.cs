@@ -84,19 +84,6 @@ namespace ReportManagement.Controllers
             return Ok(new { message = "Report status updated successfully." });
         }
 
-        // PUT: api/reporting/clear/{documentId}
-        [HttpPut("clear/{documentId}")]
-        public async Task<IActionResult> ClearReport(string documentId)
-        {
-            var update = Builders<ReportDto>.Update.Set(r => r.Status, "pending"); // Set to pending or default value
-            var result = await _reportCollection.UpdateOneAsync(r => r.DocumentId == documentId, update);
-
-            if (result.ModifiedCount == 0)
-                return NotFound(new { message = "Report not found for the given Document ID." });
-
-            return Ok(new { message = "Report status cleared successfully." });
-        }
-
         // DELETE: api/reporting
         [HttpDelete]
         public async Task<IActionResult> DeleteApprovedReports()
