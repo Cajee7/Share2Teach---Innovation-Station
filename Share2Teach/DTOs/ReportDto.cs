@@ -20,12 +20,9 @@ public class ReportDto
     [BsonElement("DateReported")]
     public DateTime DateReported { get; set; }
 
-<<<<<<< Updated upstream
-=======
     // Constructor to initialize DateReported with the current UTC time
     public ReportDto()
     {
         DateReported = DateTime.UtcNow;
     }
 }
->>>>>>> Stashed changes
