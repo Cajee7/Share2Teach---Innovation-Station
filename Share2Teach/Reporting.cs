@@ -18,14 +18,6 @@ namespace ReportManagement.Controllers
             _reportCollection = database.GetCollection<ReportDto>("Reports");
         }
 
-        // GET: api/reporting
-        [HttpGet]
-        public async Task<IActionResult> GetAllReports()
-        {
-            var reports = await _reportCollection.Find(r => true).ToListAsync();
-            return Ok(reports);
-        }
-
         // POST: api/reporting
         [HttpPost]
         public async Task<IActionResult> SubmitReport([FromBody] CreateReportDto newReport)
@@ -51,6 +43,14 @@ namespace ReportManagement.Controllers
             {
                 return StatusCode(500, new { message = "Error saving report to the database.", error = ex.Message });
             }
+        }
+
+        // GET: api/reporting
+        [HttpGet]
+        public async Task<IActionResult> GetAllReports()
+        {
+            var reports = await _reportCollection.Find(r => true).ToListAsync();
+            return Ok(reports);
         }
 
         // PUT: api/reporting/update/{id}
@@ -101,5 +101,4 @@ namespace ReportManagement.Controllers
             }
         }
     }
-
 }
