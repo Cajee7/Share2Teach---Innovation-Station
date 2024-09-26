@@ -11,7 +11,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-//using Search.Models;
 
 namespace Combined.Controllers
 {
@@ -98,12 +97,6 @@ namespace Combined.Controllers
                     fileType = ".pdf";
                 }
 
-                // Construct the new file name
-                string newFileName = $"{request.Title}{request.Subject}{request.Grade}{fileType}";
-
-                // Encode the new file name to handle spaces and special characters
-                var encodedNewFileName = Uri.EscapeDataString(newFileName);
-
                 // Upload file to Nextcloud (PDF or original)
                 var uploadUrl = $"{webdavUrl}{encodedNewFileName}";
                 using (var client = new HttpClient())
@@ -150,146 +143,6 @@ namespace Combined.Controllers
                 return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
             }
         }
-
-        // Function to generate tags based on document text
-        private List<string> GenerateTags(string documentText)
-        {
-            // Expanded stopword list (can be customized further)
-            var stopWords = new HashSet<string>
-            {
-                "the", "is", "in", "at", "of", "and", "a", "to", "with", "that", "for", "it", "on", "this", 
-                "by", "from", "or", "an", "as", "be", "was", "were", "has", "have", "are", "will", "would",
-                "could", "should", "can", "but", "about", "which", "into", "if", "when", "they", "there",
-                "their", "its", "these", "those", "i", "you", "he", "she", "we", "they", "them", "his",
-                "her", "my", "our", "your", "us", "than", "so", "too", "then", "just", "any", "each",
-                "every", "how", "who", "what", "where", "why", "again", "more", "no", "not", "do", "did",
-                "me", "him", "up", "down", "all", "here", "over", "some", "only", "out", "now", "very",
-                "such", "also"
-            };
-
-            // Split text into words and filter
-            var words = documentText.Split(new[] { ' ', '\r', '\n', ',', '.', '!', '?', ';', ':', '-', '_' }, StringSplitOptions.RemoveEmptyEntries)
-                            .Select(word => word.ToLowerInvariant())   // Convert to lowercase
-                            .Where(word => word.All(char.IsLetter))   // Keep only alphabetic words
-                            .Where(word => word.Length > 1)           // Filter out single-letter words
-                            .Where(word => !stopWords.Contains(word)) // Filter stopwords
-                            .GroupBy(word => LemmatizeWord(word))      // Group by base (lemmatized) form
-                            .OrderByDescending(group => group.Count()) // Order by frequency
-                            .Take(10)                                  // Top 10 most frequent words
-                            .Select(group => group.Key)                // Select base form
-                            .ToList();
-
-            return words;
-        }
-        private string LemmatizeWord(string word)
-        {
-            // Basic lemmatization rules
-            if (word.EndsWith("ing"))
-            {
-                return word.TrimEnd('i', 'n', 'g');  // Example: "running" -> "run"
-            }
-            if (word.EndsWith("ed"))
-            {
-                return word.TrimEnd('e', 'd');       // Example: "played" -> "play"
-            }
-            if (word.EndsWith("s") && word.Length > 3)
-            {
-                return word.TrimEnd('s');            // Example: "cats" -> "cat"
-            }
-
-            // Return the word as-is if no rule applies
-            return word;
-        }
-
-        // POST: api/file/search
-        /*[HttpGet("search")]
-        public async Task<IActionResult> SearchDocuments([FromQuery] SearchRequest request)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(request.Query))
-                {
-                    return BadRequest(new { message = "Search query cannot be empty." });
-                }
-
-                // Create a $text filter for the search query
-                var filter = Builders<Documents>.Filter.And(
-                Builders<Documents>.Filter.Eq(d => d.Moderation_Status, "Moderated"),
-                Builders<Documents>.Filter.Text(request.Query)
-                );
-
-                // Log the filter (optional)
-                var renderedFilter = filter.Render(_documentsCollection.DocumentSerializer, _documentsCollection.Settings.SerializerRegistry);
-                Console.WriteLine($"Filter: {renderedFilter.ToJson()}");
-
-                // Project only the fields we want to show
-                var projection = Builders<Documents>.Projection.Expression(d => new
-                {
-                    d.Title,
-                    d.Subject,
-                    d.Grade,
-                    d.Description,
-                    d.File_Size,
-                    d.Ratings,
-                    d.Tags,
-                    d.Date_Uploaded,
-                    Download_Url = d.File_Url
-                });
-
-                // Perform the search query
-                var documents = await _documentsCollection
-                    .Find(filter)
-                    .Project(projection)
-                    .ToListAsync();
-
-                // Check if results are found
-                if (documents.Count == 0)
-                {
-                    return Ok(new { message = "No matching documents found." });
-                }
-
-                // Return the results
-                return Ok(documents);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
-            }
-        }*/
-
-
-         // GET: api/file/download/{fileName}
-        [HttpGet("download/{fileName}")]
-        public async Task<IActionResult> DownloadFile(string fileName)
-        {
-            try
-            {
-                // Encode the file name to handle spaces and special characters
-                var encodedFileName = Uri.EscapeDataString(fileName);
-                var downloadUrl = $"{webdavUrl}{encodedFileName}";
-
-                using (var client = new HttpClient())
-                {
-                    var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
-
-                    var response = await client.GetAsync(downloadUrl);
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        return StatusCode((int)response.StatusCode, new { message = $"Download from Nextcloud failed: {response.StatusCode}" });
-                    }
-
-                    var fileBytes = await response.Content.ReadAsByteArrayAsync();
-                    var contentType = response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream";
-
-                    return File(fileBytes, contentType, fileName);
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
-            }
-        }
     }
 }
+

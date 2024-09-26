@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ReportManagement.Controllers
@@ -13,18 +13,9 @@ namespace ReportManagement.Controllers
     {
         private readonly IMongoCollection<ReportDto> _reportCollection;
 
-        public ReportingController()
+        public ReportingController(IMongoDatabase database)
         {
-            var database = DatabaseConnection.Program.ConnectToDatabase(); // Use your custom connection method
-            _reportCollection = database.GetCollection<ReportDto>("Reports"); // Change to your collection name
-        }
-
-        // GET: api/reporting
-        [HttpGet]
-        public async Task<IActionResult> GetAllReports()
-        {
-            var reports = await _reportCollection.Find(r => true).ToListAsync();
-            return Ok(reports);
+            _reportCollection = database.GetCollection<ReportDto>("Reports");
         }
 
         // POST: api/reporting
@@ -36,48 +27,78 @@ namespace ReportManagement.Controllers
 
             var report = new ReportDto
             {
-                Id = ObjectId.GenerateNewId().ToString(), // Generate a new ObjectId
+                Id = ObjectId.GenerateNewId().ToString(),
                 DocumentId = newReport.DocumentId,
                 Reason = newReport.Reason,
-                Status = "pending",
+                Status = "pending",  // Set initial status to pending
                 DateReported = DateTime.UtcNow
             };
 
             try
             {
                 await _reportCollection.InsertOneAsync(report);
+                return CreatedAtAction(nameof(GetAllReports), new { id = report.Id }, report);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Error saving report to the database.", error = ex.Message });
             }
-
-            return CreatedAtAction(nameof(GetAllReports), new { id = report.Id }, report);
         }
 
-        // DELETE: api/reporting
-        [HttpDelete]
-        public async Task<IActionResult> DeleteApprovedReports()
+        // GET: api/reporting
+        [HttpGet]
+        public async Task<IActionResult> GetAllReports()
         {
-            var result = await _reportCollection.DeleteManyAsync(r => r.Status == "approved");
-            return Ok(new { message = $"{result.DeletedCount} approved reports deleted." });
+            var reports = await _reportCollection.Find(r => true).ToListAsync();
+            return Ok(reports);
         }
 
         // PUT: api/reporting/update/{id}
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateReportStatus(string id, [FromBody] UpdateReportDto updateDto)
         {
-            if (updateDto == null || string.IsNullOrEmpty(updateDto.Status))
+            if (updateDto == null)
                 return BadRequest(new { message = "Please provide a status to update." });
 
+            // If the status is empty or null, we clear it by setting it to "pending"
+            if (string.IsNullOrEmpty(updateDto.Status))
+            {
+                updateDto.Status = "pending"; // Define what clearing means (set to pending)
+            }
+            else
+            {
+                var validStatuses = new[] { "approved", "denied", "pending" }; // Include pending if you want to set it back to this status
+                if (!validStatuses.Contains(updateDto.Status.ToLower()))
+                    return BadRequest(new { message = "Status must be either 'approved', 'denied', or 'pending'." });
+            }
+
+            // Update the status using a case-insensitive comparison
             var update = Builders<ReportDto>.Update.Set(r => r.Status, updateDto.Status);
-            var result = await _reportCollection.UpdateOneAsync(r => r.Id == id, update);
+            var result = await _reportCollection.UpdateOneAsync(
+                r => r.Id == id,
+                update);
 
             if (result.ModifiedCount == 0)
                 return NotFound(new { message = "Report not found or status unchanged." });
 
             return Ok(new { message = "Report status updated successfully." });
         }
-    }
 
+        // DELETE: api/reporting
+        [HttpDelete]
+        public async Task<IActionResult> DeleteApprovedReports()
+        {
+            // Attempt to delete all reports that have the status "approved" (case insensitive)
+            var result = await _reportCollection.DeleteManyAsync(r => r.Status.ToLower() == "approved");
+
+            if (result.DeletedCount > 0)
+            {
+                return Ok(new { message = $"{result.DeletedCount} approved reports deleted." });
+            }
+            else
+            {
+                return NotFound(new { message = "No approved reports found to delete." });
+            }
+        }
+    }
 }

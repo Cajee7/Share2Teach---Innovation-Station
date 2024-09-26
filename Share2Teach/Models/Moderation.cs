@@ -7,6 +7,7 @@ namespace Moderation.Models
     {
 
         public required string Moderator_id { get; set; }
+        public string Moderator_Name { get; set; }
         public required string User_id { get; set; }
         public DateTime Date_Updated { get; set; }
         public required string  Document_id { get; set; }
