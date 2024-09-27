@@ -7,18 +7,29 @@ using System.Threading.Tasks;
 
 namespace ReportManagement.Controllers
 {
+    /// <summary>
+    /// Handles reporting-related operations.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class ReportingController : ControllerBase
     {
         private readonly IMongoCollection<ReportDto> _reportCollection;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ReportingController"/> class.
+        /// </summary>
+        /// <param name="database">The MongoDB database instance.</param>
         public ReportingController(IMongoDatabase database)
         {
             _reportCollection = database.GetCollection<ReportDto>("Reports");
         }
 
-        // POST: api/reporting
+        /// <summary>
+        /// Submits a new report.
+        /// </summary>
+        /// <param name="newReport">The report data to create.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
         [HttpPost("CreateReport")]
         public async Task<IActionResult> SubmitReport([FromBody] CreateReportDto newReport)
         {
@@ -45,7 +56,10 @@ namespace ReportManagement.Controllers
             }
         }
 
-        // GET: api/reporting
+        /// <summary>
+        /// Retrieves all reports.
+        /// </summary>
+        /// <returns>A task representing the asynchronous operation.</returns>
         [HttpGet("GetAllReports")]
         public async Task<IActionResult> GetAllReports()
         {
@@ -53,7 +67,12 @@ namespace ReportManagement.Controllers
             return Ok(reports);
         }
 
-        // PUT: api/reporting/update/{id}
+        /// <summary>
+        /// Updates the status of an existing report.
+        /// </summary>
+        /// <param name="id">The ID of the report to update.</param>
+        /// <param name="updateDto">The new status data for the report.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
         [HttpPut("updateStatus/{id}")]
         public async Task<IActionResult> UpdateReportStatus(string id, [FromBody] UpdateReportDto updateDto)
         {
@@ -84,7 +103,10 @@ namespace ReportManagement.Controllers
             return Ok(new { message = "Report status updated successfully." });
         }
 
-        // DELETE: api/reporting
+        /// <summary>
+        /// Deletes all approved reports.
+        /// </summary>
+        /// <returns>A task representing the asynchronous operation.</returns>
         [HttpDelete("DeleteApprovedReports")]
         public async Task<IActionResult> DeleteApprovedReports()
         {
