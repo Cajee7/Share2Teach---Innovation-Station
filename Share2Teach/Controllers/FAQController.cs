@@ -8,10 +8,14 @@ namespace FAQApp.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class FAQController : BaseLogController <FAQController> // Inherit from BaseLogController
+    public class FAQController : BaseLogController<FAQController> // Inherit from BaseLogController
     {
         private readonly IMongoCollection<BsonDocument> _faqCollection;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FAQController"/> class.
+        /// </summary>
+        /// <param name="logger">The logger instance.</param>
         public FAQController(ILogger<FAQController> logger) : base(logger)
         {
             var client = new MongoClient("mongodb+srv://muhammedcajee29:RU2AtjQc0d8ozPdD@share2teach.vtehmr8.mongodb.net/");
@@ -19,21 +23,32 @@ namespace FAQApp.Controllers
             _faqCollection = database.GetCollection<BsonDocument>("FAQS");
         }
 
-        // GET endpoint to list all FAQs with their IDs
+        /// <summary>
+        /// Retrieves a list of all FAQs.
+        /// </summary>
+        /// <returns>A list of FAQs with their details.</returns>
+        /// <response code="200">Returns the list of FAQs.</response>
+        /// <response code="404">If no FAQs are found.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [HttpGet("list")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetAllFAQs()
         {
-            _logger.LogInformation("Fetching all FAQs at {Timestamp}.", DateTime.UtcNow);
             try
             {
+                // Fetch all documents from the FAQS collection
                 var faqs = _faqCollection.Find(new BsonDocument()).ToList();
 
+                // Check if the collection is empty
                 if (faqs.Count == 0)
                 {
-                    _logger.LogInformation("No FAQs found in the database at {Timestamp}.", DateTime.UtcNow);
+                    _logger.LogInformation("No FAQs found in the database.");
                     return NotFound("No FAQs found.");
                 }
 
+                // Convert to a model that includes the ObjectId and handles missing fields
                 var faqList = faqs.Select(faq => new
                 {
                     Id = faq["_id"].ToString(),
@@ -42,18 +57,27 @@ namespace FAQApp.Controllers
                     DateAdded = faq.Contains("dateAdded") ? faq["dateAdded"].ToUniversalTime() : DateTime.MinValue
                 }).ToList();
 
-                _logger.LogInformation("Successfully fetched {Count} FAQs at {Timestamp}.", faqList.Count, DateTime.UtcNow);
                 return Ok(faqList);
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error while fetching FAQs at {Timestamp}: {Message}", DateTime.UtcNow, ex.Message);
+                _logger.LogError("Error while fetching FAQs: {Message}", ex.Message);
                 return StatusCode(500, "An error occurred while fetching FAQs.");
             }
         }
 
-        // POST endpoint to add a new FAQ
+        /// <summary>
+        /// Adds a new FAQ.
+        /// </summary>
+        /// <param name="faqInput">The FAQ input model containing question and answer.</param>
+        /// <returns>A success message upon successful addition.</returns>
+        /// <response code="200">If the FAQ is added successfully.</response>
+        /// <response code="400">If the request is invalid.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [HttpPost("add")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult AddFAQ([FromBody] FAQInputModel faqInput)
         {
             if (string.IsNullOrEmpty(faqInput.Question) || string.IsNullOrEmpty(faqInput.Answer))
@@ -62,69 +86,72 @@ namespace FAQApp.Controllers
                 return BadRequest("Question and Answer are required fields.");
             }
 
-            try
+            var faqDocument = new BsonDocument
             {
-                var faqDocument = new BsonDocument
-                {
-                    { "question", faqInput.Question },
-                    { "answer", faqInput.Answer },
-                    { "dateAdded", DateTime.UtcNow }
-                };
+                { "question", faqInput.Question },
+                { "answer", faqInput.Answer },
+                { "dateAdded", DateTime.UtcNow }
+            };
 
-                _faqCollection.InsertOne(faqDocument);
-                _logger.LogInformation("Added FAQ: {Question} at {Timestamp}.", faqInput.Question, DateTime.UtcNow);
+            _faqCollection.InsertOne(faqDocument);
+            _logger.LogInformation("Added FAQ: {Question} at {Timestamp}.", faqInput.Question, DateTime.UtcNow);
 
-                return Ok("FAQ added successfully.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Error while adding FAQ at {Timestamp}: {Message}", DateTime.UtcNow, ex.Message);
-                return StatusCode(500, "An error occurred while adding the FAQ.");
-            }
+            return Ok("FAQ added successfully.");
         }
 
-        // DELETE endpoint to delete an FAQ by ObjectId
+        /// <summary>
+        /// Deletes an FAQ by its ObjectId.
+        /// </summary>
+        /// <param name="id">The ObjectId of the FAQ to delete.</param>
+        /// <returns>A success message upon successful deletion.</returns>
+        /// <response code="200">If the FAQ is deleted successfully.</response>
+        /// <response code="400">If the ObjectId format is invalid.</response>
+        /// <response code="404">If the FAQ with the specified ID is not found.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [HttpDelete("delete")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult DeleteFAQById([FromQuery] string id)
         {
-            _logger.LogInformation("Attempting to delete FAQ with id: {Id} at {Timestamp}.", id, DateTime.UtcNow);
-            
             if (!ObjectId.TryParse(id, out ObjectId objectId))
             {
-                _logger.LogWarning("Invalid ObjectId format: {Id} at {Timestamp}.", id, DateTime.UtcNow);
                 return BadRequest("Invalid ObjectId format.");
             }
 
-            try
-            {
-                var filter = Builders<BsonDocument>.Filter.Eq("_id", objectId);
-                var result = _faqCollection.DeleteOne(filter);
+            var filter = Builders<BsonDocument>.Filter.Eq("_id", objectId);
+            var result = _faqCollection.DeleteOne(filter);
 
-                if (result.DeletedCount == 0)
-                {
-                    _logger.LogWarning("FAQ with id '{Id}' not found for deletion at {Timestamp}.", id, DateTime.UtcNow);
-                    return NotFound("FAQ with the specified id not found.");
-                }
-
-                _logger.LogInformation("Successfully deleted FAQ with id: {Id} at {Timestamp}.", id, DateTime.UtcNow);
-                return Ok("FAQ deleted successfully.");
-            }
-            catch (Exception ex)
+            if (result.DeletedCount == 0)
             {
-                _logger.LogError("Error while deleting FAQ with id: {Id} at {Timestamp}: {Message}", id, DateTime.UtcNow, ex.Message);
-                return StatusCode(500, "An error occurred while deleting the FAQ.");
+                _logger.LogWarning("FAQ with id '{Id}' not found for deletion at {Timestamp}.", id, DateTime.UtcNow);
+                return NotFound("FAQ with the specified id not found.");
             }
+
+            _logger.LogInformation("Deleted FAQ with id: {Id} at {Timestamp}.", id, DateTime.UtcNow);
+            return Ok("FAQ deleted successfully.");
         }
 
-        // PUT endpoint to update an FAQ by ObjectId
+        /// <summary>
+        /// Updates an existing FAQ by its ObjectId.
+        /// </summary>
+        /// <param name="id">The ObjectId of the FAQ to update.</param>
+        /// <param name="faqInput">The updated FAQ input model containing new question and answer.</param>
+        /// <returns>A success message upon successful update.</returns>
+        /// <response code="200">If the FAQ is updated successfully.</response>
+        /// <response code="400">If the ObjectId format is invalid or required fields are missing.</response>
+        /// <response code="404">If the FAQ with the specified ID is not found.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [HttpPut("update")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult UpdateFAQById([FromQuery] string id, [FromBody] FAQInputModel faqInput)
         {
-            _logger.LogInformation("Attempting to update FAQ with id: {Id} at {Timestamp}.", id, DateTime.UtcNow);
-
             if (!ObjectId.TryParse(id, out ObjectId objectId))
             {
-                _logger.LogWarning("Invalid ObjectId format: {Id} at {Timestamp}.", id, DateTime.UtcNow);
                 return BadRequest("Invalid ObjectId format.");
             }
 
@@ -134,37 +161,38 @@ namespace FAQApp.Controllers
                 return BadRequest("Both new question and answer fields are required.");
             }
 
-            try
+            var filter = Builders<BsonDocument>.Filter.Eq("_id", objectId);
+            var update = Builders<BsonDocument>.Update
+                .Set("question", faqInput.Question)
+                .Set("answer", faqInput.Answer)
+                .Set("dateUpdated", DateTime.UtcNow);
+
+            var result = _faqCollection.UpdateOne(filter, update);
+
+            if (result.MatchedCount == 0)
             {
-                var filter = Builders<BsonDocument>.Filter.Eq("_id", objectId);
-                var update = Builders<BsonDocument>.Update
-                    .Set("question", faqInput.Question)
-                    .Set("answer", faqInput.Answer)
-                    .Set("dateUpdated", DateTime.UtcNow);
-
-                var result = _faqCollection.UpdateOne(filter, update);
-
-                if (result.MatchedCount == 0)
-                {
-                    _logger.LogWarning("FAQ with id '{Id}' not found for update at {Timestamp}.", id, DateTime.UtcNow);
-                    return NotFound("FAQ with the specified id not found.");
-                }
-
-                _logger.LogInformation("Successfully updated FAQ with id: {Id} at {Timestamp}.", id, DateTime.UtcNow);
-                return Ok("FAQ updated successfully.");
+                _logger.LogWarning("FAQ with id '{Id}' not found for update at {Timestamp}.", id, DateTime.UtcNow);
+                return NotFound("FAQ with the specified id not found.");
             }
-            catch (Exception ex)
-            {
-                _logger.LogError("Error while updating FAQ with id: {Id} at {Timestamp}: {Message}", id, DateTime.UtcNow, ex.Message);
-                return StatusCode(500, "An error occurred while updating the FAQ.");
-            }
+
+            _logger.LogInformation("Updated FAQ with id: {Id} at {Timestamp}.", id, DateTime.UtcNow);
+            return Ok("FAQ updated successfully.");
         }
     }
 
-    // Model for input validation
+    /// <summary>
+    /// Model for FAQ input.
+    /// </summary>
     public class FAQInputModel
     {
+        /// <summary>
+        /// The question text of the FAQ.
+        /// </summary>
         public string? Question { get; set; }
+
+        /// <summary>
+        /// The answer text of the FAQ.
+        /// </summary>
         public string? Answer { get; set; }
     }
 }

@@ -1,23 +1,28 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using System;
 
 public class ReportDto
 {
     [BsonId]
-    [BsonRepresentation(BsonType.ObjectId)] // Map to MongoDB's "_id" field
-    public string Id { get; set; } // This represents the report ID in MongoDB
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string Id { get; set; }
 
     [BsonElement("DocumentId")]
-    public required string DocumentId { get; set; } // ID of the reported document
+    [BsonRepresentation(BsonType.ObjectId)] // Treat DocumentId as ObjectId in the DB, string in the app
+    public string DocumentId { get; set; }
 
     [BsonElement("Reason")]
-    public required string Reason { get; set; } // Reason for reporting the document
+    public string Reason { get; set; }
 
     [BsonElement("Status")]
-    public string Status { get; set; } = "pending"; // Default status is "pending"
+    public string Status { get; set; } = "pending";
 
     [BsonElement("DateReported")]
-    public DateTime DateReported { get; set; } = DateTime.UtcNow; // Automatically set the date
-}
+    public DateTime DateReported { get; set; }
 
+    // Constructor to initialize DateReported with the current UTC time
+    public ReportDto()
+    {
+        DateReported = DateTime.UtcNow;
+    }
+}
