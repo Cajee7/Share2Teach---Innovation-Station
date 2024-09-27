@@ -1,14 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver; //database 
+using MongoDB.Driver;
 using MongoDB.Bson;
-using BCrypt.Net; // Used to hash passwords
+using BCrypt.Net;
 using System.Threading.Tasks;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
-using System.Net.Mail; // For email functionality
+using System.Net.Mail;
 using System.Net;
 
 namespace DatabaseConnection.Controllers
@@ -26,9 +26,16 @@ namespace DatabaseConnection.Controllers
             _configuration = configuration; //configuration settings for jwt and smtp
         }
 
-        // POST: api/authenticate/register
+        /// <summary>
+        /// Registers a new user account.
+        /// </summary>
+        /// <param name="model">The user registration data transfer object.</param>
+        /// <returns>A success message upon successful registration.</returns>
+        /// <response code="200">If the user is registered successfully.</response>
+        /// <response code="400">If the model is invalid or if the user already exists.</response>
+        
         [HttpPost("register")] //account creation endpoint 
-        public async Task<IActionResult> Register([FromBody] UserRegistrationDto model)
+        public async Task<IActionResult> Register([FromForm] UserRegistrationDto model)
         {
             if (!ModelState.IsValid) //checks is model is valid
                 return BadRequest(ModelState);
@@ -74,9 +81,16 @@ namespace DatabaseConnection.Controllers
             return Ok(new { message = normalizedRole == "teacher" ? "Successfully registered as a teacher" : "User registered successfully" });
         }
 
-        // POST: api/authenticate/login
+        /// <summary>
+        /// Logs in a user.
+        /// </summary>
+        /// <param name="model">The user login data transfer object.</param>
+        /// <returns>A success message and a JWT token upon successful login.</returns>
+        /// <response code="200">If the user is logged in successfully.</response>
+        /// <response code="400">If the model is invalid.</response>
+        /// <response code="401">If the login attempt is invalid.</response>
         [HttpPost("login")] //sign in endpoint
-        public async Task<IActionResult> Login([FromBody] UserLoginDto model)
+        public async Task<IActionResult> Login([FromForm] UserLoginDto model)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -102,9 +116,15 @@ namespace DatabaseConnection.Controllers
             }); //returns a message aswell as a token that gets saved in authorization
         }
 
-        // POST: api/authenticate/forgot-password
+        /// <summary>
+        /// Initiates the password reset process by sending a reset token to the user's email.
+        /// </summary>
+        /// <param name="model">The forgot password data transfer object.</param>
+        /// <returns>A success message upon successful initiation of the password reset process.</returns>
+        /// <response code="200">If the password reset token is sent successfully.</response>
+        /// <response code="400">If the user with the provided email does not exist.</response>
         [HttpPost("forgot-password")] //part of password reset
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto model)
+        public async Task<IActionResult> ForgotPassword([FromForm] ForgotPasswordDto model)
         {
             var user = await _usersCollection.Find(new BsonDocument("Email", model.Email)).FirstOrDefaultAsync(); //checks to see if user with this email exists
             if (user == null)
@@ -123,9 +143,15 @@ namespace DatabaseConnection.Controllers
             return Ok(new { message = "Password reset token sent to email" });
         }
 
-        // POST: api/authenticate/reset-password
+        /// <summary>
+        /// Resets the user's password using the provided reset token.
+        /// </summary>
+        /// <param name="model">The reset password data transfer object.</param>
+        /// <returns>A success message upon successful password reset.</returns>
+        /// <response code="200">If the password is reset successfully.</response>
+        /// <response code="400">If the passwords do not match, or the reset token is invalid or expired.</response>
         [HttpPost("reset-password")] //second part of the reset password endpoint
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto model)
+        public async Task<IActionResult> ResetPassword([FromForm] ResetPasswordDto model)
         {
             if (model.NewPassword != model.ConfirmPassword) //compares password
                 return BadRequest(new { message = "Passwords do not match" });
@@ -149,7 +175,11 @@ namespace DatabaseConnection.Controllers
             return Ok(new { message = "Password has been reset successfully" });
         }
 
-        // Method to send the reset token via email
+        /// <summary>
+        /// Sends the password reset token to the user's email.
+        /// </summary>
+        /// <param name="email">The user's email address.</param>
+        /// <param name="resetToken">The password reset token.</param>
         private void SendResetEmail(string email, string resetToken)
         {
             var smtpSettings = _configuration.GetSection("SmtpSettings"); //getting smtp connection settings 
@@ -172,7 +202,11 @@ namespace DatabaseConnection.Controllers
             }
         }
 
-        // Helper method to generate JWT token
+        /// <summary>
+        /// Generates a JWT token for the authenticated user.
+        /// </summary>
+        /// <param name="user">The user's BSON document.</param>
+        /// <returns>A JWT token.</returns>
         private string GenerateJwtToken(BsonDocument user)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
@@ -198,10 +232,20 @@ namespace DatabaseConnection.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        // PUT: api/authenticate/upgrade
+        /// <summary>
+        /// Upgrades a user's role to a higher level (e.g., user to admin, teacher to moderator).
+        /// </summary>
+        /// <param name="email">The email of the user to be upgraded.</param>
+        /// <param name="newRole">The new role to assign to the user.</param>
+        /// <returns>A success message upon successful role upgrade.</returns>
+        /// <response code="200">If the user's role is upgraded successfully.</response>
+        /// <response code="400">If the new role is invalid or if the user cannot be upgraded.</response>
+        /// <response code="401">If the request is not authorized (only admins can perform this action).</response>
+        /// <response code="404">If the user with the specified email is not found.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [HttpPut("upgrade")] //endpoint allowing admin to make a teacher a moderator and a user an admin
         [Authorize(Roles = "admin")] //checks that user who is logged in is a admin
-        public async Task<IActionResult> UpgradeUser([FromQuery] string email, [FromBody] string newRole) 
+        public async Task<IActionResult> UpgradeUser([FromQuery] string email, [FromForm] string newRole) 
         {
             var normalizedNewRole = newRole.ToLower(); //makes sure no matter how admin enters role it is stored in small letters
 
@@ -233,7 +277,13 @@ namespace DatabaseConnection.Controllers
             return Ok(new { message = $"User upgraded to {normalizedNewRole} successfully." });
         }
 
-        // GET: api/authenticate/current-user
+        /// <summary>
+        /// Retrieves the details of the currently authenticated user.
+        /// </summary>
+        /// <returns>The user's details including email, name, and role.</returns>
+        /// <response code="200">If the user's details are retrieved successfully.</response>
+        /// <response code="401">If the user is not authenticated.</response>
+        
         [HttpGet("current-user")] //endpoint to get user details
         [Authorize] //reads token put into authorization
         public IActionResult GetCurrentUser()

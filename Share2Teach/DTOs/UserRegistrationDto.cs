@@ -25,9 +25,10 @@ public class UserRegistrationDto
     [DataType(DataType.Password)]
     public string ConfirmPassword { get; set; }
 
-    // Default role is "User"
-    public string Role { get; set; } = "User";
+    
+    [Required(ErrorMessage = "Role is requiredis required.")]
+    public string Role { get; set; } = "User"; // Default role is "User"
 
     // Only required for teachers
-    public List<string> Subjects { get; set; } = new List<string>();
+    public List<string> Subjects { get; set; } = new List<string>(); // Only required for teachers
 }
