@@ -36,6 +36,7 @@ namespace DatabaseConnection.Controllers
         /// <response code="404">If the user is not found.</response>
         /// <response code="500">If an internal server error occurs.</response>
         [HttpPost("register")] //account creation endpoint 
+        // POST: api/Authenticate/register
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -96,6 +97,7 @@ namespace DatabaseConnection.Controllers
         /// <response code="401">If the login attempt is invalid.</response>
         /// <response code="500">If an internal server error occurs.</response>
         [HttpPost("login")] //sign in endpoint
+        // POST: api/Authenticate/login
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -135,6 +137,7 @@ namespace DatabaseConnection.Controllers
         /// <response code="400">If the user with the provided email does not exist.</response>
         /// <response code="500">If an internal server error occurs.</response>
         [HttpPost("forgot-password")] //part of password reset
+        // POST: api/Authenticate/forgot-password
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -166,6 +169,7 @@ namespace DatabaseConnection.Controllers
         /// <response code="400">If the passwords do not match, or the reset token is invalid or expired.</response>
         /// <response code="500">If an internal server error occurs.</response>
         [HttpPost("reset-password")] //second part of the reset password endpoint
+        // POST: api/Authenticate/reset-password
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]       
@@ -261,7 +265,8 @@ namespace DatabaseConnection.Controllers
         /// <response code="401">If the request is not authorized (only admins can perform this action).</response>
         /// <response code="404">If the user with the specified email is not found.</response>
         /// <response code="500">If an internal server error occurs.</response>
-        [HttpPut("upgrade")] //endpoint allowing admin to make a teacher a moderator and a user an admin
+        [HttpPut("upgrade-user")] //endpoint allowing admin to make a teacher a moderator and a user an admin
+        // PUT: api/Authenticate/upgrade
         [Authorize(Roles = "admin")] //checks that user who is logged in is a admin
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -308,6 +313,7 @@ namespace DatabaseConnection.Controllers
         /// <response code="401">If the user is not authenticated.</response>
         
         [HttpGet("current-user")] //endpoint to get user details
+        // GET: api/Authenticate/current-user
         [Authorize] //reads token put into authorization
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
