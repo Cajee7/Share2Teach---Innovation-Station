@@ -14,7 +14,7 @@ namespace FileModeration.Controllers
     [Route("api/[controller]")] // Defines the base route for this controller as 'api/moderation'
     public class ModerationController : ControllerBase
     {
-        // MongoDB collections for documents and moderation entries
+        // MongoDB collections for documents and moderation entry's
         private readonly IMongoCollection<Documents> _documentsCollection;
         private readonly IMongoCollection<ModerationEntry> _moderationCollection;
 
