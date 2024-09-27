@@ -5,6 +5,7 @@ using System.Text;
 using MongoDB.Driver;
 using Serilog;
 using System.Reflection; // Add this to access XML comments
+using Share2Teach.Analytics; // Ensure to include the namespace for GoogleAnalyticsService
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,17 +57,6 @@ builder.Services.AddAuthentication(options =>
 
 // Add services to the container
 builder.Services.AddControllers();
-
-// Configure CORS for Full WebKit & Firefox Support
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowSpecificOrigins", builder =>
-    {
-        builder.WithOrigins("https://your-frontend-domain.com") // Replace with our eventual frontend domain
-               .AllowAnyHeader()
-               .AllowAnyMethod();
-    });
-});
 
 // Add Swagger services with XML documentation
 builder.Services.AddEndpointsApiExplorer();
