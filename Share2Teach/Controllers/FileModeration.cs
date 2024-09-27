@@ -10,11 +10,11 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace FileModeration.Controllers
 {
-    [ApiController] // Indicates that this class will handle API requests
+    [ApiController] // Indicates that this class will handle API request
     [Route("api/[controller]")] // Defines the base route for this controller as 'api/moderation'
     public class ModerationController : ControllerBase
     {
-        // MongoDB collections for documents and moderation entries
+        // MongoDB collections for documents and moderation entries 
         private readonly IMongoCollection<Documents> _documentsCollection;
         private readonly IMongoCollection<ModerationEntry> _moderationCollection;
 
