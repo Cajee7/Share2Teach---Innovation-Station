@@ -21,5 +21,7 @@ namespace Moderation.Models
     {
         public required string Status { get; set; }
         public required string Comment { get; set; }
+
+        public int Rating { get; set; }
     }
 }
