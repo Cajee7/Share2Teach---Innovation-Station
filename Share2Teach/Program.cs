@@ -5,6 +5,7 @@ using System.Text;
 using MongoDB.Driver;
 using Serilog;
 using System.Reflection; // Add this to access XML comments
+using Share2Teach.Analytics; // Ensure to include the namespace for GoogleAnalyticsService
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +57,9 @@ builder.Services.AddAuthentication(options =>
 
 // Add services to the container
 builder.Services.AddControllers();
+
+// Register GoogleAnalyticsService here
+builder.Services.AddScoped<GoogleAnalyticsService>(); // Add this line
 
 // Add Swagger services with XML documentation
 builder.Services.AddEndpointsApiExplorer();
