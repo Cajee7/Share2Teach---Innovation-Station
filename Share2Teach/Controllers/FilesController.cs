@@ -1,15 +1,19 @@
 using Aspose.Words;
-//using Aspose.Slides;
-using System.Diagnostics;
+using Aspose.Pdf; // Ensure you have this namespace for PDF operations
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using System;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using Document_Model.Models;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Linq;
 
 namespace UploadDocuments.Controllers
 {
@@ -23,13 +27,16 @@ namespace UploadDocuments.Controllers
         private readonly List<string> _allowedFileTypes = new List<string> { ".doc", ".docx", ".pdf", ".ppt", ".pptx" };
         private const double MaxFileSizeMb = 25.0; // 25 MB limit
 
+        // Nextcloud configuration
+        private readonly string _nextcloudBaseUri = "http://localhost:8080/remote.php/dav/files/aramsunar/";
+        private readonly string _nextcloudUsername = "aramsunar";
+        private readonly string _nextcloudPassword = "Jaedene12!";
+
         public FilesController(IMongoDatabase database)
         {
             _documentsCollection = database.GetCollection<Documents>("Documents");
         }
 
-        // POST: api/files/upload
-        // POST: api/files/upload
         [HttpPost("upload")]
         public async Task<IActionResult> UploadDocument([FromForm] DocumentUploadRequest request)
         {
@@ -58,7 +65,7 @@ namespace UploadDocuments.Controllers
                     return BadRequest($"File type '{fileType}' is not allowed. Allowed types are: {string.Join(", ", _allowedFileTypes)}");
                 }
 
-                // Define the folder where files will be saved
+                // Define the folder where files will be saved locally for conversion
                 var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "UploadedFiles");
                 if (!Directory.Exists(uploadPath))
                 {
@@ -67,7 +74,7 @@ namespace UploadDocuments.Controllers
 
                 var filePath = Path.Combine(uploadPath, fileName);
 
-                // Save the original file locally (or to a cloud location)
+                // Save the original file locally
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await request.File.CopyToAsync(stream);
@@ -86,11 +93,36 @@ namespace UploadDocuments.Controllers
                         var doc = new Aspose.Words.Document(filePath);
                         doc.Save(convertedFilePath, Aspose.Words.SaveFormat.Pdf);
                     }
-                    
+                    // TODO: Add conversion for PowerPoint files if needed
 
                     // Optionally delete the original file after conversion
                     System.IO.File.Delete(filePath);
                 }
+
+                // Upload the file to Nextcloud
+                var uploadUrl = $"{_nextcloudBaseUri}{Path.GetFileName(convertedFilePath)}";
+
+                using (var client = new HttpClient())
+                {
+                    var byteArray = Encoding.ASCII.GetBytes($"{_nextcloudUsername}:{_nextcloudPassword}");
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+
+                    using (var content = new StreamContent(new FileStream(convertedFilePath, FileMode.Open)))
+                    {
+                        content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+
+                        var response = await client.PutAsync(uploadUrl, content);
+
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            return StatusCode((int)response.StatusCode, new { message = $"Upload to Nextcloud failed: {response.StatusCode}" });
+                        }
+                    }
+                }
+
+                // Extract text from the PDF for tag generation
+                string extractedContent = ExtractTextFromPdf(convertedFilePath);
+                List<string> generatedTags = GenerateTags(extractedContent);
 
                 // Create a new document record to save in MongoDB
                 var newDocument = new Documents
@@ -100,65 +132,69 @@ namespace UploadDocuments.Controllers
                     Grade = request.Grade,
                     Description = request.Description,
                     File_Size = Math.Round(fileSize / (1024.0 * 1024.0), 2), // Convert size to MB
-                    File_Url = convertedFilePath, // Path to the PDF file
+                    File_Url = uploadUrl, // URL of the file in Nextcloud
                     File_Type = ".pdf", // Updated file type to PDF
                     Moderation_Status = "Unmoderated", // Initial moderation status
                     Date_Uploaded = DateTime.UtcNow,
                     Ratings = 0, // Initial rating
-                    Tags = new List<string>() // Can be populated later
+                    Tags = generatedTags // Save generated tags
                 };
-                
+
                 // Insert the document record into MongoDB
                 await _documentsCollection.InsertOneAsync(newDocument);
 
-                return Ok($"File '{fileName}' uploaded and converted to PDF successfully.");
+                // Delete the locally saved file after uploading to Nextcloud
+                if (System.IO.File.Exists(convertedFilePath))
+                {
+                    System.IO.File.Delete(convertedFilePath);
+                }
+
+                return Ok($"File '{fileName}' uploaded, converted to PDF, and stored on Nextcloud successfully.");
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        // Helper method to convert documents to PDF using LibreOffice (soffice)
-        private bool ConvertToPdfUsingLibreOffice(string inputFilePath, string outputFilePath)
+
+        private string ExtractTextFromPdf(string pdfFilePath)
         {
-            try
+            using (var document = new Aspose.Pdf.Document(pdfFilePath))
             {
-                // Command to run LibreOffice for conversion
-                var processInfo = new ProcessStartInfo
+                StringBuilder text = new StringBuilder();
+                foreach (var page in document.Pages)
                 {
-                    FileName = "soffice", // LibreOffice command
-                    Arguments = $"--headless --convert-to pdf --outdir \"{Path.GetDirectoryName(outputFilePath)}\" \"{inputFilePath}\"",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-
-                using (var process = Process.Start(processInfo))
-                {
-                     process.WaitForExit();
-
-                    // Check if conversion succeeded
-                    if (process.ExitCode != 0)
-                    {
-                        var error = process.StandardError.ReadToEnd();
-                        Console.WriteLine($"LibreOffice conversion error: {error}");
-                        return false;
-                    }
+                    text.Append(page.Contents);
                 }
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error during LibreOffice conversion: {ex.Message}");
-                return false;
+                return text.ToString();
             }
         }
 
+        private List<string> GenerateTags(string content)
+        {
+            var words = content.Split(new[] { ' ', ',', '.', ';', ':', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            var tagCounts = new Dictionary<string, int>();
 
-    
+            foreach (var word in words)
+            {
+                var lowerWord = word.ToLowerInvariant();
+                if (lowerWord.Length > 3) // You can set a threshold for tag length
+                {
+                    if (tagCounts.ContainsKey(lowerWord))
+                        tagCounts[lowerWord]++;
+                    else
+                        tagCounts[lowerWord] = 1;
+                }
+            }
 
+            // Get top 5 most frequent words as tags
+            var tags = tagCounts.OrderByDescending(kvp => kvp.Value)
+                                .Take(5)
+                                .Select(kvp => kvp.Key)
+                                .ToList();
+
+            return tags;
+        }
 
         // GET: api/files
         [HttpGet]
