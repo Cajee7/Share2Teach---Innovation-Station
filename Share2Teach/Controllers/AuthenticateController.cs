@@ -33,8 +33,13 @@ namespace DatabaseConnection.Controllers
         /// <returns>A success message upon successful registration.</returns>
         /// <response code="200">If the user is registered successfully.</response>
         /// <response code="400">If the model is invalid or if the user already exists.</response>
-        
+        /// <response code="404">If the user is not found.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [HttpPost("register")] //account creation endpoint 
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Register([FromForm] UserRegistrationDto model)
         {
             if (!ModelState.IsValid) //checks is model is valid
@@ -89,7 +94,12 @@ namespace DatabaseConnection.Controllers
         /// <response code="200">If the user is logged in successfully.</response>
         /// <response code="400">If the model is invalid.</response>
         /// <response code="401">If the login attempt is invalid.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [HttpPost("login")] //sign in endpoint
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Login([FromForm] UserLoginDto model)
         {
             if (!ModelState.IsValid)
@@ -123,7 +133,11 @@ namespace DatabaseConnection.Controllers
         /// <returns>A success message upon successful initiation of the password reset process.</returns>
         /// <response code="200">If the password reset token is sent successfully.</response>
         /// <response code="400">If the user with the provided email does not exist.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [HttpPost("forgot-password")] //part of password reset
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> ForgotPassword([FromForm] ForgotPasswordDto model)
         {
             var user = await _usersCollection.Find(new BsonDocument("Email", model.Email)).FirstOrDefaultAsync(); //checks to see if user with this email exists
@@ -150,7 +164,11 @@ namespace DatabaseConnection.Controllers
         /// <returns>A success message upon successful password reset.</returns>
         /// <response code="200">If the password is reset successfully.</response>
         /// <response code="400">If the passwords do not match, or the reset token is invalid or expired.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [HttpPost("reset-password")] //second part of the reset password endpoint
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]       
         public async Task<IActionResult> ResetPassword([FromForm] ResetPasswordDto model)
         {
             if (model.NewPassword != model.ConfirmPassword) //compares password
@@ -245,6 +263,11 @@ namespace DatabaseConnection.Controllers
         /// <response code="500">If an internal server error occurs.</response>
         [HttpPut("upgrade")] //endpoint allowing admin to make a teacher a moderator and a user an admin
         [Authorize(Roles = "admin")] //checks that user who is logged in is a admin
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpgradeUser([FromQuery] string email, [FromForm] string newRole) 
         {
             var normalizedNewRole = newRole.ToLower(); //makes sure no matter how admin enters role it is stored in small letters
@@ -286,6 +309,8 @@ namespace DatabaseConnection.Controllers
         
         [HttpGet("current-user")] //endpoint to get user details
         [Authorize] //reads token put into authorization
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult GetCurrentUser()
         {
             //retrieves the users information from the token
