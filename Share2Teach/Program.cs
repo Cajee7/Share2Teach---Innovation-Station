@@ -57,6 +57,17 @@ builder.Services.AddAuthentication(options =>
 // Add services to the container
 builder.Services.AddControllers();
 
+// Configure CORS for Full WebKit & Firefox Support
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigins", builder =>
+    {
+        builder.WithOrigins("https://your-frontend-domain.com") // Replace with our eventual frontend domain
+               .AllowAnyHeader()
+               .AllowAnyMethod();
+    });
+});
+
 // Add Swagger services with XML documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -106,6 +117,9 @@ if (app.Environment.IsDevelopment())
         context.Response.Redirect("/swagger");
     });
 }
+
+// Use CORS policy
+app.UseCors("AllowSpecificOrigins");
 
 app.UseAuthentication();
 app.UseAuthorization();

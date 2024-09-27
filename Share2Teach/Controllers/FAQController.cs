@@ -2,10 +2,14 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Share2Teach.Models;
 using LogController.Controllers; // For logging
 
 namespace FAQApp.Controllers
 {
+    /// <summary>
+    /// Provides an API for managing Frequently Asked Questions (FAQs).
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class FAQController : BaseLogController<FAQController> // Inherit from BaseLogController
@@ -22,6 +26,50 @@ namespace FAQApp.Controllers
             var database = client.GetDatabase("Share2Teach");
             _faqCollection = database.GetCollection<BsonDocument>("FAQS");
         }
+
+        /// <summary>
+        /// Adds a new FAQ.
+        /// </summary>
+        /// <param name="faqInput">The FAQ input model containing question and answer.</param>
+        /// <returns>A success message upon successful addition.</returns>
+        /// <response code="200">If the FAQ is added successfully.</response>
+        /// <response code="400">If the request is invalid.</response>
+        /// <response code="500">If an internal server error occurs.</response>
+        [HttpPost("add")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult AddFAQ([FromBody] FAQS faqInput)
+        {
+            // Validate that the input contains the required fields
+            if (string.IsNullOrEmpty(faqInput.Question) || string.IsNullOrEmpty(faqInput.Answer))
+            {
+                _logger.LogWarning("Attempted to add an FAQ with missing fields at {Timestamp}.", DateTime.UtcNow);
+                return BadRequest("Question and Answer are required fields.");
+            }
+
+            // Create a new FAQ document with the automatically generated ObjectId and current DateTime
+            var faqDocument = new BsonDocument
+            {
+                { "_id", ObjectId.GenerateNewId() }, // Automatically generated ObjectId
+                { "question", faqInput.Question },
+                { "answer", faqInput.Answer },
+                { "dateAdded", DateTime.UtcNow } // Automatically generated DateAdded field
+            };
+
+            try
+            {
+                _faqCollection.InsertOne(faqDocument);
+                _logger.LogInformation("Added FAQ: {Question} at {Timestamp}.", faqInput.Question, DateTime.UtcNow);
+
+                return Ok("FAQ added successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error while adding FAQ: {Message}", ex.Message);
+                return StatusCode(500, "An error occurred while adding the FAQ.");
+            }
+        }       
 
         /// <summary>
         /// Retrieves a list of all FAQs.
@@ -64,39 +112,6 @@ namespace FAQApp.Controllers
                 _logger.LogError("Error while fetching FAQs: {Message}", ex.Message);
                 return StatusCode(500, "An error occurred while fetching FAQs.");
             }
-        }
-
-        /// <summary>
-        /// Adds a new FAQ.
-        /// </summary>
-        /// <param name="faqInput">The FAQ input model containing question and answer.</param>
-        /// <returns>A success message upon successful addition.</returns>
-        /// <response code="200">If the FAQ is added successfully.</response>
-        /// <response code="400">If the request is invalid.</response>
-        /// <response code="500">If an internal server error occurs.</response>
-        [HttpPost("add")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult AddFAQ([FromBody] FAQInputModel faqInput)
-        {
-            if (string.IsNullOrEmpty(faqInput.Question) || string.IsNullOrEmpty(faqInput.Answer))
-            {
-                _logger.LogWarning("Attempted to add an FAQ with missing fields at {Timestamp}.", DateTime.UtcNow);
-                return BadRequest("Question and Answer are required fields.");
-            }
-
-            var faqDocument = new BsonDocument
-            {
-                { "question", faqInput.Question },
-                { "answer", faqInput.Answer },
-                { "dateAdded", DateTime.UtcNow }
-            };
-
-            _faqCollection.InsertOne(faqDocument);
-            _logger.LogInformation("Added FAQ: {Question} at {Timestamp}.", faqInput.Question, DateTime.UtcNow);
-
-            return Ok("FAQ added successfully.");
         }
 
         /// <summary>
@@ -148,7 +163,7 @@ namespace FAQApp.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult UpdateFAQById([FromQuery] string id, [FromBody] FAQInputModel faqInput)
+        public IActionResult UpdateFAQById([FromQuery] string id, [FromBody] FAQS faqInput)
         {
             if (!ObjectId.TryParse(id, out ObjectId objectId))
             {
@@ -178,21 +193,5 @@ namespace FAQApp.Controllers
             _logger.LogInformation("Updated FAQ with id: {Id} at {Timestamp}.", id, DateTime.UtcNow);
             return Ok("FAQ updated successfully.");
         }
-    }
-
-    /// <summary>
-    /// Model for FAQ input.
-    /// </summary>
-    public class FAQInputModel
-    {
-        /// <summary>
-        /// The question text of the FAQ.
-        /// </summary>
-        public string? Question { get; set; }
-
-        /// <summary>
-        /// The answer text of the FAQ.
-        /// </summary>
-        public string? Answer { get; set; }
     }
 }

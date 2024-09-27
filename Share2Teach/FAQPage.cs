@@ -4,14 +4,24 @@ using System;
 
 namespace FAQPage
 {
+    /// <summary>
+    /// Represents a page for managing frequently asked questions (FAQs).
+    /// </summary>
     public class FAQPage
     {
+        /// <summary>
+        /// Retrieves the FAQ collection from the database.
+        /// </summary>
+        /// <returns>The MongoDB collection containing FAQs.</returns>
         private static IMongoCollection<BsonDocument> GetFAQCollection()
         {
             var database = DatabaseConnection.Program.ConnectToDatabase();
             return database.GetCollection<BsonDocument>("FAQS");
         }
 
+        /// <summary>
+        /// Retrieves and displays all FAQs from the collection.
+        /// </summary>
         public static void RetrieveFAQS()
         {
             var faqCollection = GetFAQCollection();
@@ -36,6 +46,11 @@ namespace FAQPage
             }
         }
 
+        /// <summary>
+        /// Creates a new FAQ entry in the collection.
+        /// </summary>
+        /// <param name="question">The question of the FAQ.</param>
+        /// <param name="answer">The answer of the FAQ.</param>
         public static void CreateFAQ(string question, string answer)
         {
             if (string.IsNullOrEmpty(question) || string.IsNullOrEmpty(answer))
@@ -58,6 +73,12 @@ namespace FAQPage
             }
         }
 
+        /// <summary>
+        /// Updates an existing FAQ entry in the collection.
+        /// </summary>
+        /// <param name="question">The original question of the FAQ to be updated.</param>
+        /// <param name="newQuestion">The new question to replace the original question.</param>
+        /// <param name="newAnswer">The new answer to replace the original answer.</param>
         public static void UpdateFAQ(string question, string newQuestion, string newAnswer)
         {
             var faqCollection = GetFAQCollection();
@@ -80,6 +101,10 @@ namespace FAQPage
             }
         }
 
+        /// <summary>
+        /// Deletes an existing FAQ entry from the collection.
+        /// </summary>
+        /// <param name="question">The question of the FAQ to be deleted.</param>
         public static void DeleteFAQ(string question)
         {
             var faqCollection = GetFAQCollection();
@@ -96,7 +121,12 @@ namespace FAQPage
             }
         }
 
-         public static void Main(string[] args)
+        /// <summary>
+        /// The main entry point for the application.
+        /// Calls the method to retrieve FAQs.
+        /// </summary>
+        /// <param name="args">Command-line arguments.</param>
+        public static void Main(string[] args)
         {
             //calling method
             FAQPage.RetrieveFAQS();

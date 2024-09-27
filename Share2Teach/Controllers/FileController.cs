@@ -1,6 +1,4 @@
-using Aspose.Words; // For handling Word documents
-using Aspose.Pdf; // For handling PDF documents
-using Aspose.Pdf.Facades; // For PDF manipulation
+using Aspose.Words;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using MongoDB.Bson;
@@ -14,13 +12,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Search.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-
-// Aliases to resolve ambiguity between Aspose.Words.Document and Aspose.Pdf.Document
-using AsposeWordsDocument = Aspose.Words.Document;
-using AsposePdfDocument = Aspose.Pdf.Document;
 
 namespace Combined.Controllers
 {
@@ -28,31 +19,23 @@ namespace Combined.Controllers
     [Route("api/[controller]")]
     public class FileController : ControllerBase
     {
-        private readonly ILogger<FileController> _logger;
-        private readonly IConfiguration _configuration;
+        private static readonly string username = "aramsunar"; // Nextcloud username
+        private static readonly string password = "Jaedene12!"; // Nextcloud password
+        private static readonly string webdavUrl = "http://localhost:8080/remote.php/dav/files/aramsunar/"; // Nextcloud WebDAV endpoint
+
         private readonly IMongoCollection<Documents> _documentsCollection;
 
-        // Configuration settings
-        private readonly string _username;
-        private readonly string _password;
-        private readonly string _webdavUrl;
-        private readonly string _licensePdfPath;
-        private readonly List<string> _allowedFileTypes;
-        private readonly double _maxFileSizeMb;
+        // Allowed file types
+        private readonly List<string> _allowedFileTypes = new List<string> { ".doc", ".docx", ".pdf", ".ppt", ".pptx" };
+        private const double MaxFileSizeMb = 25.0; // 25 MB limit
 
-        public FileController(IMongoDatabase database, IConfiguration configuration, ILogger<FileController> logger)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileController"/> class.
+        /// </summary>
+        /// <param name="database">The MongoDB database instance.</param>
+        public FileController(IMongoDatabase database)
         {
             _documentsCollection = database.GetCollection<Documents>("Documents");
-            _configuration = configuration;
-            _logger = logger;
-
-            // Read configuration settings
-            _username = _configuration["Nextcloud:Username"];
-            _password = _configuration["Nextcloud:Password"];
-            _webdavUrl = _configuration["Nextcloud:WebdavUrl"];
-            _licensePdfPath = _configuration["FileSettings:LicensePdfPath"];
-            _maxFileSizeMb = double.Parse(_configuration["FileSettings:MaxFileSizeMb"]);
-            _allowedFileTypes = _configuration.GetSection("FileSettings:AllowedFileTypes").Get<List<string>>();
 
             // Ensure the text index is created for the fields used in search
             var indexKeys = Builders<Documents>.IndexKeys.Text(d => d.Title)
@@ -63,9 +46,12 @@ namespace Combined.Controllers
             _documentsCollection.Indexes.CreateOne(indexModel);
         }
 
-        // POST: api/file/upload
+        /// <summary>
+        /// Uploads a file to Nextcloud and stores its metadata in MongoDB.
+        /// </summary>
+        /// <param name="request">The combined upload request containing file and metadata.</param>
+        /// <returns>An action result indicating the outcome of the upload operation.</returns>
         [HttpPost("upload")]
-        [Authorize(Roles = "teacher")]
         public async Task<IActionResult> UploadFile([FromForm] CombinedUploadRequest request)
         {
             try
@@ -77,14 +63,14 @@ namespace Combined.Controllers
                 }
 
                 // Get file information
-                var originalFileName = Path.GetFileName(request.UploadedFile.FileName);
+                var fileName = Path.GetFileName(request.UploadedFile.FileName);
                 var fileSize = request.UploadedFile.Length;
-                var fileType = Path.GetExtension(originalFileName).ToLowerInvariant();
+                var fileType = Path.GetExtension(fileName).ToLowerInvariant();
 
                 // Check file size
-                if (fileSize > _maxFileSizeMb * 1024 * 1024)
+                if (fileSize > MaxFileSizeMb * 1024 * 1024)
                 {
-                    return BadRequest(new { message = $"File size exceeds the limit of {_maxFileSizeMb} MB." });
+                    return BadRequest(new { message = $"File size exceeds the limit of {MaxFileSizeMb} MB." });
                 }
 
                 // Check file type
@@ -94,77 +80,46 @@ namespace Combined.Controllers
                 }
 
                 // Convert Word file to PDF if needed
-                string convertedPdfPath = null;
+                string pdfFilePath = null;
                 List<string> tags = new List<string>(); // List to hold tags
                 if (fileType == ".doc" || fileType == ".docx")
                 {
                     // Load the document using Aspose.Words
-                    var asposeDoc = new AsposeWordsDocument(request.UploadedFile.OpenReadStream());
+                    var asposeDoc = new Document(request.UploadedFile.OpenReadStream());
 
                     // Generate PDF file name
-                    var pdfFileName = Path.GetFileNameWithoutExtension(originalFileName) + ".pdf";
-                    convertedPdfPath = Path.Combine(Path.GetTempPath(), pdfFileName);
+                    var pdfFileName = Path.GetFileNameWithoutExtension(fileName) + ".pdf";
+                    pdfFilePath = Path.Combine(Path.GetTempPath(), pdfFileName);
 
                     // Save the document as PDF
-                    asposeDoc.Save(convertedPdfPath, Aspose.Words.SaveFormat.Pdf);
+                    asposeDoc.Save(pdfFilePath);
 
                     // Extract text from the document for tag generation
-                    var documentText = asposeDoc.ToString(Aspose.Words.SaveFormat.Text);
+                    var documentText = asposeDoc.ToString(SaveFormat.Text);
 
                     // Generate tags from document text (basic implementation: top 10 frequent words excluding stopwords)
                     tags = GenerateTags(documentText);
-                    _logger.LogInformation("Generated Tags: {Tags}", string.Join(", ", tags));
+                    Console.WriteLine("Generated Tags: " + string.Join(", ", tags));
 
                     // Update fileName to the new PDF file
-                    originalFileName = pdfFileName;
+                    fileName = pdfFileName;
                     fileType = ".pdf";
                 }
 
                 // Construct the new file name
-                string newFileName = $"{request.Title}_{request.Subject}_{request.Grade}{fileType}";
-
-                // Combine PDFs (license and converted document)
-                string finalPdfPath = Path.Combine(Path.GetTempPath(), "Final_" + newFileName);
-                using (FileStream finalPdfStream = new FileStream(finalPdfPath, FileMode.Create))
-                {
-                    // Load the license PDF
-                    var licensePdf = new AsposePdfDocument(_licensePdfPath);
-
-                    // Create an output PDF document
-                    var outputPdf = new AsposePdfDocument();
-
-                    // Import pages from license PDF
-                    outputPdf.Pages.Add(licensePdf.Pages);
-
-                    if (convertedPdfPath != null && System.IO.File.Exists(convertedPdfPath))
-                    {
-                        // Load the converted PDF
-                        var convertedPdf = new AsposePdfDocument(convertedPdfPath);
-                        // Import pages from converted PDF
-                        outputPdf.Pages.Add(convertedPdf.Pages);
-                    }
-                    else
-                    {
-                        // If the original file is already a PDF and no conversion was needed
-                        var originalPdf = new AsposePdfDocument(request.UploadedFile.OpenReadStream());
-                        outputPdf.Pages.Add(originalPdf.Pages);
-                    }
-
-                    // Save the final PDF with license
-                    outputPdf.Save(finalPdfStream);
-                }
+                string newFileName = $"{request.Title}{request.Subject}{request.Grade}{fileType}";
 
                 // Encode the new file name to handle spaces and special characters
                 var encodedNewFileName = Uri.EscapeDataString(newFileName);
 
-                // Upload file to Nextcloud (final PDF with license)
-                var uploadUrl = $"{_webdavUrl}{encodedNewFileName}";
+                // Upload file to Nextcloud (PDF or original)
+                var uploadUrl = $"{webdavUrl}{encodedNewFileName}";
                 using (var client = new HttpClient())
                 {
-                    var byteArray = Encoding.ASCII.GetBytes($"{_username}:{_password}");
+                    var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
 
-                    using (var content = new StreamContent(System.IO.File.OpenRead(finalPdfPath)))
+                    using (var content = new StreamContent(pdfFilePath != null ? System.IO.File.OpenRead(pdfFilePath) : request.UploadedFile.OpenReadStream()))
                     {
                         content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
@@ -172,20 +127,9 @@ namespace Combined.Controllers
 
                         if (!response.IsSuccessStatusCode)
                         {
-                            _logger.LogError("Upload to Nextcloud failed with status code: {StatusCode}", response.StatusCode);
                             return StatusCode((int)response.StatusCode, new { message = $"Upload to Nextcloud failed: {response.StatusCode}" });
                         }
-                    }
-                }
-
-                // Clean up temporary files
-                if (convertedPdfPath != null && System.IO.File.Exists(convertedPdfPath))
-                {
-                    System.IO.File.Delete(convertedPdfPath);
-                }
-                if (System.IO.File.Exists(finalPdfPath))
-                {
-                    System.IO.File.Delete(finalPdfPath);
+                    }   
                 }
 
                 // Create a new document record to save in MongoDB
@@ -207,16 +151,19 @@ namespace Combined.Controllers
                 // Insert the document record into MongoDB
                 await _documentsCollection.InsertOneAsync(newDocument);
 
-                return Ok(new { message = $"File '{newFileName}' uploaded to Nextcloud and metadata stored in MongoDB successfully." });
+                return Ok(new { message = $"File '{fileName}' uploaded to Nextcloud and metadata stored in MongoDB successfully." });
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error during file upload: {ErrorMessage}", ex.Message);
                 return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
             }
         }
 
-        // Function to generate tags based on document text
+        /// <summary>
+        /// Generates tags based on the document text by filtering out stopwords and selecting the most frequent words.
+        /// </summary>
+        /// <param name="documentText">The text content of the document.</param>
+        /// <returns>A list of generated tags.</returns>
         private List<string> GenerateTags(string documentText)
         {
             // Expanded stopword list (can be customized further)
@@ -247,29 +194,26 @@ namespace Combined.Controllers
             return words;
         }
 
+        /// <summary>
+        /// Lemmatizes a given word based on basic rules.
+        /// </summary>
+        /// <param name="word">The word to be lemmatized.</param>
+        /// <returns>The lemmatized form of the word.</returns>
         private string LemmatizeWord(string word)
         {
-            // Basic lemmatization rules
-            if (word.EndsWith("ing") && word.Length > 4)
-            {
-                return word.Substring(0, word.Length - 3);  // Example: "running" -> "run"
-            }
-            if (word.EndsWith("ed") && word.Length > 3)
-            {
-                return word.Substring(0, word.Length - 2);  // Example: "played" -> "play"
-            }
-            if (word.EndsWith("s") && word.Length > 3)
-            {
-                return word.Substring(0, word.Length - 1);  // Example: "cats" -> "cat"
-            }
-
-            // Return the word as-is if no rule applies
-            return word;
+            // Simple rules for lemmatization (this can be enhanced)
+            if (word.EndsWith("s"))
+                return word.Substring(0, word.Length - 1); // Remove plural 's'
+            if (word.EndsWith("ed") || word.EndsWith("ing"))
+                return word.Substring(0, word.Length - 2); // Remove 'ed' or 'ing'
+            return word; // Return as is
         }
-
-        // GET: api/file/search
+        /// <summary>
+        /// Searches for documents based on the provided search query.
+        /// </summary>
+        /// <param name="request">The search request containing the query string.</param>
+        /// <returns>An IActionResult containing the search results or an error message.</returns>
         [HttpGet("search")]
-        [Authorize] // Optional: Add authorization if needed
         public async Task<IActionResult> SearchDocuments([FromQuery] SearchRequest request)
         {
             try
@@ -287,9 +231,9 @@ namespace Combined.Controllers
 
                 // Log the filter (optional)
                 var renderedFilter = filter.Render(_documentsCollection.DocumentSerializer, _documentsCollection.Settings.SerializerRegistry);
-                _logger.LogInformation("Filter: {Filter}", renderedFilter.ToJson());
+                Console.WriteLine($"Filter: {renderedFilter.ToJson()}");
 
-                // Project only the fields we want to show, including a Download URL pointing to the API's download endpoint
+                // Project only the fields we want to show
                 var projection = Builders<Documents>.Projection.Expression(d => new
                 {
                     d.Title,
@@ -300,7 +244,7 @@ namespace Combined.Controllers
                     d.Ratings,
                     d.Tags,
                     d.Date_Uploaded,
-                    Download_Url = Url.Action(nameof(DownloadFile), "File", new { fileName = $"{d.Title}_{d.Subject}_{d.Grade}{d.File_Type}" }, Request.Scheme)
+                    Download_Url = d.File_Url
                 });
 
                 // Perform the search query
@@ -320,91 +264,119 @@ namespace Combined.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error during search: {ErrorMessage}", ex.Message);
                 return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
             }
         }
 
-        // GET: api/file/download/{fileName}
+        /// <summary>
+        /// Downloads a file with the specified file name.
+        /// </summary>
+        /// <param name="fileName">The name of the file to download.</param>
+        /// <returns>An IActionResult containing the file as a downloadable response or an error message.</returns>
         [HttpGet("download/{fileName}")]
-        [Authorize] // Optional: Add authorization to secure the download endpoint
         public async Task<IActionResult> DownloadFile(string fileName)
         {
             try
             {
                 // Encode the file name to handle spaces and special characters
                 var encodedFileName = Uri.EscapeDataString(fileName);
-                var downloadUrl = $"{_webdavUrl}{encodedFileName}";
+                var downloadUrl = $"{webdavUrl}{encodedFileName}";
 
                 using (var client = new HttpClient())
                 {
                     // Adding basic authentication headers
-                    var byteArray = Encoding.ASCII.GetBytes($"{_username}:{_password}");
+                    var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
 
+                    // Make the HTTP GET request
                     var response = await client.GetAsync(downloadUrl);
 
-                    if (!response.IsSuccessStatusCode)
+                    if (response.IsSuccessStatusCode)
                     {
-                        _logger.LogError("Download from Nextcloud failed with status code: {StatusCode}", response.StatusCode);
-                        return StatusCode((int)response.StatusCode, new { message = $"Download from Nextcloud failed: {response.StatusCode}" });
+                        // Read the file content as bytes
+                        var fileBytes = await response.Content.ReadAsByteArrayAsync();
+
+                        // Get content type from response if available, default to 'application/octet-stream'
+                        var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
+
+                        // Return the file as a downloadable response
+                        return File(fileBytes, contentType, fileName);
                     }
-
-                    var fileBytes = await response.Content.ReadAsByteArrayAsync();
-                    var contentType = response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream";
-
-                    return File(fileBytes, contentType, fileName);
+                    else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        // Specific handling for 404 Not Found
+                        return NotFound(new { message = $"File '{fileName}' not found on the server." });
+                    }
+                    else
+                    {
+                        // Log the failed status code and return it
+                        Console.WriteLine($"Failed to download. Status Code: {response.StatusCode}");
+                        return StatusCode((int)response.StatusCode, new { message = $"Download failed: {response.StatusCode}" });
+                    }
                 }
+            }
+            catch (HttpRequestException ex)
+            {
+                // Network-related exception
+                return StatusCode(500, new { message = $"Network error during download: {ex.Message}" });
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error during download: {ErrorMessage}", ex.Message);
-                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
+                // Log general exceptions
+                Console.WriteLine($"Exception during download: {ex}");
+                return StatusCode(500, new { message = $"Exception during download: {ex.Message}" });
             }
         }
 
-        // GET: api/file/moderated
-        [HttpGet("moderated")]
-        [Authorize] // Optional: Add authorization if needed
-        public async Task<IActionResult> GetModeratedFiles()
+        /// <summary>
+        /// Deletes a document with the specified ID and its associated file from Nextcloud.
+        /// </summary>
+        /// <param name="id">The ID of the document to delete.</param>
+        /// <returns>An IActionResult indicating the outcome of the delete operation.</returns>
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteDocument(string id)
         {
             try
             {
-                // Filter to get documents with Moderation_Status set to "Moderated"
-                var filter = Builders<Documents>.Filter.Eq(d => d.Moderation_Status, "Moderated");
-
-                // Project only the fields we want to show, including a Download URL
-                var projection = Builders<Documents>.Projection.Expression(d => new
+                // Validate the provided ID
+                if (!ObjectId.TryParse(id, out var objectId))
                 {
-                    d.Title,
-                    d.Subject,
-                    d.Grade,
-                    d.Description,
-                    d.File_Size,
-                    d.Ratings,
-                    d.Tags,
-                    d.Date_Uploaded,
-                    Download_Url = Url.Action(nameof(DownloadFile), "File", new { fileName = $"{d.Title}_{d.Subject}_{d.Grade}{d.File_Type}" }, Request.Scheme)
-                });
-
-                // Retrieve documents from the database
-                var documents = await _documentsCollection
-                    .Find(filter)
-                    .Project(projection)
-                    .ToListAsync();
-
-                // Check if results are found
-                if (documents.Count == 0)
-                {
-                    return Ok(new { message = "No moderated documents found." });
+                    return BadRequest(new { message = "Invalid document ID format." });
                 }
 
-                // Return the results
-                return Ok(documents);
+                // Find the document in MongoDB
+                var document = await _documentsCollection.Find(d => d.Id == objectId).FirstOrDefaultAsync();
+                if (document == null)
+                {
+                    return NotFound(new { message = "Document not found." });
+                }
+
+                // Construct the URL for deleting the file from Nextcloud
+                var fileName = $"{document.Title}{document.Subject}{document.Grade}{document.File_Type}";
+                var encodedFileName = Uri.EscapeDataString(fileName);
+                var deleteUrl = $"{webdavUrl}{encodedFileName}";
+
+                using (var client = new HttpClient())
+                {
+                    // Adding basic authentication headers
+                    var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+
+                    // Send DELETE request to Nextcloud
+                    var response = await client.DeleteAsync(deleteUrl);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return StatusCode((int)response.StatusCode, new { message = $"Failed to delete file from Nextcloud: {response.StatusCode}" });
+                    }
+                }
+
+                // Delete the document from MongoDB
+                await _documentsCollection.DeleteOneAsync(d => d.Id == objectId);
+
+                return Ok(new { message = "Document and associated file deleted successfully." });
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error retrieving moderated files: {ErrorMessage}", ex.Message);
                 return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
             }
         }
