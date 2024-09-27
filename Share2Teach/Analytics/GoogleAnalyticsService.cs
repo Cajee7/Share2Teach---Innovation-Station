@@ -54,7 +54,7 @@ namespace Share2Teach.Analytics
             }
             else
             {
-                // Log an error message if the event failed to send
+                // Log an error message if the event fails to send
                 _logger.LogError("Failed to send event: {statusCode}", response.StatusCode);
             }
         }
