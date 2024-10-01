@@ -44,6 +44,19 @@ namespace Combined.Controllers
 
             var indexModel = new CreateIndexModel<Documents>(indexKeys);
             _documentsCollection.Indexes.CreateOne(indexModel);
+
+            //Creating seperate index for tags to allow for efficient searches
+            var tagsIndex = Builders<Documents>.IndexKeys.Ascending(d => d.Tags);
+            var tagsIndexModel = new CreateIndexModel<Documents>(tagsIndex);
+            _documentsCollection.Indexes.CreateOne(tagsIndexModel);
+
+            // Creating indexes for Grade and Subject
+            var gradeIndex = Builders<Documents>.IndexKeys.Ascending(d => d.Grade);
+            var subjectIndex = Builders<Documents>.IndexKeys.Ascending(d => d.Subject);
+            var gradeIndexModel = new CreateIndexModel<Documents>(gradeIndex);
+            var subjectIndexModel = new CreateIndexModel<Documents>(subjectIndex);
+            _documentsCollection.Indexes.CreateOne(gradeIndexModel);
+            _documentsCollection.Indexes.CreateOne(subjectIndexModel);
         }
 
         /// <summary>
@@ -208,8 +221,9 @@ namespace Combined.Controllers
                 return word.Substring(0, word.Length - 2); // Remove 'ed' or 'ing'
             return word; // Return as is
         }
+
         /// <summary>
-        /// Searches for documents based on the provided search query.
+        /// Searches for moderated documents based on the provided search query.
         /// </summary>
         /// <param name="request">The search request containing the query string.</param>
         /// <returns>An IActionResult containing the search results or an error message.</returns>
@@ -223,14 +237,23 @@ namespace Combined.Controllers
                     return BadRequest(new { message = "Search query cannot be empty." });
                 }
 
-                // Create a $text filter for the search query
-                var filter = Builders<Documents>.Filter.And(
-                    Builders<Documents>.Filter.Eq(d => d.Moderation_Status, "Moderated"),
-                    Builders<Documents>.Filter.Text(request.Query)
+                // Create a filter for moderated documents
+                var moderationFilter = Builders<Documents>.Filter.Eq(d => d.Moderation_Status, "Moderated");
+
+                // Create search filters for text, tags, grade, and subject
+                var textSearchFilter = Builders<Documents>.Filter.Text(request.Query);
+                var tagsSearchFilter = Builders<Documents>.Filter.AnyEq(d => d.Tags, request.Query);
+                var gradeSearchFilter = Builders<Documents>.Filter.Eq("Grade", request.Query); // Use string for field name
+                var subjectSearchFilter = Builders<Documents>.Filter.Eq("Subject", request.Query); // Use string for field name
+
+                // Combine all filters using $or
+                var combinedFilter = Builders<Documents>.Filter.And(
+                    moderationFilter,
+                    Builders<Documents>.Filter.Or(textSearchFilter, tagsSearchFilter, gradeSearchFilter, subjectSearchFilter)
                 );
 
                 // Log the filter (optional)
-                var renderedFilter = filter.Render(_documentsCollection.DocumentSerializer, _documentsCollection.Settings.SerializerRegistry);
+                var renderedFilter = combinedFilter.Render(_documentsCollection.DocumentSerializer, _documentsCollection.Settings.SerializerRegistry);
                 Console.WriteLine($"Filter: {renderedFilter.ToJson()}");
 
                 // Project only the fields we want to show
@@ -249,7 +272,7 @@ namespace Combined.Controllers
 
                 // Perform the search query
                 var documents = await _documentsCollection
-                    .Find(filter)
+                    .Find(combinedFilter)
                     .Project(projection)
                     .ToListAsync();
 
@@ -267,6 +290,7 @@ namespace Combined.Controllers
                 return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
             }
         }
+
 
         /// <summary>
         /// Downloads a file with the specified file name.
