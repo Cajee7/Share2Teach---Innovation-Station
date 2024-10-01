@@ -12,6 +12,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Search.Models;
+using System.Text.RegularExpressions;
 
 namespace Combined.Controllers
 {
@@ -57,6 +58,8 @@ namespace Combined.Controllers
             var subjectIndexModel = new CreateIndexModel<Documents>(subjectIndex);
             _documentsCollection.Indexes.CreateOne(gradeIndexModel);
             _documentsCollection.Indexes.CreateOne(subjectIndexModel);
+
+            
         }
 
         /// <summary>
@@ -240,16 +243,32 @@ namespace Combined.Controllers
                 // Create a filter for moderated documents
                 var moderationFilter = Builders<Documents>.Filter.Eq(d => d.Moderation_Status, "Moderated");
 
-                // Create search filters for text, tags, grade, and subject
-                var textSearchFilter = Builders<Documents>.Filter.Text(request.Query);
-                var tagsSearchFilter = Builders<Documents>.Filter.AnyEq(d => d.Tags, request.Query);
-                var gradeSearchFilter = Builders<Documents>.Filter.Eq("Grade", request.Query); // Use string for field name
-                var subjectSearchFilter = Builders<Documents>.Filter.Eq("Subject", request.Query); // Use string for field name
+                // Initialize filters
+                FilterDefinition<Documents> subjectFilter = FilterDefinition<Documents>.Empty;
+                FilterDefinition<Documents> gradeFilter = FilterDefinition<Documents>.Empty;
 
-                // Combine all filters using $or
+                // Split the search query into words
+                var queryParts = request.Query.Split(' ');
+
+                // Check for a specific grade
+                foreach (var part in queryParts)
+                {
+                    if (int.TryParse(part.Replace("grade", "").Replace("gr", "").Trim(), out int gradeQuery))
+                    {
+                        gradeFilter = Builders<Documents>.Filter.Eq(d => d.Grade, gradeQuery);
+                    }
+                    else
+                    {
+                        // Assuming the subject is the first non-numeric part
+                        subjectFilter = Builders<Documents>.Filter.Eq(d => d.Subject, part);
+                    }
+                }
+
+                // Combine all filters using $and to ensure both subject and grade match
                 var combinedFilter = Builders<Documents>.Filter.And(
                     moderationFilter,
-                    Builders<Documents>.Filter.Or(textSearchFilter, tagsSearchFilter, gradeSearchFilter, subjectSearchFilter)
+                    subjectFilter,
+                    gradeFilter
                 );
 
                 // Log the filter (optional)
@@ -291,66 +310,6 @@ namespace Combined.Controllers
             }
         }
 
-
-        /// <summary>
-        /// Downloads a file with the specified file name.
-        /// </summary>
-        /// <param name="fileName">The name of the file to download.</param>
-        /// <returns>An IActionResult containing the file as a downloadable response or an error message.</returns>
-        [HttpGet("download/{fileName}")]
-        public async Task<IActionResult> DownloadFile(string fileName)
-        {
-            try
-            {
-                // Encode the file name to handle spaces and special characters
-                var encodedFileName = Uri.EscapeDataString(fileName);
-                var downloadUrl = $"{webdavUrl}{encodedFileName}";
-
-                using (var client = new HttpClient())
-                {
-                    // Adding basic authentication headers
-                    var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
-
-                    // Make the HTTP GET request
-                    var response = await client.GetAsync(downloadUrl);
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        // Read the file content as bytes
-                        var fileBytes = await response.Content.ReadAsByteArrayAsync();
-
-                        // Get content type from response if available, default to 'application/octet-stream'
-                        var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
-
-                        // Return the file as a downloadable response
-                        return File(fileBytes, contentType, fileName);
-                    }
-                    else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                    {
-                        // Specific handling for 404 Not Found
-                        return NotFound(new { message = $"File '{fileName}' not found on the server." });
-                    }
-                    else
-                    {
-                        // Log the failed status code and return it
-                        Console.WriteLine($"Failed to download. Status Code: {response.StatusCode}");
-                        return StatusCode((int)response.StatusCode, new { message = $"Download failed: {response.StatusCode}" });
-                    }
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                // Network-related exception
-                return StatusCode(500, new { message = $"Network error during download: {ex.Message}" });
-            }
-            catch (Exception ex)
-            {
-                // Log general exceptions
-                Console.WriteLine($"Exception during download: {ex}");
-                return StatusCode(500, new { message = $"Exception during download: {ex.Message}" });
-            }
-        }
 
         /// <summary>
         /// Deletes a document with the specified ID and its associated file from Nextcloud.
