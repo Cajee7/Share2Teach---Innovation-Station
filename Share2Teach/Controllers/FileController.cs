@@ -110,7 +110,7 @@ namespace Combined.Controllers
                         newFilePath = Path.Combine(Path.GetTempPath(), pdfFileName);
 
                         // Save the document as PDF
-                        asposeDoc.Save(newFilePath);
+                        asposeDoc.Save(newFilePath, Aspose.Words.SaveFormat.Pdf);
 
                         // Extract text from Word document for tag generation
                         var documentText = asposeDoc.GetText();
@@ -201,7 +201,8 @@ namespace Combined.Controllers
                 };
 
                 await _documentsCollection.InsertOneAsync(newDocument);
-                return Ok(new { message = $"File '{fileName}' uploaded to Nextcloud and metadata stored in MongoDB successfully.", Tags = tags });
+                return Ok(new { message = $"File '{request.Title} { request.Subject}' uploaded to Nextcloud and metadata stored in MongoDB successfully.",
+                Tags = tags });
             }
             catch (Exception ex)
             {
