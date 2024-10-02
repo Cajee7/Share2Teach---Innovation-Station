@@ -216,7 +216,7 @@ namespace Combined.Controllers
             // Expanded stopword list (can be customized further)
             var stopWords = new HashSet<string>
             {
-                "the", "is", "in", "at", "of", "and", "a", "to", "with", "that", "for", "it", "on", "this", 
+                "the", ".", "is", "in", "at", "of", "and", "a", "to", "with", "that", "for", "it", "on", "this", 
                 "by", "from", "or", "an", "as", "be", "was", "were", "has", "have", "are", "will", "would",
                 "could", "should", "can", "but", "about", "which", "into", "if", "when", "they", "there",
                 "their", "its", "these", "those", "i", "you", "he", "she", "we", "they", "them", "his",
@@ -261,7 +261,7 @@ namespace Combined.Controllers
         /// </summary>
         /// <param name="request">The search request containing the query string.</param>
         /// <returns>An IActionResult containing the search results or an error message.</returns>
-        [HttpGet("search")]
+        [HttpGet("Search")]
         public async Task<IActionResult> SearchDocuments([FromQuery] SearchRequest request)
         {
             try
@@ -341,64 +341,126 @@ namespace Combined.Controllers
             }
         }
 
-
         /// <summary>
-        /// Downloads a file with the specified file name.
+        /// Updates a document with the specified ID and also updates its metadata in Nextcloud.
         /// </summary>
-        /// <param name="fileName">The name of the file to download.</param>
-        /// <returns>An IActionResult containing the file as a downloadable response or an error message.</returns>
-        [HttpGet("download/{fileName}")]
-        public async Task<IActionResult> DownloadFile(string fileName)
+        /// <param name="id">The ID of the document to update.</param>
+        /// <param name="updateDocumentDto">The DTO containing updated document information.</param>
+        /// <returns>An IActionResult indicating the result of the update operation.</returns>
+        /// <response code="204">No Content - Document updated successfully.</response>
+        /// <response code="400">Bad Request - UpdateDocumentDto cannot be null.</response>
+        /// <response code="404">Not Found - Document with specified ID not found.</response>
+        /// <response code="500">Internal Server Error - An error occurred while updating the document.</response>
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateDocument(string id, [FromBody] UpdateDocumentDto updateDocumentDto)
         {
+            // Validate input
+            if (updateDocumentDto == null)
+            {
+                return BadRequest("UpdateDocumentDto cannot be null.");
+            }
+
+            // Retrieve the existing document from MongoDB
+            var document = await _documentsCollection.Find(d => d.Id == ObjectId.Parse(id)).FirstOrDefaultAsync();
+
+            if (document == null)
+            {
+                return NotFound($"Document with ID {id} not found.");
+            }
+
             try
             {
-                // Encode the file name to handle spaces and special characters
-                var encodedFileName = Uri.EscapeDataString(fileName);
-                var downloadUrl = $"{webdavUrl}{encodedFileName}";
+                // Update fields in MongoDB
+                document.Title = updateDocumentDto.Title;
+                document.Subject = updateDocumentDto.Subject;
+                document.Grade = updateDocumentDto.Grade;
+                document.Description = updateDocumentDto.Description;
+                document.Ratings = updateDocumentDto.Ratings;
 
+                // Update the date updated
+                document.Date_Updated = DateTime.UtcNow;
+
+                // Prepare metadata for Nextcloud update
+                string newFileName = $"{document.Title}{document.Subject}{document.Grade}{document.File_Type}";
+                var encodedNewFileName = Uri.EscapeDataString(newFileName);
+                var uploadUrl = $"{webdavUrl}{encodedNewFileName}";
+
+                // Update metadata in Nextcloud
                 using (var client = new HttpClient())
                 {
-                    // Adding basic authentication headers
                     var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
 
-                    // Make the HTTP GET request
-                    var response = await client.GetAsync(downloadUrl);
+                    // Send PATCH request to update metadata in Nextcloud (if needed)
+                    var response = await client.PatchAsync(uploadUrl, null); // Adjust payload as necessary for your API
 
-                    if (response.IsSuccessStatusCode)
+                    if (!response.IsSuccessStatusCode)
                     {
-                        // Read the file content as bytes
-                        var fileBytes = await response.Content.ReadAsByteArrayAsync();
-
-                        // Get content type from response if available, default to 'application/octet-stream'
-                        var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
-
-                        // Return the file as a downloadable response
-                        return File(fileBytes, contentType, fileName);
-                    }
-                    else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                    {
-                        // Specific handling for 404 Not Found
-                        return NotFound(new { message = $"File '{fileName}' not found on the server." });
-                    }
-                    else
-                    {
-                        // Log the failed status code and return it
-                        Console.WriteLine($"Failed to download. Status Code: {response.StatusCode}");
-                        return StatusCode((int)response.StatusCode, new { message = $"Download failed: {response.StatusCode}" });
+                        return StatusCode((int)response.StatusCode, $"Update in Nextcloud failed: {response.StatusCode}");
                     }
                 }
-            }
-            catch (HttpRequestException ex)
-            {
-                // Network-related exception
-                return StatusCode(500, new { message = $"Network error during download: {ex.Message}" });
+
+                // Update the document in the MongoDB database
+                var updateResult = await _documentsCollection.ReplaceOneAsync(d => d.Id == document.Id, document);
+
+                if (updateResult.IsAcknowledged && updateResult.ModifiedCount > 0)
+                {
+                    return Ok("Document updated successfully.");
+                }
+                else
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, "Failed to update the document.");
+                }
             }
             catch (Exception ex)
             {
-                // Log general exceptions
-                Console.WriteLine($"Exception during download: {ex}");
-                return StatusCode(500, new { message = $"Exception during download: {ex.Message}" });
+                // Log the exception (consider using a logging framework)
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
+        }
+
+
+
+
+        /// <summary>
+        /// Downloads a document from Nextcloud based on the provided document ID.
+        /// </summary>
+        /// <param name="id">The ID of the document to download.</param>
+        /// <returns>An IActionResult to handle the download.</returns>
+        [HttpGet("download/{id}")]
+        public async Task<IActionResult> DownloadDocument(string id)
+        {
+            try
+            {
+                var document = await _documentsCollection.Find(d => d.Id == ObjectId.Parse(id)).FirstOrDefaultAsync();
+                if (document == null)
+                {
+                    return NotFound(new { message = "Document not found." });
+                }
+
+                // Create an HTTP client for downloading the file from Nextcloud
+                using (var client = new HttpClient())
+                {
+                    var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+
+                    // Send a GET request to download the file
+                    var response = await client.GetAsync(document.File_Url);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return StatusCode((int)response.StatusCode, new { message = $"Download failed: {response.StatusCode}" });
+                    }
+
+                    var fileStream = await response.Content.ReadAsStreamAsync();
+                    var fileName = Path.GetFileName(document.File_Url); // Get the file name from the URL
+
+                    // Return the file as a downloadable response
+                    return File(fileStream, "application/octet-stream", fileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
             }
         }
 
