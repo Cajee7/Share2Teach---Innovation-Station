@@ -1,6 +1,7 @@
 using AsposeWordsDocument = Aspose.Words.Document; // Alias for Aspose.Words.Document
 using AsposePdfDocument = Aspose.Pdf.Document;     // Alias for Aspose.Pdf.Document
 using Aspose.Pdf.Text; 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using MongoDB.Bson;
@@ -70,6 +71,7 @@ namespace Combined.Controllers
         /// <param name="request">The combined upload request containing file and metadata.</param>
         /// <returns>An action result indicating the outcome of the upload operation.</returns>
         [HttpPost("upload")]
+        [Authorize(Roles = "admin, moderator, teacher")]
         public async Task<IActionResult> UploadFile([FromForm] CombinedUploadRequest request)
         {
             try
@@ -356,6 +358,7 @@ namespace Combined.Controllers
         /// <response code="404">Not Found - Document with specified ID not found.</response>
         /// <response code="500">Internal Server Error - An error occurred while updating the document.</response>
         [HttpPut("{id}")]
+        [Authorize(Roles = "admin, moderator, teacher")]
         public async Task<IActionResult> UpdateDocument(string id, [FromBody] UpdateDocumentDto updateDocumentDto)
         {
             // Validate input
@@ -473,6 +476,7 @@ namespace Combined.Controllers
         /// </summary>
         /// <param name="id">The ID of the document to delete.</param>
         /// <returns>An IActionResult indicating the outcome of the delete operation.</returns>
+        [Authorize(Roles = "admin, moderator")]
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteDocument(string id)
         {
