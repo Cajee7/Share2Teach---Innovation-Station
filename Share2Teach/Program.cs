@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models; // Add this
+using Microsoft.OpenApi.Models; 
 using System.Text;
 using MongoDB.Driver;
 using Serilog;
-using System.Reflection; // Add this to access XML comments
-using Share2Teach.Analytics; // Ensure to include the namespace for GoogleAnalyticsService
+using System.Reflection; // To access XML comments
+using Share2Teach.Analytics; // Namespace for GoogleAnalyticsService
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -109,7 +109,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Use CORS policy
-app.UseCors("AllowSpecificOrigins");
+//app.UseCors("AllowSpecificOrigins");
 
 app.UseAuthentication();
 app.UseAuthorization();
