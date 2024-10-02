@@ -61,6 +61,7 @@ namespace FAQApp.Controllers
 
             try
             {
+                // Insert the document into the FAQ collection
                 _faqCollection.InsertOne(faqDocument);
                 _logger.LogInformation("Added FAQ: {Question} at {Timestamp}.", faqInput.Question, DateTime.UtcNow);
 
@@ -71,7 +72,7 @@ namespace FAQApp.Controllers
                 _logger.LogError("Error while adding FAQ: {Message}", ex.Message);
                 return StatusCode(500, "An error occurred while adding the FAQ.");
             }
-        }       
+        }    
 
         /// <summary>
         /// Retrieves a list of all FAQs.
@@ -98,10 +99,9 @@ namespace FAQApp.Controllers
                     return NotFound("No FAQs found.");
                 }
 
-                // Convert to a model that includes the ObjectId and handles missing fields
+                // Convert to a model that includes and handles missing fields
                 var faqList = faqs.Select(faq => new
                 {
-                    Id = faq["_id"].ToString(),
                     Question = faq.Contains("question") ? faq["question"].ToString() : "No question field",
                     Answer = faq.Contains("answer") ? faq["answer"].ToString() : "No answer field",
                     DateAdded = faq.Contains("dateAdded") ? faq["dateAdded"].ToUniversalTime() : DateTime.MinValue

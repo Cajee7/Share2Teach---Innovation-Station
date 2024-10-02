@@ -44,13 +44,29 @@ namespace FileModeration.Controllers
             try
             {
                 // Filters documents by the "Unmoderated" status
-                var filter = Builders<Documents>.Filter.Eq(doc => doc.Moderation_Status, "Unmoderated");
+        var filter = Builders<Documents>.Filter.Eq(doc => doc.Moderation_Status, "Unmoderated");
 
-                // Asynchronously retrieves all unmoderated documents from the collection
-                var unmoderatedDocuments = await _documentsCollection.Find(filter).ToListAsync();
+        // Asynchronously retrieves all unmoderated documents from the collection
+        var unmoderatedDocuments = await _documentsCollection.Find(filter).ToListAsync();
 
-                // Returns the list of unmoderated documents
-                return Ok(unmoderatedDocuments);
+        // Create a list of anonymous objects to exclude the unwanted fields
+        var filteredDocuments = unmoderatedDocuments.Select(doc => new
+        {
+            Title = doc.Title,
+            Subject = doc.Subject,
+            Grade = doc.Grade,
+            Description = doc.Description,
+            File_Size = doc.File_Size,
+            File_Url = doc.File_Url,  // Retain the file URL
+            Moderation_Status = doc.Moderation_Status,
+            Ratings = doc.Ratings,
+            Tags = doc.Tags,
+            Date_Uploaded = doc.Date_Uploaded,
+            Date_Updated = doc.Date_Updated
+        });
+
+        // Returns the filtered list of unmoderated documents
+        return Ok(filteredDocuments);
             }
             catch (Exception ex)
             {
@@ -114,17 +130,17 @@ namespace FileModeration.Controllers
                 }
 
                 // Handle the case where userId is null
-                if (userId == null)
+                /*if (userId == null)
                 {
                     return BadRequest("User ID is missing in the token.");
-                }
+                }*/
 
                 // Creates a new moderation entry with the provided information
                 var moderationEntry = new ModerationEntry
                 {
                     Moderator_id = moderatorId,
                     Moderator_Name = moderatorName,
-                    User_id = userId,
+                    //User_id = userId,
                     Document_id = documentId,
                     Date = DateTime.UtcNow,
                     Comments = request.Comment,
