@@ -1,6 +1,6 @@
 using AsposeWordsDocument = Aspose.Words.Document; // Alias for Aspose.Words.Document
 using AsposePdfDocument = Aspose.Pdf.Document;     // Alias for Aspose.Pdf.Document
-using Aspose.Pdf.Text; // Namespace for TextAbsorber
+using Aspose.Pdf.Text; 
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using MongoDB.Bson;
@@ -275,79 +275,72 @@ namespace Combined.Controllers
                 var moderationFilter = Builders<Documents>.Filter.Eq(d => d.Moderation_Status, "Moderated");
 
                 // Initialize filters
-                FilterDefinition<Documents> subjectFilter = FilterDefinition<Documents>.Empty;
-                FilterDefinition<Documents> gradeFilter = FilterDefinition<Documents>.Empty;
-                FilterDefinition<Documents> tagsFilter = FilterDefinition<Documents>.Empty;
+                var filters = new List<FilterDefinition<Documents>>
+                {
+                    moderationFilter // Start with the moderation filter
+                };
 
                 // Split the search query into words
-                var queryParts = request.Query.Split(' ');
+                var queryParts = request.Query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-                // Check for a specific grade
+                // Check for specific grade, tag, or subject
                 foreach (var part in queryParts)
                 {
                     if (int.TryParse(part.Replace("grade", "").Replace("gr", "").Trim(), out int gradeQuery))
                     {
-                        gradeFilter = Builders<Documents>.Filter.Eq(d => d.Grade, gradeQuery);
+                        var gradeFilter = Builders<Documents>.Filter.Eq(d => d.Grade, gradeQuery);
+                        filters.Add(gradeFilter);
                     }
                     else if (part.StartsWith("tag:"))
                     {
-                        // Handle tags by checking if any of the document's tags match the query
-                        var tagQuery = part.Replace("tag:", "").Trim();
-                        tagsFilter = Builders<Documents>.Filter.AnyEq(d => d.Tags, tagQuery);
+                        var tag = part.Substring(4); // Extract the tag after "tag:"
+                        var tagsFilter = Builders<Documents>.Filter.AnyEq(d => d.Tags, tag);
+                        filters.Add(tagsFilter);
                     }
                     else
                     {
-                        // Assuming the subject is the first non-numeric part
-                        subjectFilter = Builders<Documents>.Filter.Eq(d => d.Subject, part);
+                        // Add text search filter for Title, Description, Tags, and Subject
+                        var textFilter = Builders<Documents>.Filter.Or(
+                            Builders<Documents>.Filter.Text(part), // Title and Description
+                            Builders<Documents>.Filter.Eq(d => d.Subject, part) // Subject
+                        );
+                        filters.Add(textFilter);
                     }
                 }
 
-                // Combine all filters using $and to ensure subject, grade, and tags match
-                var combinedFilter = Builders<Documents>.Filter.And(
-                    moderationFilter,
-                    subjectFilter,
-                    gradeFilter,
-                    tagsFilter
-                );
+                // Combine all filters using AND logic
+                var combinedFilter = Builders<Documents>.Filter.And(filters);
 
-                // Log the filter (optional)
-                var renderedFilter = combinedFilter.Render(_documentsCollection.DocumentSerializer, _documentsCollection.Settings.SerializerRegistry);
-                Console.WriteLine($"Filter: {renderedFilter.ToJson()}");
-
-                // Project only the fields we want to show
-                var projection = Builders<Documents>.Projection.Expression(d => new
-                {
-                    d.Title,
-                    d.Subject,
-                    d.Grade,
-                    d.Description,
-                    d.File_Size,
-                    d.Ratings,
-                    d.Tags,
-                    d.Date_Uploaded,
-                    Download_Url = d.File_Url
-                });
-
-                // Perform the search query
-                var documents = await _documentsCollection
+                // Perform the search and project the required fields, excluding Id
+                var result = await _documentsCollection
                     .Find(combinedFilter)
-                    .Project(projection)
+                    .Project(d => new
+                    {
+                        d.Title,
+                        d.Subject,
+                        d.Grade,
+                        d.Description,
+                        d.File_Size,
+                        d.Ratings,
+                        d.Tags,
+                        d.Date_Uploaded,
+                        d.Date_Updated
+                    })
                     .ToListAsync();
 
-                // Check if results are found
-                if (documents.Count == 0)
+                if (!result.Any())
                 {
-                    return Ok(new { message = "No matching documents found." });
+                    return NotFound(new { message = "No documents found matching the search criteria." });
                 }
 
-                // Return the results
-                return Ok(documents);
+                return Ok(result);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
             }
         }
+
 
         /// <summary>
         /// Downloads a file with the specified file name.

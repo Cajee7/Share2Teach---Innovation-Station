@@ -1,4 +1,5 @@
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using System.Collections.Generic;
 
 namespace Document_Model.Models
@@ -11,6 +12,7 @@ namespace Document_Model.Models
         /// <summary>
         /// Gets or sets the MongoDB ID of the document.
         /// </summary>
+        [BsonId]
         public ObjectId Id { get; set; } // MongoDB ID
 
         /// <summary>
