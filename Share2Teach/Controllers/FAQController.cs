@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Microsoft.AspNetCore.Mvc;
@@ -39,6 +40,7 @@ namespace FAQApp.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles = "admin")]
         public IActionResult AddFAQ([FromBody] FAQS faqInput)
         {
             // Validate that the input contains the required fields
@@ -128,6 +130,7 @@ namespace FAQApp.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles = "admin")]
         public IActionResult DeleteFAQById([FromQuery] string id)
         {
             if (!ObjectId.TryParse(id, out ObjectId objectId))
@@ -163,6 +166,7 @@ namespace FAQApp.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles = "admin")]
         public IActionResult UpdateFAQById([FromQuery] string id, [FromBody] FAQS faqInput)
         {
             if (!ObjectId.TryParse(id, out ObjectId objectId))

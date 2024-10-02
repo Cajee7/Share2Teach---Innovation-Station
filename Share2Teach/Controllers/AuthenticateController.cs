@@ -13,13 +13,20 @@ using System.Net;
 
 namespace DatabaseConnection.Controllers
 {
+    /// <summary>
+    /// This is the controller responsible for user authentication.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class AuthenticateController : ControllerBase
     {
         private readonly IMongoCollection<BsonDocument> _usersCollection;
         private readonly IConfiguration _configuration; //configuration settings for jwt and smtp
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AuthenticateController"/> class.
+        /// </summary>
+        /// <param name="database">The MongoDB database instance used for user authentication.</param>
+        /// <param name="configuration">The configuration settings for the application.</param>
         public AuthenticateController(IMongoDatabase database, IConfiguration configuration)
         {
             _usersCollection = database.GetCollection<BsonDocument>("Users"); // Connecting to specific collection
