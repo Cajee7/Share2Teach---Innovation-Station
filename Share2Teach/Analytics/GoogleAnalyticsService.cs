@@ -1,10 +1,13 @@
-using System.Net.Http; 
+using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging; 
-using System.Collections.Generic; 
+using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
-namespace Share2Teach.Analytics 
+namespace Share2Teach.Analytics
 {
+    /// <summary>
+    /// Service for sending events to Google Analytics.
+    /// </summary>
     public class GoogleAnalyticsService
     {
         // Static HttpClient instance for sending HTTP requests
@@ -16,13 +19,22 @@ namespace Share2Teach.Analytics
         // Logger instance for logging messages and errors
         private readonly ILogger<GoogleAnalyticsService> _logger;
 
-        // Constructor that takes a logger as a dependency
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GoogleAnalyticsService"/> class.
+        /// </summary>
+        /// <param name="logger">Logger to log information and errors.</param>
         public GoogleAnalyticsService(ILogger<GoogleAnalyticsService> logger)
         {
             _logger = logger; // Assign the logger to the private field
         }
 
-        // Method to send an event to Google Analytics
+        /// <summary>
+        /// Sends an event to Google Analytics with the specified parameters.
+        /// </summary>
+        /// <param name="eventCategory">Category of the event (e.g., API request).</param>
+        /// <param name="clientId">Unique client identifier (based on IP and User-Agent).</param>
+        /// <param name="endpointLabel">Label describing the endpoint being accessed.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         public async Task SendEventAsync(string eventCategory, string clientId, string endpointLabel)
         {
             // Prepare the data to be sent in the request
@@ -60,4 +72,3 @@ namespace Share2Teach.Analytics
         }
     }
 }
-
