@@ -31,6 +31,9 @@ builder.Services.AddSingleton<IMongoDatabase>(s =>
     return client.GetDatabase(databaseName);
 });
 
+// Register GoogleAnalyticsService for dependency injection
+builder.Services.AddSingleton<GoogleAnalyticsService>(); // This is the new line added
+
 // JWT Configuration
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = Encoding.ASCII.GetBytes(jwtSettings["SecretKey"]);
