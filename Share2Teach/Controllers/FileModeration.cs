@@ -140,7 +140,7 @@ namespace FileModeration.Controllers
                 {
                     Moderator_id = moderatorId,
                     Moderator_Name = moderatorName,
-                    User_id = userId,
+                    //User_id = userId,
                     Document_id = documentId,
                     Date = DateTime.UtcNow,
                     Comments = request.Comment,
