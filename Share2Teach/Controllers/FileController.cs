@@ -26,6 +26,8 @@ namespace Combined.Controllers
         private static readonly string password = "Jaedene12!"; // Nextcloud password
         private static readonly string webdavUrl = "http://localhost:8080/remote.php/dav/files/aramsunar/"; // Nextcloud WebDAV endpoint
 
+        private const string LicenseFileName = "Share2Teach_-_Document_-Licence.pdf";
+
         private readonly IMongoCollection<Documents> _documentsCollection;
 
         // Allowed file types
@@ -98,24 +100,20 @@ namespace Combined.Controllers
                 string newFilePath = null;
                 List<string> tags = new List<string>(); // List to hold tags
 
+                // Handle Word documents
                 if (fileType == ".doc" || fileType == ".docx")
                 {
-                    // Handle Word documents
                     using (var wordStream = request.UploadedFile.OpenReadStream())
                     {
                         var asposeDoc = new AsposeWordsDocument(wordStream);
-
-                        // Generate PDF file name
                         var pdfFileName = Path.GetFileNameWithoutExtension(fileName) + ".pdf";
                         newFilePath = Path.Combine(Path.GetTempPath(), pdfFileName);
 
                         // Save the document as PDF
                         asposeDoc.Save(newFilePath, Aspose.Words.SaveFormat.Pdf);
 
-                        // Correctly extract text from the document for tag generation
-                        var documentText = asposeDoc.GetText(); // Extract text from Word document
-
-                        // Generate tags from document text
+                        // Extract text from Word document for tag generation
+                        var documentText = asposeDoc.GetText();
                         tags = GenerateTags(documentText);
                         Console.WriteLine("Generated Tags (Word): " + string.Join(", ", tags));
 
@@ -127,45 +125,54 @@ namespace Combined.Controllers
                 else if (fileType == ".pdf")
                 {
                     // Handle PDF files
-                    var pdfFileName = Path.GetFileName(fileName); // Keep original PDF name
-                    newFilePath = Path.Combine(Path.GetTempPath(), pdfFileName);
-
-                    // Save the PDF temporarily to extract text
+                    newFilePath = Path.Combine(Path.GetTempPath(), fileName);
                     using (var fileStream = System.IO.File.Create(newFilePath))
                     {
                         await request.UploadedFile.CopyToAsync(fileStream);
                     }
 
-                    // Extract text from PDF using Aspose.Pdf
+                    // Extract text from PDF
                     var pdfDocument = new AsposePdfDocument(newFilePath);
                     var textAbsorber = new TextAbsorber();
                     pdfDocument.Pages.Accept(textAbsorber);
                     var documentText = textAbsorber.Text;
-
-                    // Generate tags from extracted text
                     tags = GenerateTags(documentText);
                     Console.WriteLine("Generated Tags (PDF): " + string.Join(", ", tags));
+                }
+                
+                // Create a temporary file for the license
+                string relativePath = @"Licenses\Share2Teach_-_Document_-Licence.pdf"; // Relative path
+                string baseDirectory = AppDomain.CurrentDomain.BaseDirectory; // Base directory of the application
+                string licenseFilePath = Path.Combine(baseDirectory, relativePath); // Full path to the license file
+
+                // Create a new combined PDF with the license as the first page
+                string combinedFilePath = Path.Combine(Path.GetTempPath(), $"{Path.GetFileNameWithoutExtension(fileName)}_combined.pdf");
+                using (var combinedDocument = new AsposePdfDocument())
+                {
+                    // Add license page first
+                    combinedDocument.Pages.Add(new Aspose.Pdf.Document(licenseFilePath).Pages[1]);
+
+                    // Add uploaded document pages
+                    combinedDocument.Pages.Add(new Aspose.Pdf.Document(newFilePath).Pages);
+                    combinedDocument.Save(combinedFilePath);
                 }
 
                 // Construct the new file name
                 string newFileName = $"{request.Title}{request.Subject}{request.Grade}{fileType}";
-
-                // Encode the new file name to handle spaces and special characters
                 var encodedNewFileName = Uri.EscapeDataString(newFileName);
-
-                // Upload file to Nextcloud (PDF or original)
                 var uploadUrl = $"{webdavUrl}{encodedNewFileName}";
+
+                // Upload combined file to Nextcloud
                 using (var client = new HttpClient())
                 {
                     var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
 
-                    using (var content = new StreamContent(newFilePath != null ? System.IO.File.OpenRead(newFilePath) : request.UploadedFile.OpenReadStream()))
+                    using (var content = new StreamContent(System.IO.File.OpenRead(combinedFilePath)))
                     {
                         content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
                         var response = await client.PutAsync(uploadUrl, content);
-
                         if (!response.IsSuccessStatusCode)
                         {
                             return StatusCode((int)response.StatusCode, new { message = $"Upload to Nextcloud failed: {response.StatusCode}" });
@@ -173,11 +180,9 @@ namespace Combined.Controllers
                     }
                 }
 
-                // Delete the temporary file if it was created
-                if (newFilePath != null && System.IO.File.Exists(newFilePath))
-                {
-                    System.IO.File.Delete(newFilePath);
-                }
+                // Clean up temporary files
+                System.IO.File.Delete(newFilePath);
+                System.IO.File.Delete(combinedFilePath);
 
                 // Create a new document record to save in MongoDB
                 var newDocument = new Documents
@@ -186,18 +191,16 @@ namespace Combined.Controllers
                     Subject = request.Subject,
                     Grade = request.Grade,
                     Description = request.Description,
-                    File_Size = Math.Round(fileSize / (1024.0 * 1024.0), 2), // Convert size to MB
-                    File_Url = uploadUrl, // Save the Nextcloud link
-                    File_Type = fileType, // Save the file type (PDF or original)
-                    Moderation_Status = "Unmoderated", // Initial moderation status
+                    File_Size = Math.Round(fileSize / (1024.0 * 1024.0), 2),
+                    File_Url = uploadUrl,
+                    File_Type = fileType,
+                    Moderation_Status = "Unmoderated",
                     Date_Uploaded = DateTime.UtcNow,
-                    Ratings = 0, // Initial rating
-                    Tags = tags // Tags generated from document content
+                    Ratings = 0,
+                    Tags = tags
                 };
 
-                // Insert the document record into MongoDB
                 await _documentsCollection.InsertOneAsync(newDocument);
-
                 return Ok(new { message = $"File '{request.Title} { request.Subject}' uploaded to Nextcloud and metadata stored in MongoDB successfully.",
                 Tags = tags });
             }
