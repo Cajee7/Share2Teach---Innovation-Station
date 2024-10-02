@@ -1,4 +1,6 @@
-using Aspose.Words;
+using AsposeWordsDocument = Aspose.Words.Document; // Alias for Aspose.Words.Document
+using AsposePdfDocument = Aspose.Pdf.Document;     // Alias for Aspose.Pdf.Document
+using Aspose.Pdf.Text; // Namespace for TextAbsorber
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using MongoDB.Bson;
@@ -46,7 +48,7 @@ namespace Combined.Controllers
             var indexModel = new CreateIndexModel<Documents>(indexKeys);
             _documentsCollection.Indexes.CreateOne(indexModel);
 
-            //Creating seperate index for tags to allow for efficient searches
+            // Creating separate index for tags to allow for efficient searches
             var tagsIndex = Builders<Documents>.IndexKeys.Ascending(d => d.Tags);
             var tagsIndexModel = new CreateIndexModel<Documents>(tagsIndex);
             _documentsCollection.Indexes.CreateOne(tagsIndexModel);
@@ -58,8 +60,6 @@ namespace Combined.Controllers
             var subjectIndexModel = new CreateIndexModel<Documents>(subjectIndex);
             _documentsCollection.Indexes.CreateOne(gradeIndexModel);
             _documentsCollection.Indexes.CreateOne(subjectIndexModel);
-
-            
         }
 
         /// <summary>
@@ -95,31 +95,56 @@ namespace Combined.Controllers
                     return BadRequest(new { message = $"File type '{fileType}' is not allowed. Allowed types are: {string.Join(", ", _allowedFileTypes)}" });
                 }
 
-                // Convert Word file to PDF if needed
-                string pdfFilePath = null;
+                string newFilePath = null;
                 List<string> tags = new List<string>(); // List to hold tags
+
                 if (fileType == ".doc" || fileType == ".docx")
                 {
-                    // Load the document using Aspose.Words
-                    var asposeDoc = new Document(request.UploadedFile.OpenReadStream());
+                    // Handle Word documents
+                    using (var wordStream = request.UploadedFile.OpenReadStream())
+                    {
+                        var asposeDoc = new AsposeWordsDocument(wordStream);
 
-                    // Generate PDF file name
-                    var pdfFileName = Path.GetFileNameWithoutExtension(fileName) + ".pdf";
-                    pdfFilePath = Path.Combine(Path.GetTempPath(), pdfFileName);
+                        // Generate PDF file name
+                        var pdfFileName = Path.GetFileNameWithoutExtension(fileName) + ".pdf";
+                        newFilePath = Path.Combine(Path.GetTempPath(), pdfFileName);
 
-                    // Save the document as PDF
-                    asposeDoc.Save(pdfFilePath);
+                        // Save the document as PDF
+                        asposeDoc.Save(newFilePath);
 
-                    // Extract text from the document for tag generation
-                    var documentText = asposeDoc.ToString(SaveFormat.Text);
+                        // Correctly extract text from the document for tag generation
+                        var documentText = asposeDoc.GetText(); // Extract text from Word document
 
-                    // Generate tags from document text (basic implementation: top 10 frequent words excluding stopwords)
+                        // Generate tags from document text
+                        tags = GenerateTags(documentText);
+                        Console.WriteLine("Generated Tags (Word): " + string.Join(", ", tags));
+
+                        // Update fileName to the new PDF file
+                        fileName = pdfFileName;
+                        fileType = ".pdf";
+                    }
+                }
+                else if (fileType == ".pdf")
+                {
+                    // Handle PDF files
+                    var pdfFileName = Path.GetFileName(fileName); // Keep original PDF name
+                    newFilePath = Path.Combine(Path.GetTempPath(), pdfFileName);
+
+                    // Save the PDF temporarily to extract text
+                    using (var fileStream = System.IO.File.Create(newFilePath))
+                    {
+                        await request.UploadedFile.CopyToAsync(fileStream);
+                    }
+
+                    // Extract text from PDF using Aspose.Pdf
+                    var pdfDocument = new AsposePdfDocument(newFilePath);
+                    var textAbsorber = new TextAbsorber();
+                    pdfDocument.Pages.Accept(textAbsorber);
+                    var documentText = textAbsorber.Text;
+
+                    // Generate tags from extracted text
                     tags = GenerateTags(documentText);
-                    Console.WriteLine("Generated Tags: " + string.Join(", ", tags));
-
-                    // Update fileName to the new PDF file
-                    fileName = pdfFileName;
-                    fileType = ".pdf";
+                    Console.WriteLine("Generated Tags (PDF): " + string.Join(", ", tags));
                 }
 
                 // Construct the new file name
@@ -135,7 +160,7 @@ namespace Combined.Controllers
                     var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
 
-                    using (var content = new StreamContent(pdfFilePath != null ? System.IO.File.OpenRead(pdfFilePath) : request.UploadedFile.OpenReadStream()))
+                    using (var content = new StreamContent(newFilePath != null ? System.IO.File.OpenRead(newFilePath) : request.UploadedFile.OpenReadStream()))
                     {
                         content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
@@ -145,7 +170,13 @@ namespace Combined.Controllers
                         {
                             return StatusCode((int)response.StatusCode, new { message = $"Upload to Nextcloud failed: {response.StatusCode}" });
                         }
-                    }   
+                    }
+                }
+
+                // Delete the temporary file if it was created
+                if (newFilePath != null && System.IO.File.Exists(newFilePath))
+                {
+                    System.IO.File.Delete(newFilePath);
                 }
 
                 // Create a new document record to save in MongoDB
@@ -167,7 +198,7 @@ namespace Combined.Controllers
                 // Insert the document record into MongoDB
                 await _documentsCollection.InsertOneAsync(newDocument);
 
-                return Ok(new { message = $"File '{fileName}' uploaded to Nextcloud and metadata stored in MongoDB successfully." });
+                return Ok(new { message = $"File '{fileName}' uploaded to Nextcloud and metadata stored in MongoDB successfully.", Tags = tags });
             }
             catch (Exception ex)
             {
@@ -226,7 +257,7 @@ namespace Combined.Controllers
         }
 
         /// <summary>
-        /// Searches for moderated documents based on the provided search query.
+        /// Searches for moderated documents based on the provided search query, including tags.
         /// </summary>
         /// <param name="request">The search request containing the query string.</param>
         /// <returns>An IActionResult containing the search results or an error message.</returns>
@@ -246,6 +277,7 @@ namespace Combined.Controllers
                 // Initialize filters
                 FilterDefinition<Documents> subjectFilter = FilterDefinition<Documents>.Empty;
                 FilterDefinition<Documents> gradeFilter = FilterDefinition<Documents>.Empty;
+                FilterDefinition<Documents> tagsFilter = FilterDefinition<Documents>.Empty;
 
                 // Split the search query into words
                 var queryParts = request.Query.Split(' ');
@@ -257,6 +289,12 @@ namespace Combined.Controllers
                     {
                         gradeFilter = Builders<Documents>.Filter.Eq(d => d.Grade, gradeQuery);
                     }
+                    else if (part.StartsWith("tag:"))
+                    {
+                        // Handle tags by checking if any of the document's tags match the query
+                        var tagQuery = part.Replace("tag:", "").Trim();
+                        tagsFilter = Builders<Documents>.Filter.AnyEq(d => d.Tags, tagQuery);
+                    }
                     else
                     {
                         // Assuming the subject is the first non-numeric part
@@ -264,11 +302,12 @@ namespace Combined.Controllers
                     }
                 }
 
-                // Combine all filters using $and to ensure both subject and grade match
+                // Combine all filters using $and to ensure subject, grade, and tags match
                 var combinedFilter = Builders<Documents>.Filter.And(
                     moderationFilter,
                     subjectFilter,
-                    gradeFilter
+                    gradeFilter,
+                    tagsFilter
                 );
 
                 // Log the filter (optional)
@@ -310,6 +349,65 @@ namespace Combined.Controllers
             }
         }
 
+        /// <summary>
+        /// Downloads a file with the specified file name.
+        /// </summary>
+        /// <param name="fileName">The name of the file to download.</param>
+        /// <returns>An IActionResult containing the file as a downloadable response or an error message.</returns>
+        [HttpGet("download/{fileName}")]
+        public async Task<IActionResult> DownloadFile(string fileName)
+        {
+            try
+            {
+                // Encode the file name to handle spaces and special characters
+                var encodedFileName = Uri.EscapeDataString(fileName);
+                var downloadUrl = $"{webdavUrl}{encodedFileName}";
+
+                using (var client = new HttpClient())
+                {
+                    // Adding basic authentication headers
+                    var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+
+                    // Make the HTTP GET request
+                    var response = await client.GetAsync(downloadUrl);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        // Read the file content as bytes
+                        var fileBytes = await response.Content.ReadAsByteArrayAsync();
+
+                        // Get content type from response if available, default to 'application/octet-stream'
+                        var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
+
+                        // Return the file as a downloadable response
+                        return File(fileBytes, contentType, fileName);
+                    }
+                    else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        // Specific handling for 404 Not Found
+                        return NotFound(new { message = $"File '{fileName}' not found on the server." });
+                    }
+                    else
+                    {
+                        // Log the failed status code and return it
+                        Console.WriteLine($"Failed to download. Status Code: {response.StatusCode}");
+                        return StatusCode((int)response.StatusCode, new { message = $"Download failed: {response.StatusCode}" });
+                    }
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                // Network-related exception
+                return StatusCode(500, new { message = $"Network error during download: {ex.Message}" });
+            }
+            catch (Exception ex)
+            {
+                // Log general exceptions
+                Console.WriteLine($"Exception during download: {ex}");
+                return StatusCode(500, new { message = $"Exception during download: {ex.Message}" });
+            }
+        }
 
         /// <summary>
         /// Deletes a document with the specified ID and its associated file from Nextcloud.
