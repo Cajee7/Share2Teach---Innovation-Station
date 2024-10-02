@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Microsoft.AspNetCore.Mvc;
@@ -39,6 +40,7 @@ namespace FAQApp.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles = "admin")]
         public IActionResult AddFAQ([FromBody] FAQS faqInput)
         {
             // Validate that the input contains the required fields
@@ -59,6 +61,7 @@ namespace FAQApp.Controllers
 
             try
             {
+                // Insert the document into the FAQ collection
                 _faqCollection.InsertOne(faqDocument);
                 _logger.LogInformation("Added FAQ: {Question} at {Timestamp}.", faqInput.Question, DateTime.UtcNow);
 
@@ -69,7 +72,7 @@ namespace FAQApp.Controllers
                 _logger.LogError("Error while adding FAQ: {Message}", ex.Message);
                 return StatusCode(500, "An error occurred while adding the FAQ.");
             }
-        }       
+        }    
 
         /// <summary>
         /// Retrieves a list of all FAQs.
@@ -96,10 +99,9 @@ namespace FAQApp.Controllers
                     return NotFound("No FAQs found.");
                 }
 
-                // Convert to a model that includes the ObjectId and handles missing fields
+                // Convert to a model that includes and handles missing fields
                 var faqList = faqs.Select(faq => new
                 {
-                    Id = faq["_id"].ToString(),
                     Question = faq.Contains("question") ? faq["question"].ToString() : "No question field",
                     Answer = faq.Contains("answer") ? faq["answer"].ToString() : "No answer field",
                     DateAdded = faq.Contains("dateAdded") ? faq["dateAdded"].ToUniversalTime() : DateTime.MinValue
@@ -128,6 +130,7 @@ namespace FAQApp.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles = "admin")]
         public IActionResult DeleteFAQById([FromQuery] string id)
         {
             if (!ObjectId.TryParse(id, out ObjectId objectId))
@@ -163,6 +166,7 @@ namespace FAQApp.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles = "admin")]
         public IActionResult UpdateFAQById([FromQuery] string id, [FromBody] FAQS faqInput)
         {
             if (!ObjectId.TryParse(id, out ObjectId objectId))
