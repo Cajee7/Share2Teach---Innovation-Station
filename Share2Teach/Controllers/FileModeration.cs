@@ -113,6 +113,12 @@ namespace FileModeration.Controllers
                     return Unauthorized("Moderator information is missing in the token.");
                 }
 
+                // Handle the case where userId is null
+                if (userId == null)
+                {
+                    return BadRequest("User ID is missing in the token.");
+                }
+
                 // Creates a new moderation entry with the provided information
                 var moderationEntry = new ModerationEntry
                 {
