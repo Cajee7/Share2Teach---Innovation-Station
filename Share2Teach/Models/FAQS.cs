@@ -13,9 +13,9 @@ namespace Share2Teach.Models
         /// Gets or sets the unique identifier for the FAQ.
         /// This will map to the _id field in MongoDB.
         /// </summary>
-        [BsonId] // This will map to the _id field in MongoDB
-        [BsonRepresentation(BsonType.ObjectId)] // Ensures proper ObjectId handling
-        public required string Id { get; set; }
+        //[BsonId] // This will map to the _id field in MongoDB
+        //[BsonRepresentation(BsonType.ObjectId)] // Ensures proper ObjectId handling
+        //public required string Id { get; set; }
 
         /// <summary>
         /// Gets or sets the question being asked.
