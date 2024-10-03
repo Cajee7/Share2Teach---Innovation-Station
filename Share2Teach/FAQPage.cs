@@ -16,6 +16,13 @@ namespace FAQPage
         private static IMongoCollection<BsonDocument> GetFAQCollection()
         {
             var database = DatabaseConnection.Program.ConnectToDatabase();
+            
+            // Check if the database connection was successful
+            if (database == null)
+            {
+                throw new InvalidOperationException("Failed to connect to the database.");
+            }
+            
             return database.GetCollection<BsonDocument>("FAQS");
         }
 
