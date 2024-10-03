@@ -1,12 +1,11 @@
 using System;
-
+using MongoDB.Bson; // Add this using directive
 
 namespace Share2Teach.Models
 {
     public partial class User
     {
-
-        public required int User_id { get; set; }
+        public ObjectId Id { get; set; }
         public string? FName { get; set; }
         public string? LName { get; set; }
         public required string Email { get; set; }

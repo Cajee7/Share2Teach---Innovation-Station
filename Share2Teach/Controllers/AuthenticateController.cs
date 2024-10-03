@@ -338,5 +338,63 @@ namespace DatabaseConnection.Controllers
                 Role = role
             }); //returns the user information
         }
+
+        /// <summary>
+        /// Deletes a user account based on the provided email.
+        /// </summary>
+        /// <param name="email">The email of the user to be deleted.</param>
+        /// <returns>A success message upon successful deletion.</returns>
+        /// <response code="200">If the user is deleted successfully.</response>
+        /// <response code="400">If the email is invalid or the user does not exist.</response>
+        /// <response code="401">If the request is not authorized (only admins can perform this action).</response>
+        /// <response code="500">If an internal server error occurs.</response>
+        [HttpDelete("delete-user")]
+        [Authorize(Roles = "admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeleteUser([FromQuery] string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return BadRequest(new { message = "Email is required." });
+
+            var user = await _usersCollection.Find(new BsonDocument("Email", email)).FirstOrDefaultAsync();
+            if (user == null)
+                return NotFound(new { message = "User not found." });
+
+            await _usersCollection.DeleteOneAsync(new BsonDocument("Email", email));
+
+            return Ok(new { message = "User deleted successfully." });
+        }
+
+        /// <summary>
+        /// Gets a list of all users.
+        /// </summary>
+        /// <returns>A list of users.</returns>
+        /// <response code="200">If the users are retrieved successfully.</response>
+        /// <response code="401">If the request is not authorized (only admins can perform this action).</response>
+        /// <response code="500">If an internal server error occurs.</response>
+        [HttpGet("users")]
+        [Authorize(Roles = "admin")] // Ensure this endpoint is accessible only to admins
+        public async Task<IActionResult> GetAllUsers()
+        {
+            // Retrieve all users from the database
+            var users = await _usersCollection.Find(_ => true).ToListAsync();
+
+            // Map the users to UserDto
+            var userDtos = users.Select(doc => new UserDto
+            {
+                FirstName = doc.GetValue("FirstName", defaultValue: "").AsString,  // Provide a default value if field doesn't exist
+                LastName = doc.GetValue("LastName", defaultValue: "").AsString,
+                Email = doc.GetValue("Email", defaultValue: "").AsString,
+                Role = doc.GetValue("Role", defaultValue: "User").AsString, // Default to 'User' if Role is missing
+                Subjects = doc.Contains("Subjects") ? doc.GetValue("Subjects").AsBsonArray.Select(x => x.AsString).ToList() : new List<string>() // Check if 'Subjects' exists
+            }).ToList();
+
+            return Ok(userDtos);
+        }
+
     }
 }
