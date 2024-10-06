@@ -348,7 +348,7 @@ namespace Combined.Controllers
         }
 
         /// <summary>
-        /// Updates a document with the specified ID and also updates its metadata in Nextcloud.
+        /// Updates a document with the specified ID in MongoDB without modifying Nextcloud.
         /// </summary>
         /// <param name="id">The ID of the document to update.</param>
         /// <param name="updateDocumentDto">The DTO containing updated document information.</param>
@@ -387,26 +387,6 @@ namespace Combined.Controllers
                 // Update the date updated
                 document.Date_Updated = DateTime.UtcNow;
 
-                // Prepare metadata for Nextcloud update
-                string newFileName = $"{document.Title}{document.Subject}{document.Grade}{document.File_Type}";
-                var encodedNewFileName = Uri.EscapeDataString(newFileName);
-                var uploadUrl = $"{webdavUrl}{encodedNewFileName}";
-
-                // Update metadata in Nextcloud
-                using (var client = new HttpClient())
-                {
-                    var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
-
-                    // Send PATCH request to update metadata in Nextcloud (if needed)
-                    var response = await client.PatchAsync(uploadUrl, null); // Adjust payload as necessary for your API
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        return StatusCode((int)response.StatusCode, $"Update in Nextcloud failed: {response.StatusCode}");
-                    }
-                }
-
                 // Update the document in the MongoDB database
                 var updateResult = await _documentsCollection.ReplaceOneAsync(d => d.Id == document.Id, document);
 
@@ -425,9 +405,6 @@ namespace Combined.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
         }
-
-
-
 
         /// <summary>
         /// Downloads a document from Nextcloud based on the provided document ID.

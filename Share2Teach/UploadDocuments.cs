@@ -13,6 +13,9 @@ using DatabaseConnection; // Import database connection class
 
 namespace UploadDocuments
 {
+    /// <summary>
+    /// Provides functionality for uploading documents to Nextcloud.
+    /// </summary>
     public class DocumentUploader
     {
         private const long MaxFileSize = 25 * 1024 * 1024; // 25 MB max size
