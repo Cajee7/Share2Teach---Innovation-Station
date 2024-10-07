@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="faq.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>FAQ Management</title>
+</head>
+<body>
+    <div class="container">
+        <h1>FAQ Management</h1>
+        <div id="faq-list"></div>
+
+        <h2>Add FAQ</h2>
+        <form id="add-faq-form">
+            <input type="text" id="question" placeholder="Enter your question" required>
+            <textarea id="answer" placeholder="Enter your answer" required></textarea>
+            <button type="submit">Add FAQ</button>
+        </form>
+
+        <div id="update-faq" style="display: none;">
+            <h2>Update FAQ</h2>
+            <input type="hidden" id="update-id">
+            <input type="text" id="update-question" placeholder="Enter your question" required>
+            <textarea id="update-answer" placeholder="Enter your answer" required></textarea>
+            <button id="update-btn">Update FAQ</button>
+        </div>
+    </div>
+
+    <script src="faq.js"></script>
+</body>
+</html>
