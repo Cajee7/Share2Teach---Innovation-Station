@@ -114,6 +114,9 @@ if (app.Environment.IsDevelopment())
 // Use CORS policy
 //app.UseCors("AllowSpecificOrigins");
 
+//Enabling serving static files from wwwroot
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -4,18 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Share2Teach</title>
-    <!-- Google tag (gtag.js) -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Analytics Script -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-7BM1508TJZ"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
+        function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-
         gtag('config', 'G-7BM1508TJZ');
     </script>
 </head>
 <body>
-    <h1>Welcome to Share2Teach</h1>
-    <!-- Your content here -->
+    <div class="container">
+        <h1>Share2Teach</h1>
+        <div id="error-message" class="error-message"></div>
+        
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
