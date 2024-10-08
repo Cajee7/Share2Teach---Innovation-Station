@@ -1,0 +1,72 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #eae8f5; /* Light purple background */
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px; /* Slightly rounded corners */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); /* Deeper shadow for more depth */
+}
+
+h1 {
+    text-align: center;
+    color: #4b0082; /* Dark purple for main heading */
+}
+
+.moderation-heading {
+    text-align: center;
+    color: #6a0dad; /* Purple color */
+    font-size: 2.5em; /* Larger font size for emphasis */
+    margin: 20px 0; /* Margin for spacing */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2); /* Deeper shadow */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th {
+    background-color: #9b59b6; /* Medium purple for table headers */
+    color: white; /* White text for contrast */
+    padding: 12px; /* Padding for table headers */
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+td {
+    background-color: #f5f3f9; /* Light purple for table cells */
+}
+
+tr:hover {
+    background-color: #d1c4e9; /* Light purple hover effect */
+    transition: background-color 0.3s; /* Smooth transition for hover */
+}
+
+button {
+    background-color: #8e44ad; /* Darker purple for buttons */
+    color: white; /* White text for contrast */
+    border: none; /* Remove border */
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px 20px; /* Padding for button */
+    cursor: pointer; /* Pointer cursor on hover */
+    font-size: 1em; /* Font size */
+    margin-top: 20px; /* Margin for spacing */
+    display: block; /* Center button below content */
+    text-align: center; /* Center text */
+}
+
+button:hover {
+    background-color: #732d91; /* Darker purple on hover */
+}
