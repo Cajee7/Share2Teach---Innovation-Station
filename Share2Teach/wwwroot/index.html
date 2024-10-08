@@ -42,10 +42,25 @@
         <div id="subjectView" class="tab-content">
             <h2>Subject View</h2>
             <p>Explore documents within specific subjects.</p>
+            <div class="subjects">
+                <div class="subject-block">Mathematics</div>
+                <div class="subject-block">Science</div>
+                <div class="subject-block">History</div>
+                <div class="subject-block">Literature</div>
+                <div class="subject-block">Geography</div>
+                <div class="subject-block">Computer Science</div>
+                <div class="subject-block">Art</div>
+                <div class="subject-block">Physical Education</div>
+                <div class="subject-block">Music</div>
+            </div>
         </div>
         <div id="search" class="tab-content">
             <h2>Search</h2>
             <p>Search for documents based on tags.</p>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search documents..." />
+                <button onclick="performSearch()">Search</button>
+            </div>
         </div>
         <div id="contribute" class="tab-content">
             <h2>Contribute</h2>
@@ -54,6 +69,9 @@
         <div id="faq" class="tab-content">
             <h2>Frequently Asked Questions</h2>
             <p>Find answers to common questions.</p>
+            <div class="logo-container">
+                <img src="https://services.nwu.ac.za/sites/services.nwu.ac.za/files/files/designs-branding/NWU-Acronym-logo-acronym-RGB.png" alt="Logos" class="footer-logo">
+            </div>
         </div>
 
         <div id="error-message" class="error-message"></div>

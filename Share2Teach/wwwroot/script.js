@@ -1,18 +1,43 @@
-function openTab(event, tabName) {
-    const tabContents = document.querySelectorAll('.tab-content');
-    const tabButtons = document.querySelectorAll('.tab-button');
+function openTab(evt, tabName) {
+    const tabContents = document.getElementsByClassName("tab-content");
+    for (let i = 0; i < tabContents.length; i++) {
+        tabContents[i].style.display = "none"; // Hide all tab content
+    }
 
-    // Hide all tab content
-    tabContents.forEach(content => {
-        content.classList.remove('active');
-    });
+    const tabButtons = document.getElementsByClassName("tab-button");
+    for (let i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].className = tabButtons[i].className.replace(" active", ""); // Remove active class
+    }
 
-    // Remove active class from all tab buttons
-    tabButtons.forEach(button => {
-        button.classList.remove('active');
-    });
+    document.getElementById(tabName).style.display = "block"; // Show the selected tab content
+    evt.currentTarget.className += " active"; // Set the active class
+}
 
-    // Show the selected tab content and add active class to button
-    document.getElementById(tabName).classList.add('active');
-    event.currentTarget.classList.add('active');
+async function performSearch() {
+    const query = document.getElementById('searchInput').value;
+    if (!query) {
+        showError('Please enter a search term.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`YOUR_API_ENDPOINT?search=${query}`);
+        if (!response.ok) throw new Error('Network response was not ok');
+
+        const results = await response.json();
+        renderSearchResults(results);
+    } catch (error) {
+        showError('Error fetching search results. Please try again later.');
+    }
+}
+
+function showError(message) {
+    const errorMessage = document.getElementById('error-message');
+    errorMessage.innerText = message;
+    errorMessage.style.display = 'block';
+}
+
+function renderSearchResults(results) {
+    // Logic to display search results
+    // Add your code to handle displaying results here
 }
