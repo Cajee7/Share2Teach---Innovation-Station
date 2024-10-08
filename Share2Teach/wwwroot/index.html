@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Share2Teach</title>
-    <link rel="stylesheet" href="styles.css">
-    <!-- Google Analytics Script -->
+    <title>Share2Teach - Landing Page</title>
+    <link rel="stylesheet" href="style.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-7BM1508TJZ"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -15,10 +14,49 @@
     </script>
 </head>
 <body>
+    <header class="header">
+        <div class="logo">Share2Teach</div>
+        <nav class="tabs">
+            <button class="tab-button active" onclick="openTab(event, 'home')">Home</button>
+            <button class="tab-button" onclick="openTab(event, 'subjectView')">Subject View</button>
+            <button class="tab-button" onclick="openTab(event, 'search')">Search</button>
+            <button class="tab-button" onclick="openTab(event, 'contribute')">Contribute</button>
+            <button class="tab-button" onclick="openTab(event, 'faq')">FAQ</button>
+            <div class="dropdown">
+                <button class="tab-button">More</button>
+                <div class="dropdown-content">
+                    <a href="#otherOER">Other useful OER's</a>
+                    <a href="#selfDirectedLearning">Self-Directed Learning</a>
+                    <a href="#login">Login</a>
+                    <a href="#aboutUs">About Us</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+    
     <div class="container">
-        <h1>Share2Teach</h1>
+        <div id="home" class="tab-content active">
+            <h2>Welcome to Share2Teach</h2>
+            <p>This platform allows you to contribute and access educational resources.</p>
+        </div>
+        <div id="subjectView" class="tab-content">
+            <h2>Subject View</h2>
+            <p>Explore documents within specific subjects.</p>
+        </div>
+        <div id="search" class="tab-content">
+            <h2>Search</h2>
+            <p>Search for documents based on tags.</p>
+        </div>
+        <div id="contribute" class="tab-content">
+            <h2>Contribute</h2>
+            <p>Share your documents and tag them for others.</p>
+        </div>
+        <div id="faq" class="tab-content">
+            <h2>Frequently Asked Questions</h2>
+            <p>Find answers to common questions.</p>
+        </div>
+
         <div id="error-message" class="error-message"></div>
-        
     </div>
 
     <script src="script.js"></script>

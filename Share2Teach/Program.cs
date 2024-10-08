@@ -58,6 +58,17 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Add CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
+
 // Add services to the container
 builder.Services.AddControllers();
 
@@ -112,7 +123,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Use CORS policy
-//app.UseCors("AllowSpecificOrigins");
+app.UseCors("AllowAll");
 
 //Enabling serving static files from wwwroot
 app.UseStaticFiles();
