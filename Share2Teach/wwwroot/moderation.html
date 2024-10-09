@@ -12,6 +12,7 @@
         <table id="documentsTable">
             <thead>
                 <tr>
+                    <th>Select</th> <!-- Checkbox for selection -->
                     <th>Title</th>
                     <th>Subject</th>
                     <th>Grade</th>
@@ -20,7 +21,7 @@
                     <th>File URL</th>
                     <th>Moderation Status</th>
                     <th>Ratings</th>
-                    
+                    <th>Tags</th>
                     <th>Date Uploaded</th>
                     <th>Date Updated</th>
                 </tr>
@@ -29,7 +30,41 @@
                 <!-- Document rows will be inserted here -->
             </tbody>
         </table>
+        <button id="moderateButton" style="display: none;">Moderate</button>
+
+        <button id="submitModeration" style="margin-top: 20px;">Moderate Document</button> <!-- New button to moderate selected documents -->
     </div>
+
+    <!-- Modal for comments and rating -->
+    <div id="ratingModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Moderate Document</h2>
+            <h3>Document Selected: </h3>
+            <p id="documentTitle"></p>
+            <label for="rating">Rating:</label>
+            <select id="rating">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            
+
+            </select>
+            <br>
+            <label for="comments">Comments:</label>
+            <textarea id="comments" rows="4" cols="50"></textarea>
+            <br>
+            <button id="submitRating">Submit</button>
+        </div>
+    </div>
+
     <script src="moderation.js"></script>
 </body>
 </html>
