@@ -27,7 +27,7 @@
                 <div class="dropdown-content">
                     <a href="#otherOER">Other useful OER's</a>
                     <a href="#selfDirectedLearning">Self-Directed Learning</a>
-                    <a href="#login">Login</a>
+                    <a href="#login" onclick="openTab(event, 'login')">Login</a>
                     <a href="#aboutUs">About Us</a>
                 </div>
             </div>
@@ -35,10 +35,13 @@
     </header>
     
     <div class="container">
+        <!-- Home Tab -->
         <div id="home" class="tab-content active">
             <h2>Welcome to Share2Teach</h2>
             <p>This platform allows you to contribute and access educational resources.</p>
         </div>
+
+        <!-- Subject View Tab -->
         <div id="subjectView" class="tab-content">
             <h2>Subject View</h2>
             <p>Explore documents within specific subjects.</p>
@@ -54,32 +57,103 @@
                 <div class="subject-block">Music</div>
             </div>
         </div>
+
+        <!-- Search Tab -->
         <div id="search" class="tab-content">
             <h2>Search</h2>
-            <p>Search for documents based on Title, subject, grade, or tags.</p>
+            <p>Search for documents based on Title, Subject, Grade, or Tags.</p>
             <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Search documents..." />
+                <input type="text" id="search-input" placeholder="Search documents..." />
                 <button onclick="performSearch()">Search</button>
             </div>
+            <div id="results-container" class="results-container" style="margin-top: 20px;">
+                <!-- Search results will be dynamically inserted here -->
+            </div>
+
+            <!-- Error Message for Search -->
+            <div id="search-error-message" class="error-message" style="display: none; color: red; margin-top: 10px;"></div>
         </div>
+
+       <!-- Contribute Tab -->
         <div id="contribute" class="tab-content">
             <h2>Contribute</h2>
             <p>Share your documents and tag them for others.</p>
+            
+            <div class="contribute-message">
+                <h3>🌟 Calling All Educators: Let’s Shape the Future of Learning Together! 🌟</h3>
+                <p>Are you passionate about empowering students and enhancing educational resources? At <strong>Share2Teach</strong>, we believe that <strong>every great educator has something valuable to share!</strong></p>
+                
+                <h4 class="centered">Join our mission to revolutionize education! ✨</h4>
+                <p>If you’re ready to make a real impact and help students thrive, we want YOU to contribute your knowledge and resources to our vibrant community.</p>
+                
+                <h4 class="centered">🔍 Why Contribute?</h4>
+                <ul>
+                    <li><strong>Inspire Others:</strong> Share your expertise and best practices.</li>
+                    <li><strong>Collaborate:</strong> Connect with like-minded educators who share your passion.</li>
+                    <li><strong>Make a Difference:</strong> Your contributions can transform learning experiences for countless students.</li>
+                </ul>
+                
+                <p><strong>Ready to take the leap?</strong> Sign up today and be part of a movement that celebrates collaboration and innovation in education!</p>
+                
+                <p><strong>👉 <a href="#signup">Sign Up Now</a></strong> and let’s change the world of education together!</p>
+            </div>
+            <img src="https://services.nwu.ac.za/sites/services.nwu.ac.za/files/files/designs-branding/NWU-Acronym-logo-acronym-RGB.png" alt="Logo" class="footer-logo">
         </div>
+
+
+        <!-- FAQ Tab -->
         <div id="faq" class="tab-content">
             <h2>Frequently Asked Questions</h2>
             <p>Find answers to common questions.</p>
             <div class="faq-list" id="faq-list-container">
-                <!-- FAQ items should be added here -->
+                <!-- FAQ items will be added dynamically here -->
             </div>
-            <div class="logo-container">
-                <img src="https://services.nwu.ac.za/sites/services.nwu.ac.za/files/files/designs-branding/NWU-Acronym-logo-acronym-RGB.png" alt="Logos" class="footer-logo">
+
+            <!-- Error Message for FAQ -->
+            <div id="faq-error-message" class="error-message" style="display: none; color: red; margin-top: 10px;"></div>
+
+            <div class="footer-logo-container">
+                <div class="purple-line"></div>
+                <img src="https://services.nwu.ac.za/sites/services.nwu.ac.za/files/files/designs-branding/NWU-Acronym-logo-acronym-RGB.png" alt="Logo" class="footer-logo">
+                <div class="purple-line"></div>
             </div>
         </div>
 
-        <div id="error-message" class="error-message"></div>
+        <!-- Login Tab -->
+        <div id="login" class="tab-content">
+            <h2>Login</h2>
+            <form id="login-form" class="login-form">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="login-btn" onclick="performLogin()">Login</button>
+                    <button type="button" class="clear-btn" onclick="clearLoginForm()">Clear</button>
+                </div>
+
+                <div id="success-message">
+                    Logged in successfully!
+                </div>
+
+                <!-- Error Message -->
+                <div id="error-message" class="error-message" style="display: none; color: red;"></div>
+
+                <!-- Forgot Password and Sign-up section -->
+                <div class="extra-links">
+                    <p class="forgot-password"><a href="forgot-password.html">Forgot Password?</a></p>
+                    <p class="sign-up-text">Don't have an account? <a href="register.html">Sign up</a></p>
+                </div>
+
+            </form>
+        </div>
     </div>
 
+    <!-- Script -->
     <script src="script.js"></script>
 </body>
 </html>
