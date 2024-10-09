@@ -1,6 +1,6 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f3e5f5; /* Light purple background */
     margin: 0;
     padding: 0;
 }
@@ -9,44 +9,60 @@ body {
     max-width: 800px;
     margin: 20px auto;
     padding: 20px;
-    background-color: #fff;
+    background-color: #ffffff;
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-h1, h2 {
-    color: #333;
+h1 {
+    color: #6a1b9a; /* Deep purple */
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+h2 {
+    color: #4a148c; /* Darker purple */
+    border-bottom: 2px solid #ba68c8; /* Lighter purple border */
+    padding-bottom: 8px;
+    margin-bottom: 16px;
 }
 
 label {
     display: block;
     margin-bottom: 8px;
+    color: #4a148c; /* Darker purple */
     font-weight: bold;
 }
 
 input, textarea, select, button {
     width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    border: 1px solid #d1c4e9; /* Light purple border */
     box-sizing: border-box;
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: #7e57c2; /* Medium purple */
+    outline: none;
 }
 
 textarea {
     resize: vertical;
-    height: 80px;
+    height: 100px;
 }
 
 button {
-    background-color: #007bff;
+    background-color: #7b1fa2; /* Medium purple */
     color: white;
     border: none;
     cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: #4a148c; /* Darker purple */
 }
 
 ul {
@@ -55,9 +71,10 @@ ul {
 }
 
 li {
-    background-color: #f9f9f9;
+    background-color: #ede7f6; /* Very light purple */
     margin: 10px 0;
-    padding: 10px;
-    border-radius: 4px;
-    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #d1c4e9; /* Light purple border */
+    color: #4a148c; /* Darker purple */
 }
