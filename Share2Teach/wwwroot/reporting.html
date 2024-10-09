@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Management</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Report Management</h1>
+        <section class="form-section">
+            <h2>Create Report</h2>
+            <form id="report-form">
+                <label for="documentId">Document ID:</label>
+                <input type="text" id="documentId" name="documentId" required>
+
+                <label for="reason">Reason:</label>
+                <textarea id="reason" name="reason" required></textarea>
+
+                <button type="submit">Submit Report</button>
+            </form>
+            <p id="create-response"></p>
+        </section>
+
+        <section class="reports-section">
+            <h2>All Reports</h2>
+            <button id="fetch-reports">Fetch Reports</button>
+            <ul id="reports-list"></ul>
+        </section>
+
+        <section class="update-section">
+            <h2>Update Report Status</h2>
+            <form id="update-form">
+                <label for="reportId">Report ID:</label>
+                <input type="text" id="reportId" name="reportId" required>
+
+                <label for="status">New Status:</label>
+                <select id="status" name="status" required>
+                    <option value="approved">Approved</option>
+                    <option value="denied">Denied</option>
+                    <option value="pending">Pending</option>
+                </select>
+
+                <button type="submit">Update Status</button>
+            </form>
+            <p id="update-response"></p>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
