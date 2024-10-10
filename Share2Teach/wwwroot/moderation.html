@@ -36,34 +36,41 @@
     </div>
 
     <!-- Modal for comments and rating -->
-    <div id="ratingModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h2>Moderate Document</h2>
-            <h3>Document Selected: </h3>
-            <p id="documentTitle"></p>
-            <label for="rating">Rating:</label>
-            <select id="rating">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-                <option value="10">10</option>
-            
+<div id="ratingModal" class="modal">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2 class="modal-heading">Moderate Document</h2>
+        
+        <!-- Basic Document Info -->
+        <h3 class="modal-subheading">Document Selected:</h3>
+        <p id="documentTitle"></p>
 
-            </select>
-            <br>
-            <label for="comments">Comments:</label>
-            <textarea id="comments" rows="4" cols="50"></textarea>
-            <br>
-            <button id="submitRating">Submit</button>
+        <!-- More Info Button -->
+        <button id="moreInfoButton" onclick="toggleMoreInfo()">More Info</button>
+
+        <!-- Hidden Additional Info -->
+        <div id="additionalInfo" style="display: none;">
+            <p><strong>Grade:</strong> <span id="documentGrade"></span></p>
+            <p><strong>Subject:</strong> <span id="documentSubject"></span></p>
+            <p><strong>Description:</strong> <span id="documentDescription"></span></p>
+            <p><strong>File Size:</strong> <span id="documentFileSize"></span></p>
         </div>
+
+        <!-- Rating and Comments -->
+        <label for="rating" class="modal-subheading">Rating:</label>
+        <select id="rating">
+            <!-- Rating options -->
+        </select>
+        <br>
+        <label for="comments" class="modal-subheading">Comments:</label>
+        <textarea id="comments" rows="4" cols="50"></textarea>
+        <br>
+        <button id="submitRating">Submit</button>
     </div>
+</div>
+
+
+
 
     <script src="moderation.js"></script>
 </body>
