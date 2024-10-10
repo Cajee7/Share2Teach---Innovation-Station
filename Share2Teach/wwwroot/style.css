@@ -618,7 +618,7 @@ body {
 }
 
 .hero-section {
-  background-image: url('path/to/your/background-image.jpg'); /* Replace with your background image */
+  background-image: url("homepageback.jpeg"); 
   background-size: cover;
   background-position: center;
   padding: 100px 20px;
@@ -642,6 +642,7 @@ body {
 .hero-section p {
   font-size: 1.5rem;
   margin-bottom: 30px;
+  color: black;
 }
 
 .cta-button {
