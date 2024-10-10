@@ -28,10 +28,17 @@
                     <a href="#otherOER">Other useful OER's</a>
                     <a href="#selfDirectedLearning">Self-Directed Learning</a>
                     <a href="#login" onclick="openTab(event, 'login')">Login</a>
+                    <a id="logout-btn" href="#" style="display: none;" onclick="performLogout()">Logout</a>
                     <a href="#aboutUs">About Us</a>
                 </div>
             </div>
         </nav>
+        <!-- Placeholder for user profile icon -->
+        <div id="user-profile" style="display: none;">
+            <div id="profile-icon" class="profile-icon">
+                <span id="profile-name"></span>
+            </div>
+        </div>
     </header>
     
     <div class="container">
@@ -74,7 +81,7 @@
             <div id="search-error-message" class="error-message" style="display: none; color: red; margin-top: 10px;"></div>
         </div>
 
-       <!-- Contribute Tab -->
+        <!-- Contribute Tab -->
         <div id="contribute" class="tab-content">
             <h2>Contribute</h2>
             <p>Share your documents and tag them for others.</p>
@@ -95,11 +102,10 @@
                 
                 <p><strong>Ready to take the leap?</strong> Sign up today and be part of a movement that celebrates collaboration and innovation in education!</p>
                 
-                <p><strong>👉 <a href="#signup">Sign Up Now</a></strong> and let’s change the world of education together!</p>
+                <p><strong>👉 <a href="signup.html">Sign Up Now</a></strong> and let’s change the world of education together!</p>
             </div>
             <img src="https://services.nwu.ac.za/sites/services.nwu.ac.za/files/files/designs-branding/NWU-Acronym-logo-acronym-RGB.png" alt="Logo" class="footer-logo">
         </div>
-
 
         <!-- FAQ Tab -->
         <div id="faq" class="tab-content">
@@ -122,7 +128,7 @@
         <!-- Login Tab -->
         <div id="login" class="tab-content">
             <h2>Login</h2>
-            <form id="login-form" class="login-form">
+            <form id="login-form" class="login-form" onsubmit="return false;">
                 <div class="form-group">
                     <label for="email">Email:</label>
                     <input type="email" id="email" placeholder="Enter your email" required>
@@ -136,9 +142,8 @@
                     <button type="button" class="clear-btn" onclick="clearLoginForm()">Clear</button>
                 </div>
 
-                <div id="success-message">
-                    Logged in successfully!
-                </div>
+                <!-- Success Message -->
+                <div id="success-message" style="display: none; margin-top: 10px; color: green;"></div>
 
                 <!-- Error Message -->
                 <div id="error-message" class="error-message" style="display: none; color: red;"></div>
@@ -146,9 +151,8 @@
                 <!-- Forgot Password and Sign-up section -->
                 <div class="extra-links">
                     <p class="forgot-password"><a href="forgot-password.html">Forgot Password?</a></p>
-                    <p class="sign-up-text">Don't have an account? <a href="register.html">Sign up</a></p>
+                    <p class="sign-up-text">Don't have an account? <a href="signup.html">Sign up</a></p>
                 </div>
-
             </form>
         </div>
     </div>

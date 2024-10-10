@@ -188,30 +188,39 @@ async function performLogin() {
             const result = await response.json();
             console.log('Login successful:', result.message); // Display success message
             console.log('Token:', result.token); // You can store the token or handle it accordingly
+            console.log('User Name:', result.userName); // Assuming you get the user's name in the response
+
+            // Store user information in localStorage for later use
+            localStorage.setItem('userName', result.userName);
+            localStorage.setItem('isLoggedIn', 'true'); // Mark user as logged in
 
             // Show animated success popup
             successMessage.style.display = 'block';
             successMessage.innerHTML = 'Logged in successfully!';
+            successMessage.style.backgroundColor = "#4CAF50"; // Green for success
             successMessage.style.bottom = '-100px'; // Initially below the page
             successMessage.style.opacity = '0';    // Initially transparent
-            
+
             setTimeout(() => {
                 successMessage.style.bottom = '20px'; // Slide it up
                 successMessage.style.opacity = '1';   // Fade in
             }, 100);
 
-            // Hide the popup after 3 seconds
+            // Hide the popup after 2 seconds
             setTimeout(() => {
                 successMessage.style.bottom = '-100px'; // Slide back down
                 successMessage.style.opacity = '0';     // Fade out
-            }, 3000);
+            }, 2000);
 
             // Completely hide the message after the animation ends
             setTimeout(() => {
                 successMessage.style.display = 'none';
-                // Redirect to another page after successful login
-                window.location.href = 'dashboard.html';
-            }, 3500);
+                // Redirect to the landing page (index.html) after successful login
+                window.location.href = './index.html';  // Ensure the path is correct
+            }, 2300);
+
+            // Update UI elements
+            updateUIAfterLogin();
 
         } else if (response.status === 400) {
             // Handle validation errors from the backend
@@ -234,6 +243,57 @@ async function performLogin() {
     }
 }
 
+// Function to check login status and update UI on page load
+function checkLoginStatus() {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    const userName = localStorage.getItem('userName');
+
+    if (isLoggedIn) {
+        document.getElementById('user-profile').style.display = 'block';
+        document.getElementById('profile-name').innerText = userName;
+
+        // Change the contribute tab content
+        const contributeTab = document.getElementById('contribute');
+        contributeTab.querySelector('h2').innerText = 'Welcome Back!';
+        contributeTab.querySelector('p').innerText = 'Feel free to share your valuable resources!';
+
+        // Update dropdown menu: change the login button to logout
+        const logoutBtn = document.getElementById('logout-btn');
+        logoutBtn.style.display = 'block'; // Show the logout button
+        const loginLink = document.querySelector('a[href="#login"]');
+        if (loginLink) {
+            loginLink.style.display = 'none'; // Hide the login link
+        }
+    }
+}
+
+// Function to update UI elements after login
+function updateUIAfterLogin() {
+    const userName = localStorage.getItem('userName');
+    const contributeTab = document.getElementById('contribute');
+    
+    contributeTab.querySelector('h2').innerText = 'Welcome Back!';
+    contributeTab.querySelector('p').innerText = 'Feel free to share your valuable resources!';
+
+    // Update dropdown menu: change the login button to logout
+    const logoutBtn = document.getElementById('logout-btn');
+    logoutBtn.style.display = 'block'; // Show the logout button
+    const loginLink = document.querySelector('a[href="#login"]');
+    if (loginLink) {
+        loginLink.style.display = 'none'; // Hide the login link
+    }
+}
+
+// Function to handle logout
+function performLogout() {
+    localStorage.removeItem('userName');
+    localStorage.removeItem('isLoggedIn');
+    window.location.href = './index.html'; // Redirect to landing page
+}
+
+// Check login status on page load
+document.addEventListener('DOMContentLoaded', checkLoginStatus);
+
 // Function to clear the login form
 function clearLoginForm() {
     document.getElementById('email').value = '';
@@ -247,3 +307,17 @@ function validateEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
 }
+
+// Function to load the user's profile icon and name after login
+window.onload = function() {
+    const userName = localStorage.getItem('userName');
+    
+    if (userName) {
+        // Display the user's profile icon with their initials or name
+        const profileIcon = document.getElementById('user-profile');
+        const profileName = document.getElementById('profile-name');
+
+        profileIcon.style.display = 'block'; // Show the profile icon
+        profileName.textContent = userName.charAt(0).toUpperCase(); // Display the first letter of the user's name as an avatar
+    }
+};
