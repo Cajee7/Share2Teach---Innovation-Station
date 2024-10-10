@@ -136,3 +136,31 @@ label {
     text-decoration: none;
     cursor: pointer;
 }
+.rating-container {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.rating-button {
+    background-color: #8e44ad; /* Dark purple for buttons */
+    color: white; /* White text for contrast */
+    border: none; /* Remove border */
+    padding: 5px 10px; /* Padding for button */
+    cursor: pointer; /* Pointer cursor on hover */
+    font-size: 1.2em; /* Font size for arrows */
+    border-radius: 3px; /* Rounded corners */
+    margin: 0 5px;
+}
+
+.rating-button:hover {
+    background-color: #732d91; /* Darker purple on hover */
+}
+
+#ratingDisplay {
+    font-weight: bold;
+    font-size: 1.5em;
+    color: white; /* White text for the rating display */
+    padding: 0 10px;
+}
+

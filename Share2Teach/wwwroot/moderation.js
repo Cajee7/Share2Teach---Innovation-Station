@@ -1,77 +1,64 @@
 document.addEventListener('DOMContentLoaded', () => {
-    fetchUnmoderatedDocuments();
+    let currentRating = 1;
+    const maxRating = 10;
+    const minRating = 1;
 
-    // Modal event listeners
-    const closeButton = document.querySelector('.close-button');
+    const ratingDisplay = document.getElementById('ratingDisplay');
+    const incrementButton = document.getElementById('incrementRating');
+    const decrementButton = document.getElementById('decrementRating');
     const modal = document.getElementById('ratingModal');
+    const closeButton = document.querySelector('.close-button');
     const moreInfoButton = document.getElementById('moreInfoButton');
     const additionalInfoDiv = document.getElementById('additionalInfo');
 
-    // Close modal button
-    closeButton.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
+    // Update the rating display
+    function updateRatingDisplay() {
+        ratingDisplay.textContent = currentRating;
+    }
 
-    // Close modal when clicking outside
+    // Increment rating
+    function incrementRating() {
+        if (currentRating < maxRating) {
+            currentRating++;
+            updateRatingDisplay();
+        }
+    }
+
+    // Decrement rating
+    function decrementRating() {
+        if (currentRating > minRating) {
+            currentRating--;
+            updateRatingDisplay();
+        }
+    }
+
+    // Initialize the display with the current rating
+    updateRatingDisplay();
+
+    // Fetch unmoderated documents
+    fetchUnmoderatedDocuments();
+
+    // Event listeners
+    incrementButton.addEventListener('click', incrementRating);
+    decrementButton.addEventListener('click', decrementRating);
+    closeButton.addEventListener('click', closeModal);
     window.addEventListener('click', (event) => {
         if (event.target === modal) {
-            modal.style.display = 'none';
+            closeModal();
         }
     });
 
     // Handle submit rating button click
-    document.getElementById('submitRating').addEventListener('click', () => {
-        const title = document.getElementById('documentTitle').textContent;
-        const rating = document.getElementById('rating').value;
-        const comments = document.getElementById('comments').value;
-
-        // Handle the submission logic (e.g., send to the server)
-        console.log(`Rating for ${title}: ${rating} Comments: ${comments}`);
-        
-        // Close modal after submission
-        modal.style.display = 'none';
-
-        // Clear the input fields
-        document.getElementById('comments').value = '';
-    });
-
+    document.getElementById('submitRating').addEventListener('click', submitRating);
+    
     // Handle More Info button click
-    moreInfoButton.addEventListener('click', () => {
-        if (additionalInfoDiv.style.display === 'none') {
-            additionalInfoDiv.style.display = 'block';
-            moreInfoButton.textContent = 'Less Info';
-        } else {
-            additionalInfoDiv.style.display = 'none';
-            moreInfoButton.textContent = 'More Info';
-        }
-    });
-
+    moreInfoButton.addEventListener('click', toggleAdditionalInfo);
+    
     // New moderate button event
-    document.getElementById('submitModeration').addEventListener('click', () => {
-        const selectedDocument = document.querySelector('input[name="document"]:checked');
-
-        if (selectedDocument) {
-            const docTitle = selectedDocument.getAttribute('data-title');
-            const docGrade = selectedDocument.getAttribute('data-grade');
-            const docSubject = selectedDocument.getAttribute('data-subject');
-            const docDescription = selectedDocument.getAttribute('data-description');
-            const docFileSize = selectedDocument.getAttribute('data-file-size');
-
-            // Populate modal with document data
-            document.getElementById('documentTitle').textContent = docTitle;
-            document.getElementById('documentGrade').textContent = docGrade;
-            document.getElementById('documentSubject').textContent = docSubject;
-            document.getElementById('documentDescription').textContent = docDescription;
-            document.getElementById('documentFileSize').textContent = `${docFileSize} MB`;
-
-            // Show the modal
-            modal.style.display = 'block';
-        } else {
-            alert("Please select a document to moderate.");
-        }
-    });
+    document.getElementById('submitModeration').addEventListener('click', openModerationModal);
 });
 
+// Fetch unmoderated documents
 async function fetchUnmoderatedDocuments() {
     try {
         const response = await fetch('http://localhost:5281/api/Moderation/unmoderated'); 
@@ -79,24 +66,24 @@ async function fetchUnmoderatedDocuments() {
             throw new Error('Network response was not ok');
         }
         const documents = await response.json();
-        console.log('Fetched documents:', documents); // Log the documents to verify the data structure
+        console.log('Fetched documents:', documents);
         populateTable(documents);
     } catch (error) {
         console.error('Error fetching unmoderated documents:', error);
+        alert('Failed to fetch documents. Please try again later.');
     }
 }
 
+// Populate table with documents
 function populateTable(documents) {
     const tableBody = document.querySelector('#documentsTable tbody');
-    tableBody.innerHTML = ''; // Clear any existing rows
+    tableBody.innerHTML = '';
 
-    // Check if documents is an array
     if (!Array.isArray(documents) || documents.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="11">No documents found.</td></tr>';
-        return; // Exit if no documents
+        return;
     }
 
-    // Loop through each document and create a table row
     documents.forEach(doc => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -105,7 +92,7 @@ function populateTable(documents) {
                 data-grade="${doc.grade}" 
                 data-subject="${doc.subject}" 
                 data-description="${doc.description}" 
-                data-file-size="${doc.file_Size}" /></td> <!-- Radio button for selection -->
+                data-file-size="${doc.file_Size}" /></td>
             <td>${doc.title}</td>
             <td>${doc.subject}</td>
             <td>${doc.grade}</td>
@@ -120,4 +107,49 @@ function populateTable(documents) {
         `;
         tableBody.appendChild(row);
     });
+}
+
+// Handle modal operations
+function closeModal() {
+    const modal = document.getElementById('ratingModal');
+    modal.style.display = 'none';
+    document.getElementById('comments').value = '';
+}
+
+function submitRating() {
+    const title = document.getElementById('documentTitle').textContent;
+    const comments = document.getElementById('comments').value;
+
+    console.log(`Rating for ${title}: ${currentRating} Comments: ${comments}`);
+    
+    closeModal();
+}
+
+function toggleAdditionalInfo() {
+    const additionalInfoDiv = document.getElementById('additionalInfo');
+    const moreInfoButton = document.getElementById('moreInfoButton');
+    
+    if (additionalInfoDiv.style.display === 'none') {
+        additionalInfoDiv.style.display = 'block';
+        moreInfoButton.textContent = 'Less Info';
+    } else {
+        additionalInfoDiv.style.display = 'none';
+        moreInfoButton.textContent = 'More Info';
+    }
+}
+
+function openModerationModal() {
+    const selectedDocument = document.querySelector('input[name="document"]:checked');
+
+    if (selectedDocument) {
+        document.getElementById('documentTitle').textContent = selectedDocument.getAttribute('data-title');
+        document.getElementById('documentGrade').textContent = selectedDocument.getAttribute('data-grade');
+        document.getElementById('documentSubject').textContent = selectedDocument.getAttribute('data-subject');
+        document.getElementById('documentDescription').textContent = selectedDocument.getAttribute('data-description');
+        document.getElementById('documentFileSize').textContent = `${selectedDocument.getAttribute('data-file-size')} MB`;
+
+        document.getElementById('ratingModal').style.display = 'block';
+    } else {
+        alert("Please select a document to moderate.");
+    }
 }

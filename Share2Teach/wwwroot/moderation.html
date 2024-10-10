@@ -35,7 +35,7 @@
         <button id="submitModeration" style="margin-top: 20px;">Moderate Document</button> <!-- New button to moderate selected documents -->
     </div>
 
-    <!-- Modal for comments and rating -->
+   <!-- Modal for comments and rating -->
 <div id="ratingModal" class="modal">
     <div class="modal-content">
         <span class="close-button">&times;</span>
@@ -56,11 +56,14 @@
             <p><strong>File Size:</strong> <span id="documentFileSize"></span></p>
         </div>
 
-        <!-- Rating and Comments -->
-        <label for="rating" class="modal-subheading">Rating:</label>
-        <select id="rating">
-            <!-- Rating options -->
-        </select>
+        <!-- Rating Selection with a Dropdown -->
+        <label class="modal-subheading">Rating:</label>
+<div class="rating-container">
+    <button id="decrementRating" class="rating-button">-</button>
+    <span id="ratingDisplay">1</span>
+    <button id="incrementRating" class="rating-button">+</button>
+</div>
+    
         <br>
         <label for="comments" class="modal-subheading">Comments:</label>
         <textarea id="comments" rows="4" cols="50"></textarea>
@@ -68,6 +71,7 @@
         <button id="submitRating">Submit</button>
     </div>
 </div>
+
 
 
 
