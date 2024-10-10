@@ -228,20 +228,23 @@ body {
   text-decoration: underline;
 }
 
-#success-message {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    padding: 15px;
-    background-color: #28a745;
-    color: white;
-    border-radius: 5px;
-    z-index: 1000;
-    font-size: 16px;
-    display: none; /* Hidden by default */
-    text-align: center;
-    width: 300px; /* Set a fixed width to control the size */
+#success-message, #error-message {
+  position: fixed;
+  bottom: -100px; /* Initially hidden */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #4caf50; /* Green for success */
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  opacity: 0; /* Initially transparent */
+  transition: bottom 0.3s ease, opacity 0.3s ease; /* Smooth slide-up and fade-in effect */
+  z-index: 1000; /* Make sure it stays on top */
+}
+
+#error-message {
+  background-color: #f44336; /* Red for error */
 }
 
 
@@ -610,6 +613,35 @@ p {
   margin: 10px auto; /* Margin for spacing */
   width: 80%; /* Width of the lines */
 }
+
+/* Profile Icon Styling */
+.profile-icon {
+  position: fixed;
+  top: 10px;
+  right: 20px; /* Change left to right */
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #d502fa; /* Background color for the icon */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 1000; /* Ensure it's always visible */
+}
+
+#profile-name {
+  display: inline-block;
+  max-width: 40px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 
 body {
   font-family: Arial, sans-serif;
