@@ -643,3 +643,87 @@ p {
 }
 
 
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9; /* Light background for contrast */
+  color: #333; /* Dark text for readability */
+}
+
+.hero-section {
+  background-image: url('path/to/your/background-image.jpg'); /* Replace with your background image */
+  background-size: cover;
+  background-position: center;
+  padding: 100px 20px;
+  text-align: center;
+  color: #ffffff;
+  position: relative;
+}
+
+.hero-section h1 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(90deg, #6f2c91, #a75ebc); /* Gradient from dark purple to light purple */
+  -webkit-background-clip: text; /* Clips background to the text */
+  -webkit-text-fill-color: transparent; /* Makes the text transparent so the background shows through */
+  display: inline-block; /* Ensures the gradient fits tightly around the text */
+  padding: 10px; /* Optional: adds some space around the text */
+}
+
+
+.hero-section p {
+  font-size: 1.5rem;
+  margin-bottom: 30px;
+}
+
+.cta-button {
+  background-color: #6f2c91; /* Dark purple */
+  color: #ffffff;
+  padding: 15px 30px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.cta-button:hover {
+  background-color: #5a1d73; /* Darker purple on hover */
+}
+
+.features {
+  display: flex;
+  justify-content: space-around;
+  margin: 40px 0;
+}
+
+.feature-item {
+  background-color: #ffffff; /* White background for contrast */
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 30%;
+  text-align: center;
+}
+
+.feature-item h3 {
+  font-size: 1.5rem;
+  color: #6f2c91; /* Dark purple */
+}
+
+.feature-item p {
+  color: #4e4e4e; /* Dark gray for text */
+}
+
+.image-gallery {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.image-gallery img {
+  width: 150px; /* Size your images */
+  margin: 0 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
