@@ -321,3 +321,5 @@ window.onload = function() {
         profileName.textContent = userName.charAt(0).toUpperCase(); // Display the first letter of the user's name as an avatar
     }
 };
+
+

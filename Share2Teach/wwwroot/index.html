@@ -182,5 +182,16 @@
 
     <!-- Script -->
     <script src="script.js"></script>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+          const featureItems = document.querySelectorAll('.feature-item');
+          featureItems.forEach((item, index) => {
+            setTimeout(() => {
+              item.classList.add('visible');
+            }, index * 200); // Stagger the fade-in effect
+          });
+        });
+      </script>
 </body>
 </html>

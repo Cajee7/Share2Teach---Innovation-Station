@@ -5,16 +5,46 @@ body {
 }
 
 .header {
-  display: flex;
-  justify-content: space-between; /* Aligns items to the start (left) */
-  align-items: center;
-  padding: 10px 20px; /* Adjust padding as needed */
-  background-color: #f0f0f0; /* Add a background color for visibility */
+  background-color: #d7dcec; /* Replace with the path to your background image */
+  background-size: cover;
+  background-position: center;
+  padding: 20px;
 }
 
+/* Style for the logo */
+.header .logo {
+  color: #000000;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* Style for the tab buttons */
+.header .tab-button {
+  background-color: #79d8f7; /* Light blue */
+  color: #000000;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  margin: 0 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Hover effect for tab buttons */
+.header .tab-button:hover {
+  background-color: #87cefa; /* Lighter blue on hover */
+}
+
+/* Active tab button style */
+.header .tab-button.active {
+  background-color: #1e90ff; /* Darker blue for the active tab */
+}
 .logo {
   font-weight: bold;
   font-size: 24px;
+  animation: slideIn 0.15s ease-out; /* Apply the animation */
+  animation-fill-mode: forwards; /* Keep the final state of the animation */
 }
 
 .tabs {
@@ -659,8 +689,19 @@ body {
   position: relative;
 }
 
+@keyframes slideIn {
+  0% {
+    opacity: 0; /* Start invisible */
+    transform: translateY(20px); /* Start lower */
+  }
+  100% {
+    opacity: 1; /* Fully visible */
+    transform: translateY(0); /* Move to original position */
+  }
+}
+
 .hero-section h1 {
-  font-size: 3rem;
+  font-size: 4rem;
   margin-bottom: 20px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
   background: linear-gradient(90deg, #6f2c91, #a75ebc); /* Gradient from dark purple to light purple */
@@ -668,6 +709,9 @@ body {
   -webkit-text-fill-color: transparent; /* Makes the text transparent so the background shows through */
   display: inline-block; /* Ensures the gradient fits tightly around the text */
   padding: 10px; /* Optional: adds some space around the text */
+  
+  animation: slideIn 0.8s ease-out; /* Apply the animation */
+  animation-fill-mode: forwards; /* Keep the final state of the animation */
 }
 
 
@@ -705,6 +749,17 @@ body {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   width: 30%;
   text-align: center;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0; /* Initially hidden */
+  transform: translateY(20px); /* Move down initially */
+}
+.feature-item.visible {
+  opacity: 1; /* Show item */
+  transform: translateY(0); /* Move to original position */
+}
+
+.feature-item:hover {
+  transform: scale(1.05); /* Scale up on hover */
 }
 
 .feature-item h3 {
