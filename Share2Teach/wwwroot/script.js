@@ -58,7 +58,6 @@ function renderFAQs(faqs) {
     });
 }
 
-// Function to perform search
 async function performSearch() {
     const searchInputElement = document.getElementById('search-input');
     const resultsContainer = document.getElementById('results-container');
@@ -99,9 +98,9 @@ async function performSearch() {
         results.forEach(doc => {
             const docElement = document.createElement('div');
             docElement.className = 'doc-item';
-        
+
             const tags = doc.tags && doc.tags.length > 0 ? doc.tags.join(', ') : 'No tags available';
-        
+
             docElement.innerHTML = `
                 <p><strong>Title:</strong> ${doc.title || 'No title available'}</p>
                 <p><strong>Subject:</strong> ${doc.subject || 'No subject available'}</p>
@@ -112,14 +111,90 @@ async function performSearch() {
                 <p><strong>Date Uploaded:</strong> ${doc.date_Uploaded ? new Date(doc.date_Uploaded).toLocaleDateString() : 'Date not available'}</p>
                 <p><strong>Date Updated:</strong> ${doc.date_Updated ? new Date(doc.date_Updated).toLocaleDateString() : 'Date not available'}</p>
             `;
+
+            // Create buttons
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'button-container';
+
+            // Create Preview button
+            const previewButton = document.createElement('button');
+            previewButton.className = 'preview-button';
+            previewButton.innerText = 'Preview';
+            previewButton.onclick = () => previewDocument(doc.file_Url); // Ensure preview works
+
+            // Create Download button using an anchor
+            const downloadLink = document.createElement('a');
+            downloadLink.className = 'download-button';
+            downloadLink.innerText = 'Download';
+            downloadLink.href = doc.file_Url; // The URL to download the document
+            downloadLink.download = `${doc.title}.${doc.file_Type}`; // Optional: specify a filename
+
+            // Create Report button
+            const reportButton = document.createElement('button');
+            reportButton.className = 'report-button'; // Use your CSS class for report button
+            reportButton.innerHTML = '<strong>!</strong>'; // Exclamation mark as content
+            reportButton.onclick = () => openReportModal(doc.id); // Pass the document ID to the report modal
+
+            // Append buttons to the container
+            buttonContainer.appendChild(previewButton);
+            buttonContainer.appendChild(downloadLink); // Append anchor as a button
+            buttonContainer.appendChild(reportButton); // Append report button
+            docElement.appendChild(buttonContainer);
+
             resultsContainer.appendChild(docElement);
         });
-        
+
     } catch (error) {
-        console.error('Error fetching search results:', error); 
+        console.error('Error fetching search results:', error);
         searchErrorMessage.innerText = 'Error fetching search results. Please try again later.';
         searchErrorMessage.style.display = 'block'; // Show the error message
     }
+}
+
+function previewDocument(url) {
+    const modal = document.getElementById('preview-modal');
+    const iframe = document.getElementById('preview-iframe');
+    
+    // Set the iframe source to the document URL
+    iframe.src = url;
+    
+    // Show the modal
+    modal.style.display = 'block';
+}
+
+function closeModal() {
+    const modal = document.getElementById('preview-modal');
+    const iframe = document.getElementById('preview-iframe');
+    
+    // Clear the iframe source
+    iframe.src = '';
+    
+    // Hide the modal
+    modal.style.display = 'none';
+}
+
+function openReportModal(docId) {
+    const modal = document.getElementById('report-modal');
+    document.getElementById('report-doc-id').value = docId; // Set the document ID in a hidden input
+    modal.style.display = 'block'; // Show the modal
+}
+
+function closeReportModal() {
+    const modal = document.getElementById('report-modal');
+    modal.style.display = 'none'; // Hide the modal
+}
+
+function submitReport() {
+    const reason = document.getElementById('report-reason').value;
+    const docId = document.getElementById('report-doc-id').value; // Get the document ID
+    
+    // You can add your logic to handle the report submission here
+    console.log('Report submitted for document ID:', docId, 'Reason:', reason);
+    
+    // Here you would send the report to your server, e.g., using fetch()
+    // Example: await fetch('your-report-endpoint', { method: 'POST', body: JSON.stringify({ docId, reason }) });
+
+    closeReportModal(); // Close the modal after submission
 }
 
 // Function to show error messages for login
@@ -321,3 +396,70 @@ window.onload = function() {
         profileName.textContent = userName.charAt(0).toUpperCase(); // Display the first letter of the user's name as an avatar
     }
 };
+
+/// Function to update the Contribute tab after login 
+function updateContributeTab() {
+    const contributeTab = document.getElementById('contribute');
+
+    // Clear the previous content
+    contributeTab.innerHTML = `
+        <h2>Welcome Back!</h2>
+        <p>We are excited to see what valuable resources you will share today.</p>
+        <button id="upload-btn" class="upload-btn">Upload</button>
+        <input type="file" id="file-upload" style="display: none;" />
+        <div id="upload-status"></div>
+    `;
+
+    // Add event listener for upload button
+    document.getElementById('upload-btn').addEventListener('click', () => {
+        document.getElementById('file-upload').click(); // Trigger the hidden file input
+    });
+
+    // Handle file upload
+    document.getElementById('file-upload').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            // Add your file upload logic here
+            uploadFile(file);
+        }
+    });
+}
+
+// Function to upload file to the server
+async function uploadFile(file) {
+    const url = 'http://localhost:5281/api/File/upload'; // Replace with your actual API endpoint
+    const formData = new FormData();
+
+    // Add file and metadata to the form data
+    formData.append('UploadedFile', file);
+    formData.append('Title', 'Sample Title'); // Replace with actual title input
+    formData.append('Subject', 'Math');       // Replace with actual subject input
+    formData.append('Grade', 5);              // Replace with actual grade input
+    formData.append('Description', 'Sample Description'); // Replace with actual description input
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('jwtToken') // Add your JWT token
+            },
+            body: formData
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('upload-status').innerHTML = `<p>File uploaded successfully! Tags: ${data.Tags.join(', ')}</p>`;
+        } else {
+            const errorData = await response.json();
+            document.getElementById('upload-status').innerHTML = `<p>Error: ${errorData.message}</p>`;
+        }
+    } catch (error) {
+        console.error('Error uploading file:', error);
+        document.getElementById('upload-status').innerHTML = '<p>Error uploading file. Please try again later.</p>';
+    }
+}
+
+// Call the function to update the tab after login
+if (localStorage.getItem('isLoggedIn')) {
+    updateContributeTab();
+}

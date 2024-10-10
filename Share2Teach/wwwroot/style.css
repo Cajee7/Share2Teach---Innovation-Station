@@ -277,15 +277,15 @@ body {
   justify-content: center; /* Center the search box */
 }
 
-#searchInput {
-  padding: 10px;
-  width: 300px; /* Adjust width as needed */
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  margin-right: 10px; /* Space between input and button */
+.search-container input {
+padding: 10px;
+    border: 2px solid #ffcc00; /* Gold border for the search input */
+    border-radius: 5px;
+    width: 300px;
+    margin-right: 10px;
 }
 
-button {
+#search-button {
   padding: 10px 15px;
   background-color: #007bff; /* Button color */
   color: white;
@@ -294,8 +294,8 @@ button {
   cursor: pointer;
 }
 
-button:hover {
-  background-color: #0056b3; /* Darker shade on hover */
+#search-button:hover {
+  background-color: darkblue; /* Darker blue on hover */
 }
 
 .result-item {
@@ -305,6 +305,144 @@ button:hover {
   margin: 10px 0;
   background-color: #f9f9f9;
 }
+
+.button-container {
+  display: flex; /* Use flexbox for alignment */
+  justify-content: center; /* Center the buttons */
+  gap: 10px; /* Space between buttons */
+  margin-top: 10px; /* Space above the buttons */
+}
+
+.preview-button, .download-button {
+  padding: 10px 20px; /* Ensure the same height and some horizontal padding */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  color: white; /* Text color */
+  flex: 1; /* Make buttons take equal space */
+  min-width: 100px; /* Minimum width for buttons to prevent them from being too small */
+}
+
+.preview-button {
+  background-color: #007BFF; /* Blue color */
+}
+
+.download-button {
+  background-color: #28A745; /* Green color */
+  text-decoration: none; /* Remove underline */
+}
+
+.report-button {
+  padding: 10px; /* Ensure consistent padding */
+  width: 40px; /* Smaller width */
+  height: 40px; /* Same height as other buttons */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: red; /* Red color for report */
+  color: white; /* Text color */
+  font-weight: bold; /* Make the exclamation mark stand out */
+  font-size: 20px; /* Size of the exclamation mark */
+}
+
+.report-button:hover {
+  background-color: darkred; /* Darker shade on hover */
+}
+
+/* Modal Background */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1000; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgba(0, 0, 0, 0.5); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+  background-color: #fefefe; /* White background */
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px; /* Some padding */
+  border: 1px solid #888; /* Grey border */
+  width: 80%; /* Could be more or less, depending on screen size */
+  max-width: 500px; /* Max width for larger screens */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add some shadow */
+}
+
+/* Close button */
+.close {
+  color: #aaa; /* Grey */
+  float: right; /* Right align */
+  font-size: 28px; /* Big */
+  font-weight: bold; /* Bold */
+}
+
+.close:hover,
+.close:focus {
+  color: black; /* Change color on hover */
+  text-decoration: none; /* No underline */
+  cursor: pointer; /* Pointer cursor */
+}
+
+/* Label styling */
+label {
+  display: block; /* Block display for better spacing */
+  margin-bottom: 10px; /* Space below the label */
+}
+
+/* Select styling */
+select {
+  width: 100%; /* Full width for select */
+  padding: 10px; /* Padding for better look */
+  margin-bottom: 20px; /* Space below the select */
+  border: 1px solid #ccc; /* Border */
+  border-radius: 4px; /* Rounded corners */
+}
+
+/* Button container */
+.modal-buttons {
+  display: flex; /* Flexbox for even spacing */
+  justify-content: space-between; /* Space buttons evenly */
+}
+
+/* Button styling */
+button {
+  padding: 10px 20px; /* Padding */
+  font-size: 16px; /* Font size */
+  border: none; /* No border */
+  border-radius: 4px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor */
+  width: 48%; /* Make buttons the same width */
+}
+
+/* Submit button */
+.submit-button {
+  background-color: red; /* Red background */
+  color: white; /* White text */
+}
+
+.submit-button:hover {
+  background-color: darkred; /* Darker red on hover */
+}
+
+/* Cancel button */
+.cancel-button {
+  background-color: blue; /* Blue background */
+  color: white; /* White text */
+}
+
+.cancel-button:hover {
+  background-color: darkblue; /* Darker blue on hover */
+}
+
+
+
 
 /* Unique styles for each tab */
 #home {

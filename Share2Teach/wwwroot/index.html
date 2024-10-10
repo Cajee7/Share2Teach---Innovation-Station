@@ -33,7 +33,6 @@
                 </div>
             </div>
         </nav>
-        <!-- Placeholder for user profile icon -->
         <div id="user-profile" style="display: none;">
             <div id="profile-icon" class="profile-icon">
                 <span id="profile-name"></span>
@@ -43,33 +42,30 @@
     
     <div class="container">
         <!-- Home Tab -->
-       <!-- Home Tab -->
-<div id="home" class="tab-content active">
-    <div class="hero-section">
-        <h1>Welcome to Share2Teach</h1>
-        <p>Unlock a world of educational resources, share your knowledge, and empower learners everywhere!</p>
-        <button class="cta-button" onclick="openTab(event, 'contribute')">Contribute Resources</button>
-    </div>
-    <div class="features">
-        <div class="feature-item">
-            <h3>🌟 Contribute Your Knowledge</h3>
-            <p>Share your educational materials and help students succeed.</p>
+        <div id="home" class="tab-content active">
+            <div class="hero-section">
+                <h1>Welcome to Share2Teach</h1>
+                <p>Unlock a world of educational resources, share your knowledge, and empower learners everywhere!</p>
+                <button class="cta-button" onclick="openTab(event, 'contribute')">Contribute Resources</button>
+            </div>
+            <div class="features">
+                <div class="feature-item">
+                    <h3>🌟 Contribute Your Knowledge</h3>
+                    <p>Share your educational materials and help students succeed.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>📚 Access Resources</h3>
+                    <p>Explore a vast library of documents tailored to your teaching needs.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>🔍 Discover & Collaborate</h3>
+                    <p>Connect with other educators and enhance your teaching strategies.</p>
+                </div>
+            </div>
+            <div class="image-gallery">
+                <img src="https://services.nwu.ac.za/sites/services.nwu.ac.za/files/files/designs-branding/NWU-Acronym-logo-acronym-RGB.png" alt="Resource Image" />
+            </div>
         </div>
-        <div class="feature-item">
-            <h3>📚 Access Resources</h3>
-            <p>Explore a vast library of documents tailored to your teaching needs.</p>
-        </div>
-        <div class="feature-item">
-            <h3>🔍 Discover & Collaborate</h3>
-            <p>Connect with other educators and enhance your teaching strategies.</p>
-        </div>
-    </div>
-    <div class="image-gallery">
-        <img src="https://services.nwu.ac.za/sites/services.nwu.ac.za/files/files/designs-branding/NWU-Acronym-logo-acronym-RGB.png" alt="Resource Image" />
-    </div>
-</div>
-
-
 
         <!-- Subject View Tab -->
         <div id="subjectView" class="tab-content">
@@ -92,15 +88,45 @@
         <div id="search" class="tab-content">
             <h2>Search</h2>
             <p>Search for documents based on Title, Subject, Grade, or Tags.</p>
-            <div class="search-container">
+            <div id="search-container">
                 <input type="text" id="search-input" placeholder="Search documents..." />
-                <button onclick="performSearch()">Search</button>
+                <button id="search-button" onclick="performSearch()">Search</button>
             </div>
-            <div id="results-container" class="results-container" style="margin-top: 20px;">
-                <!-- Search results will be dynamically inserted here -->
+            <div id="results-container" class="results-container" style="margin-top: 20px;"></div>
+
+            <div id="preview-modal" class="modal" style="display:none;">
+                <div class="modal-content">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <iframe id="preview-iframe" style="width:100%; height:400px;"></iframe>
+                </div>
+            </div>
+            
+            <!-- Report Modal -->
+            <div id="report-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeReportModal()">&times;</span>
+                    <h2>Report Document</h2>
+                    <input type="hidden" id="report-doc-id" value="" />
+                    <label for="report-reason">Reason for Reporting:</label>
+                    <select id="report-reason">
+                        <option value="Inappropriate Content">Inappropriate Content</option>
+                        <option value="Spam">Spam</option>
+                        <option value="Copyright Violation">Copyright Violation</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <div class="modal-buttons">
+                        <button class="submit-button" onclick="submitReport()">Submit</button>
+                        <button class="cancel-button" onclick="closeReportModal()">Cancel</button>
+                    </div>
+                </div>
             </div>
 
-            <!-- Error Message for Search -->
+            <div class="button-container" id="button-container" style="display: none;">
+                <button class="preview-button" onclick="previewDocument(selectedDocUrl)">Preview</button>
+                <button class="download-button" onclick="downloadDocument(selectedDocUrl)">Download</button>
+                <button class="report-button" onclick="openReportModal()">!</button>
+            </div>
+
             <div id="search-error-message" class="error-message" style="display: none; color: red; margin-top: 10px;"></div>
         </div>
 
@@ -108,23 +134,18 @@
         <div id="contribute" class="tab-content">
             <h2>Contribute</h2>
             <p>Share your documents and tag them for others.</p>
-            
             <div class="contribute-message">
                 <h3>🌟 Calling All Educators: Let’s Shape the Future of Learning Together! 🌟</h3>
                 <p>Are you passionate about empowering students and enhancing educational resources? At <strong>Share2Teach</strong>, we believe that <strong>every great educator has something valuable to share!</strong></p>
-                
                 <h4 class="centered">Join our mission to revolutionize education! ✨</h4>
                 <p>If you’re ready to make a real impact and help students thrive, we want YOU to contribute your knowledge and resources to our vibrant community.</p>
-                
                 <h4 class="centered">🔍 Why Contribute?</h4>
                 <ul>
                     <li><strong>Inspire Others:</strong> Share your expertise and best practices.</li>
                     <li><strong>Collaborate:</strong> Connect with like-minded educators who share your passion.</li>
                     <li><strong>Make a Difference:</strong> Your contributions can transform learning experiences for countless students.</li>
                 </ul>
-                
                 <p><strong>Ready to take the leap?</strong> Sign up today and be part of a movement that celebrates collaboration and innovation in education!</p>
-                
                 <p><strong>👉 <a href="signup.html">Sign Up Now</a></strong> and let’s change the world of education together!</p>
             </div>
             <img src="https://services.nwu.ac.za/sites/services.nwu.ac.za/files/files/designs-branding/NWU-Acronym-logo-acronym-RGB.png" alt="Logo" class="footer-logo">
@@ -134,11 +155,8 @@
         <div id="faq" class="tab-content">
             <h2>Frequently Asked Questions</h2>
             <p>Find answers to common questions.</p>
-            <div class="faq-list" id="faq-list-container">
-                <!-- FAQ items will be added dynamically here -->
-            </div>
+            <div class="faq-list" id="faq-list-container"></div>
 
-            <!-- Error Message for FAQ -->
             <div id="faq-error-message" class="error-message" style="display: none; color: red; margin-top: 10px;"></div>
 
             <div class="footer-logo-container">
@@ -151,36 +169,21 @@
         <!-- Login Tab -->
         <div id="login" class="tab-content">
             <h2>Login</h2>
-            <form id="login-form" class="login-form" onsubmit="return false;">
-                <div class="form-group">
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" placeholder="Enter your email" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" placeholder="Enter your password" required>
-                </div>
-                <div class="form-buttons">
-                    <button type="button" class="login-btn" onclick="performLogin()">Login</button>
-                    <button type="button" class="clear-btn" onclick="clearLoginForm()">Clear</button>
-                </div>
-
-                <!-- Success Message -->
-                <div id="success-message" style="display: none; margin-top: 10px; color: green;"></div>
-
-                <!-- Error Message -->
-                <div id="error-message" class="error-message" style="display: none; color: red;"></div>
-
-                <!-- Forgot Password and Sign-up section -->
-                <div class="extra-links">
-                    <p class="forgot-password"><a href="forgot-password.html">Forgot Password?</a></p>
-                    <p class="sign-up-text">Don't have an account? <a href="signup.html">Sign up</a></p>
-                </div>
+            <form id="login-form" onsubmit="performLogin(event)">
+                <label for="email">Email:</label>
+                <input type="email" id="email" required>
+                <label for="password">Password:</label>
+                <input type="password" id="password" required>
+                <button type="submit">Login</button>
+                <div id="login-error-message" class="error-message" style="display: none; color: red; margin-top: 10px;"></div>
             </form>
         </div>
     </div>
 
-    <!-- Script -->
+    <footer class="footer">
+        <p>&copy; 2024 Share2Teach. All rights reserved.</p>
+    </footer>
+
     <script src="script.js"></script>
 </body>
 </html>
