@@ -101,9 +101,8 @@ function populateTable(documents) {
             <td><a href="file:///${doc.file_Url.replace(/\\/g, '/')}" target="_blank">View File</a></td>
             <td>${doc.moderation_Status}</td>
             <td>${doc.ratings}</td>
-            <td>${doc.tags ? doc.tags.join(', ') : ''}</td>
             <td>${new Date(doc.date_Uploaded).toLocaleDateString()}</td>
-            <td>${doc.date_Updated ? new Date(doc.date_Updated).toLocaleDateString() : ''}</td>
+
         `;
         tableBody.appendChild(row);
     });
