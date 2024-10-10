@@ -1,60 +1,56 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    background-color: #f0f2f5;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    margin: 0;
 }
 
 .container {
     background: white;
     padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 300px;
-    position: relative; /* For positioning the back button */
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 320px;
+    position: relative;
 }
 
 h2 {
     text-align: center;
     margin-bottom: 20px;
+    color: #4a4a8e; /* Dark purple */
 }
 
-.form-group {
-    margin-bottom: 15px;
-}
-
-label {
+.form-group label {
     display: block;
     margin-bottom: 5px;
+    color: #4a4a8e;
 }
 
 input {
     width: 100%;
     padding: 8px;
     box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
 
-.password-container {
-    position: relative;
+input:focus {
+    border-color: #4a8ea4; /* Teal */
+    outline: none;
+    box-shadow: 0 0 5px rgba(74, 142, 164, 0.3);
 }
 
-.eye-icon {
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    cursor: pointer;
-    font-size: 1.2em; /* Adjust size as needed */
-    color: #007bff; /* Color of the eye icon */
+.password-container .eye-icon {
+    color: #4a8ea4;
 }
-
 
 button {
     width: 100%;
     padding: 10px;
-    background-color: #007bff;
+    background: linear-gradient(90deg, #4a8ea4, #4a4a8e);
     color: white;
     border: none;
     border-radius: 5px;
@@ -63,44 +59,45 @@ button {
 }
 
 button:hover {
-    background-color: #0056b3;
+    background: linear-gradient(90deg, #39778c, #3d3d7a);
 }
-
-/* Styles for error messages */
-.error-message {
-    color: red;
-    margin-top: 5px;
-    display: none; /* Hidden by default */
-    border: 1px solid red;
-    padding: 5px;
-    border-radius: 5px;
-}
-
-.error-box {
-    border: 1px solid red;
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 10px;
-    margin-top: 10px;
-    border-radius: 5px;
-}
-
-.message {
-    margin-top: 10px;
-    color: green;
-}
-
 
 .back-button {
     position: absolute;
     top: 10px;
     left: 10px;
     text-decoration: none;
-    color: #007bff;
+    color: #4a8ea4;
+}
+
+.back-button:hover {
+    color: #3d3d7a;
 }
 
 .message {
     margin-top: 10px;
     text-align: center;
-    color: red;
+    color: #4a4a8e;
+}
+
+.error-box {
+    border: 1px solid #ff6b6b;
+    background-color: #ffe6e6;
+    color: #d63031;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+}
+
+.error-message {
+    color: #d63031;
+}
+.container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    border: 3px solid #4a4a8e; /* Purple border */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 320px;
+    position: relative;
 }

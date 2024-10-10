@@ -15,7 +15,9 @@
 </head>
 <body>
     <header class="header">
-        <div class="logo">Share2Teach</div>
+        <div class="logo">
+            <span class="left">Share</span>
+        <span class="right">2Teach</span>
         <nav class="tabs">
             <button class="tab-button active" onclick="openTab(event, 'home')">Home</button>
             <button class="tab-button" onclick="openTab(event, 'subjectView')">Subject View</button>
@@ -185,5 +187,16 @@
     </footer>
 
     <script src="script.js"></script>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+          const featureItems = document.querySelectorAll('.feature-item');
+          featureItems.forEach((item, index) => {
+            setTimeout(() => {
+              item.classList.add('visible');
+            }, index * 200); // Stagger the fade-in effect
+          });
+        });
+      </script>
 </body>
 </html>
