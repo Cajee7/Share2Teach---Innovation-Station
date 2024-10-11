@@ -157,9 +157,17 @@
         <div id="faq" class="tab-content">
             <h2>Frequently Asked Questions</h2>
             <p>Find answers to common questions.</p>
+            
             <div class="faq-list" id="faq-list-container"></div>
 
             <div id="faq-error-message" class="error-message" style="display: none; color: red; margin-top: 10px;"></div>
+
+            <!-- FAQ management buttons (invisible by default) -->
+            <div id="faq-buttons" style="display: none;">
+                <button id="add-faq">Add FAQ</button>
+                <button id="update-faq">Update FAQ</button>
+                <button id="delete-faq">Delete FAQ</button>
+            </div>
 
             <div class="footer-logo-container">
                 <div class="purple-line"></div>
@@ -168,35 +176,45 @@
             </div>
         </div>
 
+
         <!-- Login Tab -->
         <div id="login" class="tab-content">
             <h2>Login</h2>
-            <form id="login-form" onsubmit="performLogin(event)">
-                <label for="email">Email:</label>
-                <input type="email" id="email" required>
-                <label for="password">Password:</label>
-                <input type="password" id="password" required>
-                <button type="submit">Login</button>
-                <div id="login-error-message" class="error-message" style="display: none; color: red; margin-top: 10px;"></div>
+            <div class="login-container">
+                <form id="login-form" class="login-form" onsubmit="performLogin(event)">
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" class="login-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" class="login-input" required>
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="login-btn">Login</button>
+                        <button type="button" class="clear-btn" onclick="clearLoginForm()">Clear</button>
+                    </div>
+                </form>
+                <div class="extra-links">
+                    <div class="forgot-password">
+                        <a href="#">Forgot Password?</a>
+                    </div>
+                    <div class="sign-up-text">
+                        <p>Don't have an account? <a href="signup.html">Sign up here</a>.</p>
+                    </div>
+                </div>
+                <!-- Error message container -->
+                <div id="error-message" class="error-message" style="display: none; color: red; margin-top: 10px;"></div>
             </form>
-        </div>
-    </div>
+
+            <!-- Success message container -->
+            <div id="success-message" class="success-message"></div>
+
 
     <footer class="footer">
         <p>&copy; 2024 Share2Teach. All rights reserved.</p>
     </footer>
 
     <script src="script.js"></script>
-
-    <script>
-        window.addEventListener('DOMContentLoaded', () => {
-          const featureItems = document.querySelectorAll('.feature-item');
-          featureItems.forEach((item, index) => {
-            setTimeout(() => {
-              item.classList.add('visible');
-            }, index * 200); // Stagger the fade-in effect
-          });
-        });
-      </script>
 </body>
 </html>

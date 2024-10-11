@@ -161,61 +161,20 @@ body {
   border-color: #4CAF50; /* Change border color on focus */
 }
 
-.form-buttons {
+/* General styling for the button group */
+.button-group {
   display: flex;
   justify-content: space-between;
+  margin-top: 15px;
 }
 
-.form-buttons button {
-  padding: 10px 20px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s; /* Smooth transition for background */
-}
-
-.form-buttons button:nth-child(2) {
-  background-color: #f44336; /* Red color for clear button */
-}
-
-.form-buttons button:hover {
-  opacity: 0.9;
-}
-
-/* General styling for input fields and buttons */
-.login-container {
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #e9f7ef; /* Light green background for container */
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.login-input {
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 16px;
-}
-
-/* Adjusted button styles for wider buttons */
 .login-btn, .clear-btn {
   width: 48%; /* Set to a percentage to adjust according to the container */
   padding: 12px; /* Increase padding for a more substantial look */
   border: none;
   border-radius: 10px;
   font-size: 16px;
-}
-
-.button-group {
-  display: flex;
-  justify-content: center; /* Center the buttons */
-  gap: 4%; /* Space between the buttons */
+  cursor: pointer;
 }
 
 .login-btn {
@@ -232,29 +191,32 @@ body {
   opacity: 0.9;
 }
 
-/* Styling for extra links like Forgot Password and Sign-up */
+/* Styling for error and success messages */
+#login-error-message {
+  color: red;
+  margin-top: 10px;
+  display: none; /* Initially hidden */
+}
+
+#success-message {
+  background-color: #4CAF50; /* Green for success */
+  color: white;
+  padding: 10px;
+  margin-top: 10px;
+  display: none; /* Initially hidden */
+}
+
 .extra-links {
   text-align: center;
   margin-top: 20px;
 }
 
-.forgot-password a {
+.forgot-password a, .sign-up-text a {
   color: #007BFF;
-  font-weight: bold;
   text-decoration: none;
 }
 
-.forgot-password a:hover {
-  text-decoration: underline;
-}
-
-.sign-up-text a {
-  color: #e310d5;
-  font-weight: bold;
-  text-decoration: none;
-}
-
-.sign-up-text a:hover {
+.forgot-password a:hover, .sign-up-text a:hover {
   text-decoration: underline;
 }
 
@@ -263,8 +225,6 @@ body {
   bottom: -100px; /* Initially hidden */
   left: 50%;
   transform: translateX(-50%);
-  background-color: #4caf50; /* Green for success */
-  color: white;
   padding: 10px 20px;
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
@@ -273,9 +233,16 @@ body {
   z-index: 1000; /* Make sure it stays on top */
 }
 
+#success-message {
+  background-color: #4caf50; /* Green for success */
+  color: white;
+}
+
 #error-message {
   background-color: #f44336; /* Red for error */
+  color: white;
 }
+
 
 
 .subjects {
@@ -780,6 +747,40 @@ p {
   background-color: #6a0dad; /* Purple color */
   margin: 10px auto; /* Margin for spacing */
   width: 80%; /* Width of the lines */
+}
+
+#faq-buttons {
+  display: flex;
+  justify-content: center; /* Center the buttons */
+  margin-top: 20px;
+}
+
+.faq-button {
+  margin: 0 10px; /* Equal spacing between buttons */
+  padding: 10px 20px; /* Same size for all buttons */
+  border: none;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Specific colors for each button */
+#add-faq {
+  background-color: #4CAF50; /* Green for Add FAQ */
+}
+
+#delete-faq {
+  background-color: #f44336; /* Red for Delete FAQ */
+}
+
+#update-faq {
+  background-color: #2196F3; /* Blue for Update FAQ */
+}
+
+/* Hover effect */
+.faq-button:hover {
+  opacity: 0.9;
 }
 
 /* Profile Icon Styling */

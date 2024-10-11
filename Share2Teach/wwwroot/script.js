@@ -216,11 +216,14 @@ function showError(message, errorType) {
 }
 
 // Function to perform login
-async function performLogin() {
+async function performLogin(event) {
+    event.preventDefault(); // Prevent the form from submitting and reloading the page
+    
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value.trim();
     const errorMessage = document.getElementById('error-message');
     const successMessage = document.getElementById('success-message'); // Success message element
+    
     errorMessage.style.display = 'none'; // Hide the error message by default
     successMessage.style.display = 'none'; // Hide the success message by default
 
@@ -261,13 +264,14 @@ async function performLogin() {
         // Check if the login was successful
         if (response.ok) {
             const result = await response.json();
-            console.log('Login successful:', result.message); // Display success message
-            console.log('Token:', result.token); // You can store the token or handle it accordingly
-            console.log('User Name:', result.userName); // Assuming you get the user's name in the response
+            console.log('Login successful:', result.message);
+            console.log('Token:', result.token);
+            console.log('User Name:', result.userName);
 
             // Store user information in localStorage for later use
             localStorage.setItem('userName', result.userName);
             localStorage.setItem('isLoggedIn', 'true'); // Mark user as logged in
+            localStorage.setItem('userRole', result.role); // Storing the user role
 
             // Show animated success popup
             successMessage.style.display = 'block';
@@ -318,63 +322,19 @@ async function performLogin() {
     }
 }
 
-// Function to check login status and update UI on page load
-function checkLoginStatus() {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    const userName = localStorage.getItem('userName');
-
-    if (isLoggedIn) {
-        document.getElementById('user-profile').style.display = 'block';
-        document.getElementById('profile-name').innerText = userName;
-
-        // Change the contribute tab content
-        const contributeTab = document.getElementById('contribute');
-        contributeTab.querySelector('h2').innerText = 'Welcome Back!';
-        contributeTab.querySelector('p').innerText = 'Feel free to share your valuable resources!';
-
-        // Update dropdown menu: change the login button to logout
-        const logoutBtn = document.getElementById('logout-btn');
-        logoutBtn.style.display = 'block'; // Show the logout button
-        const loginLink = document.querySelector('a[href="#login"]');
-        if (loginLink) {
-            loginLink.style.display = 'none'; // Hide the login link
-        }
-    }
-}
-
-// Function to update UI elements after login
-function updateUIAfterLogin() {
-    const userName = localStorage.getItem('userName');
-    const contributeTab = document.getElementById('contribute');
-    
-    contributeTab.querySelector('h2').innerText = 'Welcome Back!';
-    contributeTab.querySelector('p').innerText = 'Feel free to share your valuable resources!';
-
-    // Update dropdown menu: change the login button to logout
-    const logoutBtn = document.getElementById('logout-btn');
-    logoutBtn.style.display = 'block'; // Show the logout button
-    const loginLink = document.querySelector('a[href="#login"]');
-    if (loginLink) {
-        loginLink.style.display = 'none'; // Hide the login link
-    }
-}
-
-// Function to handle logout
-function performLogout() {
-    localStorage.removeItem('userName');
-    localStorage.removeItem('isLoggedIn');
-    window.location.href = './index.html'; // Redirect to landing page
-}
 
 // Check login status on page load
-document.addEventListener('DOMContentLoaded', checkLoginStatus);
+document.addEventListener('DOMContentLoaded', () => {
+    checkLoginStatus();
+    loadUserProfile();
+});
 
 // Function to clear the login form
 function clearLoginForm() {
     document.getElementById('email').value = '';
     document.getElementById('password').value = '';
     const errorMessage = document.getElementById('error-message');
-    errorMessage.style.display = 'none'; // Hide the error message on clearing the form
+    if (errorMessage) errorMessage.style.display = 'none'; // Hide the error message on clearing the form
 }
 
 // Helper function to validate email format using regex
@@ -384,15 +344,77 @@ function validateEmail(email) {
 }
 
 // Function to load the user's profile icon and name after login
-window.onload = function() {
+function loadUserProfile() {
     const userName = localStorage.getItem('userName');
-    
     if (userName) {
         // Display the user's profile icon with their initials or name
         const profileIcon = document.getElementById('user-profile');
         const profileName = document.getElementById('profile-name');
-
-        profileIcon.style.display = 'block'; // Show the profile icon
-        profileName.textContent = userName.charAt(0).toUpperCase(); // Display the first letter of the user's name as an avatar
+        if (profileIcon) profileIcon.style.display = 'block'; // Show the profile icon
+        if (profileName) profileName.textContent = userName.charAt(0).toUpperCase(); // Display initials
     }
-};
+}
+
+// Function to update the contribute tab and navigation
+function updateContributeTabAndNavigation(userRole) {
+    const contributeTab = document.getElementById('contribute');
+    if (contributeTab) {
+        // Update heading and message
+        contributeTab.querySelector('h2').innerText = 'Welcome Back!';
+        const paragraph = contributeTab.querySelector('p');
+        if (paragraph) {
+            paragraph.innerText = 'We are excited to see what valuable resources you will share today!';
+        }
+
+        // Create and append the upload button
+        const uploadBtn = document.createElement('button');
+        uploadBtn.id = 'upload-btn';
+        uploadBtn.className = 'upload-btn';
+        uploadBtn.innerText = 'Upload';
+        contributeTab.appendChild(uploadBtn);
+
+        // Create and append the file input (hidden)
+        const fileUpload = document.createElement('input');
+        fileUpload.type = 'file';
+        fileUpload.id = 'file-upload';
+        fileUpload.style.display = 'none'; // Keep it hidden initially
+        contributeTab.appendChild(fileUpload);
+    }
+
+    // Update dropdown menu: change the login button to logout
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) logoutBtn.style.display = 'block'; // Show the logout button
+
+    const loginLink = document.querySelector('a[href="#login"]');
+    if (loginLink) loginLink.style.display = 'none'; // Hide the login link
+
+    // Show FAQ management buttons only if the user is an admin
+    if (userRole === 'admin') {
+        const faqButtons = document.getElementById('faq-buttons');
+        if (faqButtons) {
+            faqButtons.style.display = 'flex'; // Make sure this line is executing
+        }
+    }
+}
+
+
+// Function to check login status and update UI on page load
+function checkLoginStatus() {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    const userName = localStorage.getItem('userName');
+    const userRole = 'admin' //localStorage.getItem('userRole'); // Get the stored user role
+
+    if (isLoggedIn && userName) {
+        // Update the user profile and UI elements
+        loadUserProfile();
+        updateContributeTabAndNavigation(userRole);
+    }
+}
+
+// Function to handle logout
+function performLogout() {
+    localStorage.removeItem('userName');
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userRole');
+    window.location.href = './index.html'; // Redirect to landing page
+}
