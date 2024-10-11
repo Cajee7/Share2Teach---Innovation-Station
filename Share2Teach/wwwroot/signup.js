@@ -50,6 +50,7 @@ document.getElementById('signup-form').addEventListener('submit', async function
         return;
     }
 
+    // Continue with the form submission logic (AJAX call or form submission)
     const response = await fetch('api/Authenticate/register', {
         method: 'POST',
         headers: {
@@ -70,8 +71,6 @@ document.getElementById('signup-form').addEventListener('submit', async function
 
     if (response.ok) {
         showMessage(data.message);
-        // Optionally, redirect to another page or perform another action
-        // window.location.href = 'somepage.html';
     } else {
         showErrorMessages([data.message || "An error occurred."]);
     }
@@ -96,5 +95,8 @@ function showErrorMessages(messages) {
 }
 
 function clearErrorMessages() {
-    document.getElementById('error-box').style.display = 'none'; // Hide error box
+    const errorBox = document.getElementById('error-box');
+    errorBox.style.display = 'none'; // Hide the error box
+    const errorList = document.getElementById('error-list');
+    errorList.innerHTML = ''; // Clear the error list
 }
