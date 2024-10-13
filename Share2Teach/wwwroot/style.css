@@ -5,10 +5,12 @@ body {
 }
 
 .header {
-  background-color: #d7dcec; /* Replace with the path to your background image */
-  background-size: cover;
-  background-position: center;
-  padding: 20px;
+  background-color: #d7dcec;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
 }
 
 /* Style for the logo */
@@ -16,102 +18,95 @@ body {
   color: #000000;
   font-size: 24px;
   font-weight: bold;
-  margin-bottom: 10px;
+  flex: 0 0 auto;
+  margin-right: 20px;
 }
 
-/* Style for the tab buttons */
-.header .tab-button {
-  background-color: #79d8f7; /* Light blue */
-  color: #000000;
-  border: none;
-  border-radius: 5px;
-  padding: 10px 20px;
-  margin: 0 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-/* Hover effect for tab buttons */
-.header .tab-button:hover {
-  background-color: #87cefa; /* Lighter blue on hover */
-}
-
-/* Active tab button style */
-.header .tab-button.active {
-  background-color: #1e90ff; /* Darker blue for the active tab */
-}
-.logo {
-  font-weight: bold;
-  font-size: 24px;
-  animation: slideIn 0.15s ease-out; /* Apply the animation */
-  animation-fill-mode: forwards; /* Keep the final state of the animation */
-}
-
+/* Tabs container */
 .tabs {
   display: flex;
-  gap: 8px; /* Space between buttons */
-  justify-content: center; /* Center the tabs */
-  flex-grow: 1; /* Allow tabs to grow and take available space */
+  justify-content: center;
+  gap: 10px;
+  flex: 1;
 }
 
+/* Style for all tab buttons including More */
 .tab-button {
-  padding: 15px 22px; /* Adjust button padding */
+  padding: 8px 12px;
+  font-size: 14px;
+  border-radius: 4px;
+  background-color: #79d8f7;
   border: none;
-  border-radius: 5px;
-  background-color: rgb(54, 54, 237); /* Button color */
-  color: white;
   cursor: pointer;
   transition: background-color 0.3s;
+  flex: 1;
+  text-align: center;
+  color: white;
+  font-weight: bold;
 }
 
 .tab-button:hover {
-  background-color: #0056b3; /* Darker shade on hover */
+  background-color: #87cefa;
 }
 
 .tab-button.active {
-  background-color: #0056b3; /* Active tab color */
+  background-color: #1e90ff;
 }
 
-.dropdown {
+/* More tab styles */
+.more-tab {
   position: relative;
-  display: inline-block;
+  flex: 0 0 auto;
+  margin-left: 10px;
 }
 
-.dropdown-content {
+.more-tab .tab-button {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.slide-out-content {
   display: none;
   position: absolute;
-  background-color: white;
-  min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  right: 0;
+  top: 100%;
+  background-color: #f9f9f9;
+  box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
   z-index: 1;
+  transition: transform 0.3s ease-in-out;
+  transform: translateX(100%);
 }
 
-.dropdown-content a {
+.more-tab:hover .slide-out-content {
+  display: block;
+  transform: translateX(0);
+}
+
+.slide-out-content a {
   color: black;
-  padding: 12px 16px;
+  padding: 10px 20px;
   text-decoration: none;
   display: block;
+  white-space: nowrap;
 }
 
-.dropdown-content a:hover {
-  background-color: #f1f1f1; /* Hover effect for dropdown links */
+.slide-out-content a:hover {
+  background-color: #ddd;
 }
 
-.dropdown:hover .dropdown-content {
-  display: block; /* Show dropdown on hover */
-}
-
+/* Container and tab content styles remain the same */
 .container {
   padding: 20px;
 }
 
 .tab-content {
-  display: none; /* Hide tab content by default */
+  display: none;
 }
 
 .tab-content.active {
-  display: block; /* Show active tab content */
+  display: block;
 }
+
 
 .error-message {
   background-color: #f8d7da; /* Light red background */
@@ -268,18 +263,21 @@ body {
   cursor: pointer; /* Pointer cursor on hover */
 }
 
-.search-container {
-  margin-top: 20px;
+#search-container {
   display: flex;
-  justify-content: center; /* Center the search box */
+  justify-content: center;
+  align-items: stretch;
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
 }
 
 .search-container input {
-padding: 10px;
-    border: 2px solid #ffcc00; /* Gold border for the search input */
-    border-radius: 5px;
-    width: 300px;
-    margin-right: 10px;
+  padding: 10px;
+  border: 2px solid #ffcc00; /* Gold border for the search input */
+  border-radius: 5px 0 0 5px;
+  flex-grow: 1;
+  min-width: 0; /* Allows input to shrink below its default size */
 }
 
 #search-button {
@@ -287,20 +285,34 @@ padding: 10px;
   background-color: #007bff; /* Button color */
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 0 5px 5px 0;
   cursor: pointer;
+  flex-grow: 0;
+  flex-basis: 200px; /* Gives the button a fixed width */
 }
 
 #search-button:hover {
-  background-color: darkblue; /* Darker blue on hover */
+  background-color: #0056b3; /* Slightly darker blue on hover for better contrast */
 }
 
-.result-item {
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px;
-  margin: 10px 0;
-  background-color: #f9f9f9;
+/* Additional styles for the title and description */
+.search-title {
+  color: #343a40;
+  font-size: 24px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.search-description {
+  color: #6c757d;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.results-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
 }
 
 .button-container {
