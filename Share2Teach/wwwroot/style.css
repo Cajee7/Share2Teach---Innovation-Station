@@ -934,3 +934,62 @@ body {
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+
+
+
+/* Subject View Container */
+.tab-content {
+  padding: 20px; /* Add padding to the tab content */
+  background-color: #f9f9f9; /* Light background for the tab */
+  border-radius: 8px; /* Round corners */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+}
+
+/* Subjects Container */
+.subjects {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* Center the subject blocks */
+  margin-top: 20px;
+}
+
+/* Individual Subject Block */
+.subject-block {
+  background-color: #e1bee7; /* Light purple background */
+  border: 2px solid #ba68c8; /* Darker purple border */
+  border-radius: 10px; /* Round corners */
+  padding: 20px;
+  margin: 10px;
+  width: 150px; /* Fixed width */
+  text-align: center;
+  transition: background-color 0.3s, transform 0.3s; /* Transition effects */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Shadow for elevation */
+}
+
+/* Change background color and scale on hover */
+.subject-block:hover {
+  background-color: #d81b60; /* Darker pinkish-purple on hover */
+  cursor: pointer; /* Pointer cursor on hover */
+  transform: scale(1.05); /* Slightly increase size on hover */
+}
+
+/* Subject Block Text Style */
+.subject-block h3 {
+  color: #4a148c; /* Dark purple text */
+  margin: 0; /* Remove default margin */
+  font-size: 18px; /* Adjust font size as needed */
+}
+
+/* Optional: Add hover effects */
+.subject-block:hover {
+  background-color: #e57373; /* Lighter red-pink on hover */
+}
+
+/* Optional: Style for headings and paragraphs */
+h2 {
+  color: #3f51b5; /* Main heading color */
+}
+
+p {
+  color: #616161; /* Subtitle color */
+}
