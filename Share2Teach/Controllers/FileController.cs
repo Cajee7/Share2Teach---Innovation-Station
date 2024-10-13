@@ -143,7 +143,7 @@ namespace Combined.Controllers
                 }
                 
                 // Create a temporary file for the license
-                string relativePath = @"C:\Users\OEM\OneDrive\Desktop\Share2Teach---Innovation-Station\Share2Teach\bin\Debug\net8.0\Licenses\Share2Teach_-_Document_-Licence.pdf"; // Relative path
+                string relativePath = @"C:\Users\Lenovo1\OneDrive\Documents\Campus\Share2Teach---Innovation-Station\Share2Teach\bin\Debug\net8.0\Licenses\Share2Teach_-_Document_-Licence.pdf"; // Relative path
                 string baseDirectory = AppDomain.CurrentDomain.BaseDirectory; // Base directory of the application
                 string licenseFilePath = Path.Combine(baseDirectory, relativePath); // Full path to the license file
 
