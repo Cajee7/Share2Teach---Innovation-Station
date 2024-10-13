@@ -152,6 +152,7 @@
                 </ul>
                 <p><strong>Ready to take the leap?</strong> Sign up today and be part of a movement that celebrates collaboration and innovation in education!</p>
                 <p><strong>👉 <a href="signup.html">Sign Up Now</a></strong> and let's change the world of education together!</p>
+                <p>If you're already a member of our platform, <a href="#login" class="login-link" onclick="showTab('login')">Log in here</a> to start contributing!</p>
             </div>
             <img src="https://services.nwu.ac.za/sites/services.nwu.ac.za/files/files/designs-branding/NWU-Acronym-logo-acronym-RGB.png" alt="Logo" class="footer-logo">
         </div>
@@ -212,19 +213,34 @@
             <div id="success-message" class="success-message"></div>
         </div>
 
-        <!-- About Us Tab - Now correctly placed at the same level as other tab content -->
+        <!-- About Us Tab -->
         <div id="aboutUs" class="tab-content">
-            <h2>About Us</h2>
-            <p>Share2Teach is dedicated to enhancing the educational landscape by providing a platform where educators can share valuable resources and collaborate.</p>
-            <h3>Our Mission</h3>
-            <p>We aim to empower teachers and students by making quality educational resources accessible to everyone.</p>
-            <h3>Our Vision</h3>
-            <p>To create a world where knowledge is freely shared and learning opportunities are limitless.</p>
-            <h3>Join Us!</h3>
-            <p>If you are a teacher, educator, or someone who values education, we invite you to join our community!</p>
-        </div>
+            <div class="about-us-container">
+                <h2 class="about-us-heading">About Us</h2>
+                <p class="about-us-text">
+                    Welcome to <strong>Share2Teach</strong>, a vibrant open educational resource (OER) project designed to foster a global community of learners and educators. At the heart of our initiative is the belief that knowledge should be accessible, collaborative, and free. Share2Teach is a testament to the power of collective effort, co-created by the innovative minds of students under the guidance of their facilitators.
+                </p>
 
-    </div>
+                <h3 class="about-us-subheading">Our Founders</h3>
+                <p class="about-us-text">
+                    The project was founded by <strong>Dr. Chantelle Bosch</strong>, a dedicated lecturer and the sub-area leader for Blended Learning to Enhance Self-Directed Learning within the Research Unit Self-Directed Learning at the North-West University (NWU). Alongside her, <strong>Prof. Dorothy Laubscher</strong>, the chairholder of the UNESCO Chair on Multimodal Learning and OER, has been instrumental in shaping the vision and direction of Share2Teach.
+                </p>
+
+                <h3 class="about-us-subheading">Our Vision</h3>
+                <p class="about-us-text">
+                    Share2Teach stands as a beacon for educational innovation, inviting educators and learners worldwide to contribute, explore, and grow within this open, inclusive community. Join us in our journey to make learning a shared adventure, breaking down barriers and building bridges towards a more knowledgeable and connected world.
+                </p>
+
+                <h3 class="about-us-subheading">Contributing to Share2Teach</h3>
+                <p class="about-us-text">
+                    If you're a teacher or lecturer passionate about education and eager to make a difference, we invite you to join our collaborative community.<a href="#contribute" onclick="openTab(event, 'contribute')">Click here</a> to contribute a resource.
+                </p>
+
+                <!-- NWU Logo at the bottom -->
+                <div class="about-us-logo">
+                    <img src="https://services.nwu.ac.za/sites/services.nwu.ac.za/files/files/designs-branding/NWU-Acronym-logo-acronym-RGB.png" alt="NWU Logo" class="nwu-logo-img">
+                </div>
+            </div>
 
     <footer class="footer">
         <p>&copy; 2024 Share2Teach. All rights reserved.</p>
