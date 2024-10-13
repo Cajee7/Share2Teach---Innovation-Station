@@ -16,25 +16,28 @@
 <body>
     <header class="header">
         <div class="logo">
-            <span class="left">Share</span>
-        <span class="right">2Teach</span>
+            <span class="left">Share2Teach</span>
+        </div>
         <nav class="tabs">
             <button class="tab-button active" onclick="openTab(event, 'home')">Home</button>
             <button class="tab-button" onclick="openTab(event, 'subjectView')">Subject View</button>
             <button class="tab-button" onclick="openTab(event, 'search')">Search</button>
             <button class="tab-button" onclick="openTab(event, 'contribute')">Contribute</button>
             <button class="tab-button" onclick="openTab(event, 'faq')">FAQ</button>
-            <div class="dropdown">
+    
+            <!-- Slide out tab for More button -->
+            <div class="more-tab">
                 <button class="tab-button">More</button>
-                <div class="dropdown-content">
+                <div class="slide-out-content">
                     <a href="#otherOER">Other useful OER's</a>
                     <a href="#selfDirectedLearning">Self-Directed Learning</a>
                     <a href="#login" onclick="openTab(event, 'login')">Login</a>
                     <a id="logout-btn" href="#" style="display: none;" onclick="performLogout()">Logout</a>
-                    <a href="#aboutUs">About Us</a>
+                    <a href="#aboutUs" onclick="openTab(event, 'aboutUs')">About Us</a>
                 </div>
             </div>
         </nav>
+
         <div id="user-profile" style="display: none;">
             <div id="profile-icon" class="profile-icon">
                 <span id="profile-name"></span>
@@ -137,10 +140,10 @@
             <h2>Contribute</h2>
             <p>Share your documents and tag them for others.</p>
             <div class="contribute-message">
-                <h3>🌟 Calling All Educators: Let’s Shape the Future of Learning Together! 🌟</h3>
+                <h3>🌟 Calling All Educators: Let's Shape the Future of Learning Together! 🌟</h3>
                 <p>Are you passionate about empowering students and enhancing educational resources? At <strong>Share2Teach</strong>, we believe that <strong>every great educator has something valuable to share!</strong></p>
                 <h4 class="centered">Join our mission to revolutionize education! ✨</h4>
-                <p>If you’re ready to make a real impact and help students thrive, we want YOU to contribute your knowledge and resources to our vibrant community.</p>
+                <p>If you're ready to make a real impact and help students thrive, we want YOU to contribute your knowledge and resources to our vibrant community.</p>
                 <h4 class="centered">🔍 Why Contribute?</h4>
                 <ul>
                     <li><strong>Inspire Others:</strong> Share your expertise and best practices.</li>
@@ -148,7 +151,7 @@
                     <li><strong>Make a Difference:</strong> Your contributions can transform learning experiences for countless students.</li>
                 </ul>
                 <p><strong>Ready to take the leap?</strong> Sign up today and be part of a movement that celebrates collaboration and innovation in education!</p>
-                <p><strong>👉 <a href="signup.html">Sign Up Now</a></strong> and let’s change the world of education together!</p>
+                <p><strong>👉 <a href="signup.html">Sign Up Now</a></strong> and let's change the world of education together!</p>
             </div>
             <img src="https://services.nwu.ac.za/sites/services.nwu.ac.za/files/files/designs-branding/NWU-Acronym-logo-acronym-RGB.png" alt="Logo" class="footer-logo">
         </div>
@@ -175,7 +178,6 @@
                 <div class="purple-line"></div>
             </div>
         </div>
-
 
         <!-- Login Tab -->
         <div id="login" class="tab-content">
@@ -205,11 +207,24 @@
                 </div>
                 <!-- Error message container -->
                 <div id="error-message" class="error-message" style="display: none; color: red; margin-top: 10px;"></div>
-            </form>
-
+            </div>
             <!-- Success message container -->
             <div id="success-message" class="success-message"></div>
+        </div>
 
+        <!-- About Us Tab - Now correctly placed at the same level as other tab content -->
+        <div id="aboutUs" class="tab-content">
+            <h2>About Us</h2>
+            <p>Share2Teach is dedicated to enhancing the educational landscape by providing a platform where educators can share valuable resources and collaborate.</p>
+            <h3>Our Mission</h3>
+            <p>We aim to empower teachers and students by making quality educational resources accessible to everyone.</p>
+            <h3>Our Vision</h3>
+            <p>To create a world where knowledge is freely shared and learning opportunities are limitless.</p>
+            <h3>Join Us!</h3>
+            <p>If you are a teacher, educator, or someone who values education, we invite you to join our community!</p>
+        </div>
+
+    </div>
 
     <footer class="footer">
         <p>&copy; 2024 Share2Teach. All rights reserved.</p>

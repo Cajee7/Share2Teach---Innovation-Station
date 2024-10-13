@@ -25,7 +25,7 @@ namespace Combined.Controllers
     {
         private static readonly string username = "InnovationStation"; // Nextcloud username
         private static readonly string password = "IS_S2T24"; // Nextcloud password
-        private static readonly string webdavUrl = "http://4.222.22.37/remote.php/dav/files/InnovationStation/Uploads/"; // Nextcloud WebDAV endpoint
+         private static readonly string webdavUrl = "http://4.222.22.37/remote.php/dav/files/InnovationStation/Uploads/"; // Nextcloud WebDAV endpoint
 
         private const string LicenseFileName = "Share2Teach_-_Document_-Licence.pdf";
 
