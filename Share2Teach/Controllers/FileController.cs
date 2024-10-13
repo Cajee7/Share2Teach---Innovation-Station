@@ -23,9 +23,9 @@ namespace Combined.Controllers
     [Route("api/[controller]")]
     public class FileController : ControllerBase
     {
-        private static readonly string username = "aramsunar"; // Nextcloud username
-        private static readonly string password = "Jaedene12!"; // Nextcloud password
-        private static readonly string webdavUrl = "http://localhost:8080/remote.php/dav/files/aramsunar/"; // Nextcloud WebDAV endpoint
+        private static readonly string username = "InnovationStation"; // Nextcloud username
+        private static readonly string password = "IS_S2T24"; // Nextcloud password
+        private static readonly string webdavUrl = "http://4.222.22.37/remote.php/dav/files/InnovationStation/Uploads/"; // Nextcloud WebDAV endpoint
 
         private const string LicenseFileName = "Share2Teach_-_Document_-Licence.pdf";
 
@@ -143,7 +143,7 @@ namespace Combined.Controllers
                 }
                 
                 // Create a temporary file for the license
-                string relativePath = @"C:\Users\OEM\OneDrive\Desktop\Share2Teach---Innovation-Station\Share2Teach\bin\Debug\net8.0\Licenses\Share2Teach_-_Document_-Licence.pdf"; // Relative path
+                string relativePath = @"C:\Users\Lenovo1\OneDrive\Documents\Campus\Share2Teach---Innovation-Station\Share2Teach\bin\Debug\net8.0\Licenses\Share2Teach_-_Document_-Licence.pdf"; // Relative path
                 string baseDirectory = AppDomain.CurrentDomain.BaseDirectory; // Base directory of the application
                 string licenseFilePath = Path.Combine(baseDirectory, relativePath); // Full path to the license file
 
