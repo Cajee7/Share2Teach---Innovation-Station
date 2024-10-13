@@ -955,8 +955,8 @@ body {
 
 /* Individual Subject Block */
 .subject-block {
-  background-color: #e1bee7; /* Light purple background */
-  border: 2px solid #ba68c8; /* Darker purple border */
+  background-color: #fbfbfb; /* Light purple background */
+  border: 2px solid #000000; /* Darker purple border */
   border-radius: 10px; /* Round corners */
   padding: 20px;
   margin: 10px;
@@ -982,7 +982,7 @@ body {
 
 /* Optional: Add hover effects */
 .subject-block:hover {
-  background-color: #e57373; /* Lighter red-pink on hover */
+  background-color: #6feb7b; /* Lighter red-pink on hover */
 }
 
 /* Optional: Style for headings and paragraphs */
@@ -991,5 +991,5 @@ h2 {
 }
 
 p {
-  color: #616161; /* Subtitle color */
+  color: #000000; /* Subtitle color */
 }
