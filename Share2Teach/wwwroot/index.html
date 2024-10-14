@@ -34,8 +34,14 @@
                     <a href="#login" onclick="openTab(event, 'login')">Login</a>
                     <a id="logout-btn" href="#" style="display: none;" onclick="performLogout()">Logout</a>
                     <a href="#aboutUs" onclick="openTab(event, 'aboutUs')">About Us</a>
+            
+                    <!-- Profile Icon under More tab -->
+                    <div id="user-profile" style="display: none;">
+                        <div id="profile-icon" class="profile-icon">
+                            <span id="profile-name"></span>
+                        </div>
+                    </div>
                 </div>
-            </div>
         </nav>
 
         <div id="user-profile" style="display: none;">
@@ -162,16 +168,42 @@
             <h2>Frequently Asked Questions</h2>
             <p>Find answers to common questions.</p>
             
-            <div class="faq-list" id="faq-list-container"></div>
-
-            <div id="faq-error-message" class="error-message" style="display: none; color: red; margin-top: 10px;"></div>
-
             <!-- FAQ management buttons (invisible by default) -->
             <div id="faq-buttons" style="display: none;">
                 <button id="add-faq">Add FAQ</button>
                 <button id="update-faq">Update FAQ</button>
                 <button id="delete-faq">Delete FAQ</button>
             </div>
+
+            <!-- Add FAQ Popup Modal -->
+            <div id="add-faq-modal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button id="back-btn" class="back-btn">&larr; Back</button>
+                    </div>
+                    <div class="modal-body">
+                        <h2>Add New FAQ</h2>
+                        <label for="faq-question">Question:</label>
+                        <textarea id="faq-question" rows="3" placeholder="Enter the FAQ question"></textarea>
+
+                        <label for="faq-answer">Answer:</label>
+                        <textarea id="faq-answer" rows="5" placeholder="Enter the FAQ answer"></textarea>
+                        
+                        <!-- Error Message for Add FAQ Modal -->
+                        <div id="add-faq-error-message" class="error-message" style="display: none; background-color: #ffcccb; color: red; padding: 10px; border-radius: 5px; margin-top: 10px;"></div>
+                        
+                        <div class="faq-modal-buttons">
+                            <button id="clear-faq-btn" class="faq-clear-btn">Clear</button>
+                            <button id="submit-faq-btn" class="faq-submit-btn">Add FAQ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+  
+            <div class="faq-list" id="faq-list-container"></div>
+
+            <div id="faq-error-message" class="error-message" style="display: none; color: red; margin-top: 10px;"></div>
 
             <div class="footer-logo-container">
                 <div class="purple-line"></div>

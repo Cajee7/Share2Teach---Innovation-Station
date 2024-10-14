@@ -19,6 +19,7 @@ function openTab(evt, tabName) {
     }
 }
 
+
 // Function to fetch FAQs from the API
 async function loadFAQs() {
     const faqErrorMessage = document.getElementById('faq-error-message'); // Error message for FAQs
@@ -57,6 +58,74 @@ function renderFAQs(faqs) {
         faqContainer.appendChild(faqItem);
     });
 }
+
+// Show the Add FAQ modal when Add FAQ button is clicked
+document.getElementById('add-faq').addEventListener('click', function() {
+    document.getElementById('add-faq-modal').style.display = 'block';
+});
+
+// Close the modal when Back button is clicked
+document.getElementById('back-btn').addEventListener('click', function() {
+    document.getElementById('add-faq-modal').style.display = 'none';
+});
+
+// Clear the input fields when Clear button is clicked
+document.getElementById('clear-faq-btn').addEventListener('click', function() {
+    document.getElementById('faq-question').value = '';
+    document.getElementById('faq-answer').value = '';
+});
+
+// Submit the FAQ to the API when Add FAQ button is clicked
+document.getElementById('submit-faq-btn').addEventListener('click', async function() {
+    const question = document.getElementById('faq-question').value.trim();
+    const answer = document.getElementById('faq-answer').value.trim();
+    const errorMessageElement = document.getElementById('add-faq-error-message');
+
+    // Clear any previous error messages
+    errorMessageElement.style.display = 'none';
+    errorMessageElement.innerText = '';
+
+    // Input validation
+    if (!question || !answer) {
+        errorMessageElement.style.display = 'block'; // Show error box
+        errorMessageElement.innerText = 'Please fill in both the question and the answer.';
+        return;
+    }
+
+    const faqData = {
+        Question: question,
+        Answer: answer
+    };
+
+    try {
+        const response = await fetch('http://localhost:5281/api/FAQ/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + getJwtToken() // Add your JWT token here
+            },
+            body: JSON.stringify(faqData)
+        });
+
+        const responseData = await response.json();
+
+        if (response.ok) {
+            alert('FAQ added successfully!');
+            document.getElementById('faq-question').value = '';
+            document.getElementById('faq-answer').value = '';
+            document.getElementById('add-faq-modal').style.display = 'none';
+        } else {
+            errorMessageElement.style.display = 'block'; // Show error box
+            errorMessageElement.innerText = 'Error adding FAQ: ' + responseData.message;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        errorMessageElement.style.display = 'block'; // Show error box
+        errorMessageElement.innerText = 'An error occurred while adding the FAQ.';
+    }
+});
+
+
 
 async function performSearch() {
     const searchInputElement = document.getElementById('search-input');
@@ -173,29 +242,89 @@ function closeModal() {
     modal.style.display = 'none';
 }
 
-function openReportModal(docId) {
+// Opens the report modal and sets the document ID for reporting
+function openReportModal(documentId) {
     const modal = document.getElementById('report-modal');
-    document.getElementById('report-doc-id').value = docId; // Set the document ID in a hidden input
+    document.getElementById('report-doc-id').value = documentId; // Set the document ID in a hidden input
     modal.style.display = 'block'; // Show the modal
 }
 
+// Closes the report modal
 function closeReportModal() {
     const modal = document.getElementById('report-modal');
     modal.style.display = 'none'; // Hide the modal
 }
 
-function submitReport() {
-    const reason = document.getElementById('report-reason').value;
-    const docId = document.getElementById('report-doc-id').value; // Get the document ID
-    
-    // You can add your logic to handle the report submission here
-    console.log('Report submitted for document ID:', docId, 'Reason:', reason);
-    
-    // Here you would send the report to your server, e.g., using fetch()
-    // Example: await fetch('your-report-endpoint', { method: 'POST', body: JSON.stringify({ docId, reason }) });
+// Handles report submission
+async function submitReport() {
+    const documentId = document.getElementById('report-doc-id').value.trim(); // Hidden field for document ID
+    const reason = document.getElementById('report-reason').value.trim();
 
-    closeReportModal(); // Close the modal after submission
+    // Input validation
+    if (!documentId || !reason) {
+        alert('Please fill in all fields.');
+        return;
+    }
+
+    const reportData = {
+        DocumentId: documentId,
+        Reason: reason
+    };
+
+    try {
+        // Submit the report data to the backend API
+        const response = await fetch('http://localhost:5281/api/Reporting/CreateReport', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(reportData)
+        });
+
+        const responseData = await response.json();
+
+        if (response.ok) {
+            console.log('Report submitted successfully:', responseData);
+            showFeedback("Report submitted successfully! ID: " + responseData.id);
+
+            // Clear form fields after successful submission
+            document.getElementById('report-reason').value = '';
+        } else {
+            console.error('Failed to submit report:', response.status, responseData);
+            showFeedback("Error: " + (responseData.message || response.statusText));
+        }
+    } catch (error) {
+        console.error('Error submitting report:', error);
+        showFeedback('Error submitting report: ' + error.message);
+    }
+
+    // Close the report modal after submission
+    closeReportModal();
 }
+
+// Function to display feedback messages
+function showFeedback(message) {
+    const feedbackElement = document.getElementById('create-response');
+    if (feedbackElement) {
+        feedbackElement.textContent = message;
+    } else {
+        console.warn('Feedback element not found. Message:', message);
+        alert(message); // Fallback to alert if feedback element is missing
+    }
+}
+
+
+function showFeedback(message) {
+    const feedbackElement = document.getElementById('create-response');
+    if (feedbackElement) {
+        feedbackElement.textContent = message;
+    } else {
+        console.warn('Feedback element not found. Message:', message);
+        alert(message);
+    }
+}
+
+
 
 // Function to show error messages for login
 function showError(message, errorType) {
@@ -298,8 +427,8 @@ async function performLogin(event) {
                 window.location.href = './index.html';  // Ensure the path is correct
             }, 2300);
 
-            // Update UI elements
-            updateUIAfterLogin();
+            // Update UI elements after login
+            loadUserProfile();
 
         } else if (response.status === 400) {
             // Handle validation errors from the backend
@@ -343,15 +472,25 @@ function validateEmail(email) {
     return emailRegex.test(email);
 }
 
+
 // Function to load the user's profile icon and name after login
 function loadUserProfile() {
     const userName = localStorage.getItem('userName');
-    if (userName) {
-        // Display the user's profile icon with their initials or name
-        const profileIcon = document.getElementById('user-profile');
-        const profileName = document.getElementById('profile-name');
-        if (profileIcon) profileIcon.style.display = 'block'; // Show the profile icon
-        if (profileName) profileName.textContent = userName.charAt(0).toUpperCase(); // Display initials
+    const profileIcon = document.getElementById('user-profile');
+    const profileName = document.getElementById('profile-name');
+    
+    if (userName && profileIcon && profileName) {
+        // Show the profile icon
+        profileIcon.style.display = 'block'; 
+        
+        // Display initials or full name in the profile icon
+        const initials = userName.split(' ').map(name => name.charAt(0).toUpperCase()).join('');
+        profileName.textContent = initials; 
+    } else {
+        // Hide the profile icon if no user is logged in
+        if (profileIcon) {
+            profileIcon.style.display = 'none';
+        }
     }
 }
 
@@ -359,7 +498,13 @@ function loadUserProfile() {
 function updateContributeTabAndNavigation(userRole) {
     const contributeTab = document.getElementById('contribute');
     if (contributeTab) {
-        // Update heading and message
+        // Remove or hide the introductory message paragraph (e.g., "Calling all educators")
+        const introParagraph = contributeTab.querySelector('.contribute-message'); 
+        if (introParagraph) {
+            introParagraph.style.display = 'none'; // Hide the introductory paragraph
+        }
+
+        // Update heading and message for logged-in users
         contributeTab.querySelector('h2').innerText = 'Welcome Back!';
         const paragraph = contributeTab.querySelector('p');
         if (paragraph) {
@@ -379,6 +524,20 @@ function updateContributeTabAndNavigation(userRole) {
         fileUpload.id = 'file-upload';
         fileUpload.style.display = 'none'; // Keep it hidden initially
         contributeTab.appendChild(fileUpload);
+
+        // Add event listener to the upload button to trigger file selection
+        uploadBtn.addEventListener('click', () => {
+            fileUpload.click(); // Programmatically click the hidden file input
+        });
+
+        // Optional: Handle file selection
+        fileUpload.addEventListener('change', (event) => {
+            const selectedFile = event.target.files[0];
+            if (selectedFile) {
+                console.log('File selected:', selectedFile.name);
+                // You can add additional code here to handle the file (e.g., upload it)
+            }
+        });
     }
 
     // Update dropdown menu: change the login button to logout
@@ -396,6 +555,7 @@ function updateContributeTabAndNavigation(userRole) {
         }
     }
 }
+
 
 
 // Function to check login status and update UI on page load

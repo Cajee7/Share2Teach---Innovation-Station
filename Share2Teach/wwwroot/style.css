@@ -633,12 +633,41 @@ button:hover {
   text-decoration: underline; /* Underline on hover */
 }
 
+/* Center the upload button */
+#upload-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px auto; /* Center horizontally */
+  padding: 10px 20px;
+  background-color: #0a56d0; /* You can adjust the button color */
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#upload-btn i {
+  margin-right: 8px; /* Add some space between the icon and text */
+}
+
+#upload-btn:hover {
+  background-color: #45a049;
+}
+
+/* Style the file input */
+#file-upload {
+  margin-top: 10px;
+}
+
+
 a.login-link {
   color: rgb(17, 206, 17);
   text-decoration: underline;
   font-weight: bold;
 }
-
 
 .centered {
   text-align: center; /* Centers the text */
@@ -772,10 +801,11 @@ p {
   display: flex;
   justify-content: center; /* Center the buttons */
   margin-top: 20px;
+  gap: 8px;
 }
 
 .faq-button {
-  margin: 0 10px; /* Equal spacing between buttons */
+  margin: 0 15px; /* Equal spacing between buttons */
   padding: 10px 20px; /* Same size for all buttons */
   border: none;
   border-radius: 5px;
@@ -802,968 +832,126 @@ p {
   opacity: 0.9;
 }
 
-/* Profile Icon Styling */
-.profile-icon {
-  position: fixed;
-  top: 10px;
-  right: 20px; /* Change left to right */
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background-color: #d502fa; /* Background color for the icon */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: bold;
-  font-size: 16px;
-  cursor: pointer;
-  z-index: 1000; /* Ensure it's always visible */
-}
-
-#profile-name {
-  display: inline-block;
-  max-width: 40px;
-  text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f9; /* Light background for contrast */
-  color: #333; /* Dark text for readability */
-}
-
-.hero-section {
-  background-image: url("homepageback.jpeg"); 
-  background-size: cover;
-  background-position: center;
-  padding: 100px 20px;
-  text-align: center;
-  color: #ffffff;
-  position: relative;
-}
-
-@keyframes slideIn {
-  0% {
-    opacity: 0; /* Start invisible */
-    transform: translateY(20px); /* Start lower */
-  }
-  100% {
-    opacity: 1; /* Fully visible */
-    transform: translateY(0); /* Move to original position */
-  }
-}
-
-.hero-section h1 {
-  font-size: 4rem;
-  margin-bottom: 20px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  background: linear-gradient(90deg, #6f2c91, #a75ebc); /* Gradient from dark purple to light purple */
-  -webkit-background-clip: text; /* Clips background to the text */
-  -webkit-text-fill-color: transparent; /* Makes the text transparent so the background shows through */
-  display: inline-block; /* Ensures the gradient fits tightly around the text */
-  padding: 10px; /* Optional: adds some space around the text */
-  
-  animation: slideIn 0.8s ease-out; /* Apply the animation */
-  animation-fill-mode: forwards; /* Keep the final state of the animation */
-}
-
-
-.hero-section p {
-  font-size: 1.5rem;
-  margin-bottom: 30px;
-  color: black;
-}
-
-.cta-button {
-  background-color: #6f2c91; /* Dark purple */
-  color: #ffffff;
-  padding: 15px 30px;
-  border: none;
-  border-radius: 5px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.cta-button:hover {
-  background-color: #5a1d73; /* Darker purple on hover */
-}
-
-.features {
-  display: flex;
-  justify-content: space-around;
-  margin: 40px 0;
-}
-
-.feature-item {
-  background-color: #ffffff; /* White background for contrast */
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: 30%;
-  text-align: center;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-  opacity: 0; /* Initially hidden */
-  transform: translateY(20px); /* Move down initially */
-}
-.feature-item.visible {
-  opacity: 1; /* Show item */
-  transform: translateY(0); /* Move to original position */
-}
-
-.feature-item:hover {
-  transform: scale(1.05); /* Scale up on hover */
-}
-
-.feature-item h3 {
-  font-size: 1.5rem;
-  color: #6f2c91; /* Dark purple */
-}
-
-.feature-item p {
-  color: #4e4e4e; /* Dark gray for text */
-}
-
-.image-gallery {
-  display: flex;
-  justify-content: center;
-  margin-top: 30px;
-}
-
-.image-gallery img {
-  width: 150px; /* Size your images */
-  margin: 0 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-}
-
-.header {
-  background-color: #d7dcec;
-  padding: 10px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-direction: row;
-}
-
-/* Style for the logo */
-.header .logo {
-  color: #000000;
-  font-size: 24px;
-  font-weight: bold;
-  flex: 0 0 auto;
-  margin-right: 20px;
-}
-
-/* Tabs container */
-.tabs {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  flex: 1;
-}
-
-/* Style for all tab buttons including More */
-.tab-button {
-  padding: 8px 12px;
-  font-size: 14px;
-  border-radius: 4px;
-  background-color: #46b2f1;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  flex: 1;
-  text-align: center;
-  color: white;
-  font-weight: bold;
-}
-
-.tab-button:hover {
-  background-color: #87cefa;
-}
-
-.tab-button.active {
-  background-color: #1e90ff;
-}
-
-/* More tab styles */
-.more-tab {
-  position: relative;
-  flex: 0 0 auto;
-  margin-left: 10px;
-}
-
-.more-tab .tab-button {
-  flex: 0 0 auto;
-  width: auto;
-}
-
-.slide-out-content {
-  display: none;
-  position: absolute;
-  right: 0;
-  top: 100%;
-  background-color: #f9f9f9;
-  box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
-  z-index: 1;
-  transition: transform 0.3s ease-in-out;
-  transform: translateX(100%);
-}
-
-.more-tab:hover .slide-out-content {
-  display: block;
-  transform: translateX(0);
-}
-
-.slide-out-content a {
-  color: black;
-  padding: 10px 20px;
-  text-decoration: none;
-  display: block;
-  white-space: nowrap;
-}
-
-.slide-out-content a:hover {
-  background-color: #ddd;
-}
-
-/* Container and tab content styles remain the same */
-.container {
-  padding: 20px;
-}
-
-.tab-content {
-  display: none;
-}
-
-.tab-content.active {
-  display: block;
-}
-
-
-.error-message {
-  background-color: #f8d7da; /* Light red background */
-  color: #721c24; /* Dark red text */
-  border: 1px solid #f5c6cb; /* Light red border */
-  padding: 15px; /* Add some padding */
-  border-radius: 5px; /* Round the corners */
-  margin: 10px auto; /* Center it horizontally */
-  text-align: center; /* Center the text */
-  max-width: 500px; /* Limit the width */
-  display: none; /* Hide it by default */
-  font-family: Arial, sans-serif; /* Use a clean font */
-}
-
-/* Style for login form */
-.login-form {
-  margin-top: 20px;
-  max-width: 400px;
-  margin: auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #ffffff; /* White background for the form */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Slight shadow for depth */
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
-  border-radius: 3px;
-  border: 1px solid #ccc;
-  transition: border-color 0.3s; /* Smooth transition for border */
-}
-
-.form-group input:focus {
-  border-color: #4CAF50; /* Change border color on focus */
-}
-
-/* General styling for the button group */
-.button-group {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 15px;
-}
-
-.login-btn, .clear-btn {
-  width: 48%; /* Set to a percentage to adjust according to the container */
-  padding: 12px; /* Increase padding for a more substantial look */
-  border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.login-btn {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.clear-btn {
-  background-color: #f44336;
-  color: white;
-}
-
-.login-btn:hover, .clear-btn:hover {
-  opacity: 0.9;
-}
-
-/* Styling for error and success messages */
-#login-error-message {
-  color: red;
-  margin-top: 10px;
-  display: none; /* Initially hidden */
-}
-
-#success-message {
-  background-color: #4CAF50; /* Green for success */
-  color: white;
-  padding: 10px;
-  margin-top: 10px;
-  display: none; /* Initially hidden */
-}
-
-.extra-links {
-  text-align: center;
-  margin-top: 20px;
-}
-
-.forgot-password a, .sign-up-text a {
-  color: #007BFF;
-  text-decoration: none;
-}
-
-.forgot-password a:hover, .sign-up-text a:hover {
-  text-decoration: underline;
-}
-
-#success-message, #error-message {
-  position: fixed;
-  bottom: -100px; /* Initially hidden */
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 10px 20px;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  opacity: 0; /* Initially transparent */
-  transition: bottom 0.3s ease, opacity 0.3s ease; /* Smooth slide-up and fade-in effect */
-  z-index: 1000; /* Make sure it stays on top */
-}
-
-#success-message {
-  background-color: #4caf50; /* Green for success */
-  color: white;
-}
-
-#error-message {
-  background-color: #f44336; /* Red for error */
-  color: white;
-}
-
-
-
-.subjects {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center; /* Center the subject blocks */
-  margin-top: 20px;
-}
-
-.subject-block {
-  background-color: #e7e7e7; /* Background color for subjects */
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 20px;
-  margin: 10px;
-  width: 150px; /* Adjust width as needed */
-  text-align: center;
-  transition: background-color 0.3s;
-}
-
-.subject-block:hover {
-  background-color: #d3d3d3; /* Change background on hover */
-  cursor: pointer; /* Pointer cursor on hover */
-}
-
-#search-container {
-  display: flex;
-  justify-content: center;
-  align-items: stretch;
-  width: 100%;
-  max-width: 800px;
-  margin: 20px auto;
-}
-
-.search-container input {
-  padding: 10px;
-  border: 2px solid #ffcc00; /* Gold border for the search input */
-  border-radius: 5px 0 0 5px;
-  flex-grow: 1;
-  min-width: 0; /* Allows input to shrink below its default size */
-}
-
-#search-button {
-  padding: 10px 15px;
-  background-color: #007bff; /* Button color */
-  color: white;
-  border: none;
-  border-radius: 0 5px 5px 0;
-  cursor: pointer;
-  flex-grow: 0;
-  flex-basis: 200px; /* Gives the button a fixed width */
-}
-
-#search-button:hover {
-  background-color: #0056b3; /* Slightly darker blue on hover for better contrast */
-}
-
-/* Additional styles for the title and description */
-.search-title {
-  color: #343a40;
-  font-size: 24px;
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-.search-description {
-  color: #6c757d;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.results-container {
-  width: 100%;
-  max-width: 800px;
-  margin: 20px auto;
-}
-
-.button-container {
-  display: flex; /* Use flexbox for alignment */
-  justify-content: center; /* Center the buttons */
-  gap: 10px; /* Space between buttons */
-  margin-top: 10px; /* Space above the buttons */
-}
-
-.preview-button, .download-button {
-  padding: 10px 20px; /* Ensure the same height and some horizontal padding */
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  text-align: center;
-  color: white; /* Text color */
-  flex: 1; /* Make buttons take equal space */
-  min-width: 100px; /* Minimum width for buttons to prevent them from being too small */
-}
-
-.preview-button {
-  background-color: #007BFF; /* Blue color */
-}
-
-.download-button {
-  background-color: #28A745; /* Green color */
-  text-decoration: none; /* Remove underline */
-}
-
-.report-button {
-  padding: 10px; /* Ensure consistent padding */
-  width: 40px; /* Smaller width */
-  height: 40px; /* Same height as other buttons */
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  background-color: red; /* Red color for report */
-  color: white; /* Text color */
-  font-weight: bold; /* Make the exclamation mark stand out */
-  font-size: 20px; /* Size of the exclamation mark */
-}
-
-.report-button:hover {
-  background-color: darkred; /* Darker shade on hover */
-}
-
-/* Modal Background */
+/* General Modal Styles */
 .modal {
-  display: none; /* Hidden by default */
-  position: fixed; /* Stay in place */
-  z-index: 1000; /* Sit on top */
-  left: 0;
-  top: 0;
-  width: 100%; /* Full width */
-  height: 100%; /* Full height */
-  overflow: auto; /* Enable scroll if needed */
-  background-color: rgba(0, 0, 0, 0.5); /* Black w/ opacity */
+  position: fixed;                  /* Fixed positioning to cover the entire viewport */
+  z-index: 1;                      /* Ensure the modal appears above other content */
+  left: 0;                         /* Align to the left */
+  top: 0;                          /* Align to the top */
+  width: 100%;                     /* Full width */
+  height: 100%;                    /* Full height */
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  display: flex;                   /* Flexbox for centering */
+  justify-content: center;         /* Center horizontally */
+  align-items: center;             /* Center vertically */
 }
 
-/* Modal Content */
+/* Modal Content Container */
 .modal-content {
-  background-color: #fefefe; /* White background */
-  margin: 15% auto; /* 15% from the top and centered */
-  padding: 20px; /* Some padding */
-  border: 1px solid #888; /* Grey border */
-  width: 80%; /* Could be more or less, depending on screen size */
-  max-width: 500px; /* Max width for larger screens */
-  border-radius: 8px; /* Rounded corners */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add some shadow */
-}
-
-/* Close button */
-.close {
-  color: #aaa; /* Grey */
-  float: right; /* Right align */
-  font-size: 28px; /* Big */
-  font-weight: bold; /* Bold */
-}
-
-.close:hover,
-.close:focus {
-  color: black; /* Change color on hover */
-  text-decoration: none; /* No underline */
-  cursor: pointer; /* Pointer cursor */
-}
-
-/* Label styling */
-label {
-  display: block; /* Block display for better spacing */
-  margin-bottom: 10px; /* Space below the label */
-}
-
-/* Select styling */
-select {
-  width: 100%; /* Full width for select */
-  padding: 10px; /* Padding for better look */
-  margin-bottom: 20px; /* Space below the select */
-  border: 1px solid #ccc; /* Border */
-  border-radius: 4px; /* Rounded corners */
-}
-
-/* Button container */
-.modal-buttons {
-  display: flex; /* Flexbox for even spacing */
-  justify-content: space-between; /* Space buttons evenly */
-}
-
-/* Button styling */
-button {
-  padding: 10px 20px; /* Padding */
-  font-size: 16px; /* Font size */
-  border: none; /* No border */
-  border-radius: 4px; /* Rounded corners */
-  cursor: pointer; /* Pointer cursor */
-  width: 48%; /* Make buttons the same width */
-}
-
-/* Submit button */
-.submit-button {
-  background-color: red; /* Red background */
-  color: white; /* White text */
-}
-
-.submit-button:hover {
-  background-color: darkred; /* Darker red on hover */
-}
-
-/* Cancel button */
-.cancel-button {
-  background-color: blue; /* Blue background */
-  color: white; /* White text */
-}
-
-.cancel-button:hover {
-  background-color: darkblue; /* Darker blue on hover */
-}
-
-
-
-
-/* Unique styles for each tab */
-#home {
-  background-color: #f0f8ff; /* Alice Blue for Home */
-  border-radius: 8px; /* Rounded corners */
-  padding: 20px;
-}
-
-#subjectView {
-  background-color: #e6ffe6; /* Light Green for Subject View */
-  border-radius: 8px; /* Rounded corners */
-  padding: 20px;
-}
-
-/* Search Section Styling */
-#search {
-  background-color: #fff8e1; /* Light yellow background for the search section */
-  border-radius: 8px; 
-  padding: 20px;
-}
-
-.search-container {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
-}
-
-#search-input {
-    padding: 10px;
-    border: 2px solid #ffcc00; /* Gold border for the search input */
-    border-radius: 5px;
-    width: 300px;
-    margin-right: 10px;
-}
-
-button {
-    background-color: #007bff; /* Deep blue button */
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 10px 20px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-button:hover {
-    background-color: #2d4373; /* Darker blue on hover */
-}
-
-/* Search Results Container */
-.results-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-/* Individual Document Styling */
-.doc-item {
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 15px;
-    margin: 10px 0;
-    background-color: #f9f9f9;
-    width: 100%;
-    max-width: 600px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-    transition: transform 0.2s ease, background-color 0.2s ease;
-}
-
-/* Hover Effect for Document Item */
-.doc-item:hover {
-    transform: translateY(-5px);
-    background-color: #e1f5fe; /* Light blue on hover */
-}
-
-/* Document Title */
-.doc-item h4 {
-    color: #ff6f00; /* Bright orange title */
-    margin: 0 0 10px 0;
-    font-size: 18px;
-}
-
-/* Document Details */
-.doc-item p {
-    margin: 5px 0;
-    color: #333;
-}
-
-.doc-item p strong {
-    color: #3b5998; /* Deep blue for labels */
-    font-weight: bold;
-}
-
-/* Additional styling for the title */
-.doc-item p:first-of-type {
-    font-size: 18px;
-    color: #10100f; /* Bright orange for title text */
-}
-
-/* Tag Styling */
-.doc-item .tags {
-    margin-top: 10px;
-    padding: 5px;
-    background-color: #ffcc80; /* Soft orange background for tags */
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.tags span {
-    background-color: #ffee58; /* Yellow for individual tags */
-    padding: 3px 8px;
-    margin: 2px;
-    border-radius: 3px;
-    display: inline-block;
-}
-
-/* Dates Styling */
-.doc-item .dates {
-    font-size: 12px;
-    color: #666;
-    margin-top: 10px;
-}
-
-/* Error message styling */
-#error-message {
-  background-color: #f8d7da;
-  color: #721c24;
-  padding: 10px;
-  border-radius: 5px;
-  margin-top: 10px;
-  display: none; /* Hidden by default */
-  text-align: center;
-}
-
-
-#contribute {
-  background-color: #ffe6f0; /* Light Pink for Contribute */
-  border-radius: 8px; /* Rounded corners */
-  padding: 20px;
-}
-
-.contribute-message {
-  background-color: #f9f9f9; /* Light background */
-  border: 2px solid #6c63ff; /* Border color */
-  border-radius: 10px; /* Rounded corners */
-  padding: 20px;
-  
-  /* Spacing inside the box */
-  margin: 20px 0; /* Spacing outside the box */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-}
-
-.contribute-message h3 {
-  color: #6c63ff; /* Heading color */
-  font-size: 24px; /* Font size for the heading */
-  text-align: center; /* Centered text */
-}
-
-.contribute-message h4 {
-  color: #333; /* Subheading color */
-  font-size: 20px; /* Font size for subheadings */
-  margin-top: 15px; /* Margin on top of the subheadings */
-}
-
-.contribute-message ul {
-  margin-left: 20px; /* Indent the list */
-}
-
-.contribute-message p {
-  line-height: 1.6; /* Spacing between lines */
-}
-
-.contribute-message a {
-  color: #ff4837; /* Link color */
-  text-decoration: underline; /* No underline */
-}
-
-.contribute-message a:hover {
-  text-decoration: underline; /* Underline on hover */
-}
-
-a.login-link {
-  color: rgb(17, 206, 17);
-  text-decoration: underline;
-  font-weight: bold;
-}
-
-
-.centered {
-  text-align: center; /* Centers the text */
-  margin: 15px 0; /* Add some vertical spacing */
-}
-
-/* FAQ Section */
-#faq {
-  background-color: #f0f4f8; /* Soft light blue background for contrast */
-  border-radius: 8px; /* Rounded corners */
-  padding: 20px; /* Inner spacing */
+  background-color: #fff;          /* White background for the content */
+  padding: 20px;                   /* Inner padding */
+  border-radius: 8px;              /* Rounded corners */
+  width: 400px;                    /* Set a fixed width */
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-  margin-top: 20px; /* Space above FAQ section */
 }
 
-/* Heading Style */
-h2 {
-  color: #34495e; /* Darker blue for the heading */
-  font-size: 2.5em; /* Increase font size */
-  text-align: center; /* Center the heading */
-  margin-bottom: 10px; /* Space below heading */
+/* Modal Header Styles */
+.modal-header {
+  display: flex;                   /* Flexbox for layout */
+  justify-content: space-between; /* Space between back button and title */
+  align-items: center;             /* Center align items */
 }
 
-/* Paragraph Style */
-p {
-  color: #7f8c8d; /* Gray color for paragraph text */
-  font-size: 1.2em; /* Increase font size for readability */
-  text-align: center; /* Center the paragraph */
-  margin-bottom: 20px; /* Space below paragraph */
+/* Back Button Styles */
+.back-btn {
+  background-color: #f0f0f0;    /* Light grey background for better contrast */
+  border: 1px solid #ccc;       /* Light grey border */
+  border-radius: 5px;           /* Rounded corners */
+  color: #2196F3;                /* Blue text color */
+  cursor: pointer;               /* Pointer cursor on hover */
+  font-size: 14px;               /* Font size */
+  font-weight: bold;             /* Bold text */
+  padding: 8px 12px;            /* Inner padding for better spacing */
+  transition: background-color 0.3s; /* Smooth background transition */
+  margin-bottom: 15px;                      /* Bold text */
 }
 
-/* FAQ List Style */
-.faq-list {
-  max-width: 800px; /* Limit width of the FAQ list */
-  margin: 0 auto; /* Center the FAQ list */
+/* Modal Body Header */
+.modal-body h2 {
+  margin-bottom: 10px;              /* Space below the heading */
 }
 
-/* FAQ Item Style */
-.faq-item {
-  background-color: #f9f9f9; /* Light gray background for FAQ items */
-  border: 1px solid #ccc; /* Light gray border */
-  border-radius: 5px; /* Rounded corners for FAQ items */
-  padding: 15px; /* Inner spacing for FAQ items */
-  margin: 10px 0; /* Space between FAQ items */
-  transition: box-shadow 0.3s, transform 0.3s, border 0.3s; /* Smooth transition for hover effects */
-  min-height: 150px; /* Ensure uniform height for all boxes */
-  display: flex; /* Flexbox for alignment */
-  flex-direction: column; /* Stack content vertically */
-  justify-content: center; /* Center content vertically */
-  text-align: center; /* Center text within the item */
+/* Textarea Styles */
+textarea {
+  width: 100%;                     /* Full width */
+  margin-bottom: 10px;             /* Space below the textarea */
+  padding: 8px;                    /* Inner padding */
+  border-radius: 4px;              /* Rounded corners */
+  border: 1px solid #ccc;          /* Light grey border */
+  font-size: 14px;                 /* Font size */
+  resize: vertical;                /* Allow vertical resizing only */
 }
 
-/* FAQ Item Heading Style */
-.faq-item h3 {
-  color: #6a0dad; /* Purple color for FAQ item headings */
-  font-size: 1.5em; /* Font size for FAQ headings */
-  margin-bottom: 10px; /* Space below FAQ heading */
-  font-weight: bold; /* Make the heading bold */
+/* FAQ Modal Buttons Container */
+.faq-modal-buttons {
+  display: flex;                   /* Flexbox for layout */
+  justify-content: space-between; /* Space between buttons */
 }
 
-/* FAQ Item Answer Style */
-.faq-item p {
-  color: #333; /* Dark gray color for answer text */
-  font-size: 1.1em; /* Slightly larger font size for answers */
-  font-weight: bold; /* Make the answer text bold */
+/* Clear Button Styles */
+.faq-clear-btn {
+  padding: 10px 15px;             /* Inner padding */
+  border: none;                   /* No border */
+  border-radius: 5px;             /* Rounded corners */
+  background-color: #f44336;      /* Red background */
+  color: white;                   /* White text */
+  cursor: pointer;                 /* Pointer cursor on hover */
+  transition: opacity 0.3s;       /* Smooth opacity transition */
 }
 
-/* FAQ Item Date Style */
-.faq-item small {
-  color: #e67e22; /* Bright orange color for date text */
-  font-size: 1em; /* Maintain a readable size for date */
-  font-weight: bold; /* Make the date text bold */
-  margin-top: 10px; /* Space above the date */
+/* Submit Button Styles */
+.faq-submit-btn {
+  padding: 10px 15px;             /* Inner padding */
+  border: none;                   /* No border */
+  border-radius: 5px;             /* Rounded corners */
+  background-color: #4CAF50;      /* Green background */
+  color: white;                   /* White text */
+  cursor: pointer;                 /* Pointer cursor on hover */
+  transition: opacity 0.3s;       /* Smooth opacity transition */
 }
 
-/* Hover effect for FAQ Items */
-.faq-item:hover {
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Shadow on hover */
-  transform: translateY(-5px); /* Raise the box on hover */
-  border: 2px solid #0a56d0; /* Colorful purple border on hover */
+/* Hover Effect for Buttons */
+.faq-clear-btn:hover,
+.faq-submit-btn:hover {
+  opacity: 0.9;                   /* Slightly fade on hover */
 }
 
-/* Style for Questions and Answers */
-.faq-item .question {
-  color: #27ae60; /* Bright green for the question */
-  font-weight: bold; /* Bold for emphasis */
-  text-align: center; /* Center the question text */
-}
+/* Responsive Adjustments */
+@media (max-width: 500px) {
+  .modal-content {
+      width: 90%;                 /* Full width on small screens */
+  }
 
-/* Prefix Styles */
-.prefix {
-  font-weight: bold; /* Make the prefix bold */
-  font-size: 1.2em; /* Slightly larger for visibility */
-}
-
-/* Answer Style */
-.faq-item .answer { 
-  color: #8e44ad; /* Bright purple color for the answer */
-  font-weight: bold; /* Make the answer bold */
-  text-align: center; /* Center the answer text */
-}
-
-/* FAQ Item Text Style */
-.faq-item p {
-  color: #333; /* Dark gray color for answer text */
-  font-size: 1.1em; /* Slightly larger font size for answers */
-  text-align: center; /* Center the text */
-}
-
-/* Logo Style */
-.footer-logo {
-  display: block; /* Ensure the logo is centered */
-  margin: 20px auto; /* Center the logo */
-  width: 20%; /* Adjust logo size as needed */
-}
-
-/* Purple Lines Above and Below Logo */
-.footer-logo-container {
-  text-align: center; /* Center the container */
-  margin: 20px 0; /* Margin above and below the lines */
-}
-
-.purple-line {
-  height: 4px; /* Line thickness */
-  background-color: #6a0dad; /* Purple color */
-  margin: 10px auto; /* Margin for spacing */
-  width: 80%; /* Width of the lines */
-}
-
-#faq-buttons {
-  display: flex;
-  justify-content: center; /* Center the buttons */
-  margin-top: 20px;
-}
-
-.faq-button {
-  margin: 0 10px; /* Equal spacing between buttons */
-  padding: 10px 20px; /* Same size for all buttons */
-  border: none;
-  border-radius: 5px;
-  color: white;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-/* Specific colors for each button */
-#add-faq {
-  background-color: #4CAF50; /* Green for Add FAQ */
-}
-
-#delete-faq {
-  background-color: #f44336; /* Red for Delete FAQ */
-}
-
-#update-faq {
-  background-color: #2196F3; /* Blue for Update FAQ */
-}
-
-/* Hover effect */
-.faq-button:hover {
-  opacity: 0.9;
+  textarea {
+      font-size: 12px;           /* Smaller font size for textareas */
+  }
 }
 
 /* Profile Icon Styling */
 .profile-icon {
-  position: fixed;
-  top: 10px;
-  right: 20px; /* Change left to right */
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background-color: #d502fa; /* Background color for the icon */
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #4a90e2;
   color: white;
-  font-weight: bold;
-  font-size: 16px;
-  cursor: pointer;
-  z-index: 1000; /* Ensure it's always visible */
+  padding: 10px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  margin-top: 10px;
+  font-size: 14px;
 }
+
 
 #profile-name {
   display: inline-block;

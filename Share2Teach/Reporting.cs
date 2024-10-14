@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
+using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace ReportManagement.Controllers
 {
@@ -15,6 +17,7 @@ namespace ReportManagement.Controllers
     public class ReportingController : ControllerBase
     {
         private readonly IMongoCollection<ReportDto> _reportCollection;
+        private readonly ILogger<ReportingController> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReportingController"/> class.
@@ -25,36 +28,53 @@ namespace ReportManagement.Controllers
             _reportCollection = database.GetCollection<ReportDto>("Reports");
         }
 
-        /// <summary>
-        /// Submits a new report.
-        /// </summary>
-        /// <param name="newReport">The report data to create.</param>
-        /// <returns>A task representing the asynchronous operation.</returns>
         [HttpPost("CreateReport")]
         public async Task<IActionResult> SubmitReport([FromBody] CreateReportDto newReport)
         {
-            if (newReport == null || string.IsNullOrEmpty(newReport.DocumentId) || string.IsNullOrEmpty(newReport.Reason))
-                return BadRequest(new { message = "Please provide all required information (DocumentId and Reason)." });
-
-            var report = new ReportDto
-            {
-                Id = ObjectId.GenerateNewId().ToString(),
-                DocumentId = newReport.DocumentId,
-                Reason = newReport.Reason,
-                Status = "pending",  // Set initial status to pending
-                DateReported = DateTime.UtcNow
-            };
-
             try
             {
+                _logger.LogInformation($"Received report: DocumentId={newReport?.DocumentId}, Reason={newReport?.Reason}");
+
+                // Validate the input
+                if (newReport == null || string.IsNullOrEmpty(newReport.DocumentId) || string.IsNullOrEmpty(newReport.Reason))
+                {
+                    _logger.LogWarning("Invalid report data received");
+                    return BadRequest(new { message = "Please provide all required information (DocumentId and Reason)." });
+                }
+
+                // Validate DocumentId format (MongoDB ObjectId)
+                if (!ObjectId.TryParse(newReport.DocumentId, out _))
+                {
+                    _logger.LogWarning($"Invalid DocumentId format: {newReport.DocumentId}");
+                    return BadRequest(new { message = "Invalid DocumentId format. It should be a 24-character hexadecimal string." });
+                }
+
+                // Create the report DTO
+                var report = new ReportDto
+                {
+                    Id = ObjectId.GenerateNewId().ToString(),
+                    DocumentId = newReport.DocumentId,
+                    Reason = newReport.Reason,
+                    Status = "pending",
+                    DateReported = DateTime.UtcNow
+                };
+
+                // Insert the report into MongoDB
+                _logger.LogInformation($"Inserting report: {JsonSerializer.Serialize(report)}");
                 await _reportCollection.InsertOneAsync(report);
-                return CreatedAtAction(nameof(GetAllReports), new { id = report.Id }, report);
+                _logger.LogInformation($"Report inserted successfully: Id={report.Id}");
+
+                // Return success response with the created report's ID
+                return CreatedAtAction(nameof(GetAllReports), new { id = report.Id }, new { id = report.Id });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Error saving report to the database.", error = ex.Message });
+                // Log the error and return 500 status code
+                _logger.LogError(ex, "Error occurred while processing report. Request body: {@newReport}", newReport);
+                return StatusCode(500, new { message = "An error occurred while processing your request.", error = ex.Message });
             }
         }
+
 
         /// <summary>
         /// Retrieves all reports.
