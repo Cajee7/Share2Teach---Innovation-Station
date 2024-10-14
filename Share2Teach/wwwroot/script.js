@@ -585,3 +585,14 @@ function performLogout() {
     localStorage.removeItem('userRole');
     window.location.href = './index.html'; // Redirect to landing page
 }
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    const featureItems = document.querySelectorAll('.feature-item');
+    
+    featureItems.forEach((item, index) => {
+      setTimeout(() => {
+        item.classList.add('visible');
+      }, index * 200); // Delay each feature's appearance by 200ms
+    });
+  });
