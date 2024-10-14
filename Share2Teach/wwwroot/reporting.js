@@ -1,88 +1,97 @@
-// Base URL for the backend API
-const baseUrl = 'http://localhost:5000/api/Reporting';
+const apiUrl = 'http://localhost:5281/api/reporting'; // Update this URL to match your backend
 
-// Handle form submission for creating a new report
-document.getElementById('report-form').addEventListener('submit', async (event) => {
-    event.preventDefault();
+async function submitReport() {
+    const documentId = document.getElementById('documentId').value;
+    const reason = document.getElementById('reason').value;
 
-    const documentId = document.getElementById('documentId').value.trim();
-    const reason = document.getElementById('reason').value.trim();
-
-    // Input validation
     if (!documentId || !reason) {
-        alert('Please provide a Document ID and a Reason for the report.');
+        alert("Please fill in all fields.");
         return;
     }
 
-    try {
-        const response = await fetch(`${baseUrl}/CreateReport`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ documentId, reason })
-        });
+    const response = await fetch(`${apiUrl}/CreateReport`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ DocumentId: documentId, Reason: reason }),
+    });
 
+    const feedbackElement = document.getElementById('createReportFeedback');
+    if (response.ok) {
         const result = await response.json();
-        document.getElementById('create-response').textContent = result.message || 'Report submitted successfully!';
-    } catch (error) {
-        console.error('Error submitting report:', error);
-        document.getElementById('create-response').textContent = 'Error submitting report: ' + error.message;
+        feedbackElement.innerText = "Report submitted successfully! ID: " + result.id;
+        document.getElementById('documentId').value = '';
+        document.getElementById('reason').value = '';
+    } else {
+        const error = await response.json();
+        feedbackElement.innerText = "Error: " + error.message;
     }
-});
+}
 
-// Handle fetching all reports
-document.getElementById('fetch-reports').addEventListener('click', async () => {
-    try {
-        const response = await fetch(`${baseUrl}/GetAllReports`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
+async function fetchReports() {
+    const response = await fetch(`${apiUrl}/GetAllReports`);
 
+    const feedbackElement = document.getElementById('fetchReportFeedback');
+    const reportsList = document.getElementById('reports-list');
+    reportsList.innerHTML = ''; // Clear previous results
+
+    if (response.ok) {
         const reports = await response.json();
-        const reportsList = document.getElementById('reports-list');
-        reportsList.innerHTML = '';
-
-        // Display each report in a list item
         reports.forEach(report => {
-            const listItem = document.createElement('li');
-            listItem.textContent = `ID: ${report.id}, Document ID: ${report.documentId}, Reason: ${report.reason}, Status: ${report.status}, Date: ${new Date(report.dateReported).toLocaleDateString()}`;
-            reportsList.appendChild(listItem);
+            const row = `<tr>
+                <td>${report.id}</td>
+                <td>${report.documentId}</td>
+                <td>${report.reason}</td>
+                <td>${report.status}</td>
+            </tr>`;
+            reportsList.insertAdjacentHTML('beforeend', row);
         });
-    } catch (error) {
-        console.error('Error fetching reports:', error);
-        alert('Error fetching reports: ' + error.message);
+        feedbackElement.innerText = `${reports.length} reports fetched successfully.`;
+    } else {
+        const error = await response.json();
+        feedbackElement.innerText = "Error: " + error.message;
     }
-});
+}
 
-// Handle form submission for updating report status
-document.getElementById('update-form').addEventListener('submit', async (event) => {
-    event.preventDefault();
+async function updateReportStatus() {
+    const id = document.getElementById('reportId').value;
+    const status = document.getElementById('status').value;
 
-    const reportId = document.getElementById('reportId').value.trim();
-    const status = document.getElementById('status').value.trim();
-
-    // Input validation
-    if (!reportId || !status) {
-        alert('Please provide a Report ID and select a Status.');
+    if (!id || !status) {
+        alert("Please fill in all fields.");
         return;
     }
 
-    try {
-        const response = await fetch(`${baseUrl}/updateStatus/${reportId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ status })
-        });
+    const response = await fetch(`${apiUrl}/updateStatus/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ Status: status }),
+    });
 
-        const result = await response.json();
-        document.getElementById('update-response').textContent = result.message || 'Status updated successfully!';
-    } catch (error) {
-        console.error('Error updating report status:', error);
-        document.getElementById('update-response').textContent = 'Error updating status: ' + error.message;
+    const feedbackElement = document.getElementById('updateStatusFeedback');
+    if (response.ok) {
+        feedbackElement.innerText = "Report status updated successfully!";
+        document.getElementById('reportId').value = '';
+    } else {
+        const error = await response.json();
+        feedbackElement.innerText = "Error: " + error.message;
     }
-});
+}
+
+async function deleteApprovedReports() {
+    const response = await fetch(`${apiUrl}/DeleteApprovedReports`, {
+        method: 'DELETE',
+    });
+
+    const feedbackElement = document.getElementById('deleteReportFeedback');
+    if (response.ok) {
+        const result = await response.json();
+        feedbackElement.innerText = result.message;
+    } else {
+        const error = await response.json();
+        feedbackElement.innerText = "Error: " + error.message;
+    }
+}
