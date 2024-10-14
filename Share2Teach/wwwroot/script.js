@@ -1,3 +1,121 @@
+// Function to perform login
+async function performLogin(event) {
+    event.preventDefault(); // Prevent the form from submitting and reloading the page
+    
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const errorMessage = document.getElementById('error-message');
+    const successMessage = document.getElementById('success-message'); // Success message element
+    
+    errorMessage.style.display = 'none'; // Hide the error message by default
+    successMessage.style.display = 'none'; // Hide the success message by default
+
+    let errors = [];
+
+    // Validate if fields are not empty
+    if (!email) {
+        errors.push('Email is required.');
+    } else if (!validateEmail(email)) {
+        errors.push('Please enter a valid email address.');
+    }
+
+    if (!password) {
+        errors.push('Password is required.');
+    } else if (password.length < 6) {
+        errors.push('Password must be at least 6 characters long.');
+    }
+
+    // Display error messages if there are any
+    if (errors.length > 0) {
+        errorMessage.style.display = 'block';
+        errorMessage.innerHTML = errors.join('<br>'); // Join errors with a line break for multiple errors
+        return;
+    }
+
+    // Prepare FormData to send to the server
+    const formData = new FormData();
+    formData.append('Email', email);
+    formData.append('Password', password);
+
+    try {
+        // Perform login logic by sending data to the backend
+        const response = await fetch('http://localhost:5281/api/Authenticate/login', {
+            method: 'POST',
+            body: formData
+        });
+
+        // Check if the login was successful
+        if (response.ok) {
+            const result = await response.json();
+            console.log('Login successful:', result.message);
+            console.log('Token:', result.token);
+            console.log('User Name:', result.userName); 
+            console.log('User Role:', result.userRole); 
+
+            // Store user information in localStorage for later use
+            localStorage.setItem('userName', result.userName);
+            localStorage.setItem('isLoggedIn', 'true'); // Mark user as logged in
+            localStorage.setItem('userRole', result.role); // Storing the user role
+            localStorage.setItem('token', result.token); // Store the JWT token
+
+            // Show animated success popup
+            successMessage.style.display = 'block';
+            successMessage.innerHTML = 'Logged in successfully!';
+            successMessage.style.backgroundColor = "#4CAF50"; // Green for success
+            successMessage.style.bottom = '-100px'; // Initially below the page
+            successMessage.style.opacity = '0';    // Initially transparent
+
+            setTimeout(() => {
+                successMessage.style.bottom = '20px'; // Slide it up
+                successMessage.style.opacity = '1';   // Fade in
+            }, 100);
+
+            // Hide the popup after 2 seconds
+            setTimeout(() => {
+                successMessage.style.bottom = '-100px'; // Slide back down
+                successMessage.style.opacity = '0';     // Fade out
+            }, 2000);
+
+            // Completely hide the message after the animation ends
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+                // Redirect to the landing page (index.html) after successful login
+                window.location.href = './index.html';  // Ensure the path is correct
+            }, 2300);
+
+            // Update UI elements after login
+            loadUserProfile();
+
+        } else if (response.status === 400) {
+            // Handle validation errors from the backend
+            errorMessage.style.display = 'block';
+            errorMessage.innerHTML = 'Invalid input. Please check your email and password.';
+        } else if (response.status === 401) {
+            // Handle unauthorized login attempt
+            errorMessage.style.display = 'block';
+            errorMessage.innerHTML = 'Invalid login attempt. Please check your email and password.';
+        } else {
+            // Handle other server-side errors
+            errorMessage.style.display = 'block';
+            errorMessage.innerHTML = 'An error occurred while logging in. Please try again later.';
+        }
+    } catch (error) {
+        // Handle network or unexpected errors
+        console.error('An error occurred:', error);
+        errorMessage.style.display = 'block';
+        errorMessage.innerHTML = 'An unexpected error occurred. Please try again.';
+    }
+}
+
+
+// Check login status on page load
+document.addEventListener('DOMContentLoaded', () => {
+    checkLoginStatus();
+    loadUserProfile();
+});
+function getJwtToken() {
+    return localStorage.getItem('token');
+}
 // Function to open tabs and handle dynamic loading
 function openTab(evt, tabName) {
     const tabContents = document.getElementsByClassName("tab-content");
@@ -26,7 +144,7 @@ async function loadFAQs() {
     faqErrorMessage.style.display = 'none'; // Hide previous error messages
 
     try {
-        const response = await fetch(`http://localhost:5281/api/FAQ/list`); // Replace with your actual API endpoint
+        const response = await fetch('http://localhost:5281/api/FAQ/list'); // Replace with your actual API endpoint
         if (!response.ok) throw new Error('Network response was not ok');
 
         const faqs = await response.json();
@@ -77,6 +195,7 @@ document.getElementById('clear-faq-btn').addEventListener('click', function() {
 
 // Submit the FAQ to the API when Add FAQ button is clicked
 document.getElementById('submit-faq-btn').addEventListener('click', async function() {
+    const token = getJwtToken(); 
     const question = document.getElementById('faq-question').value.trim();
     const answer = document.getElementById('faq-answer').value.trim();
     const errorMessageElement = document.getElementById('add-faq-error-message');
@@ -153,7 +272,7 @@ async function performSearch() {
 
     try {
         const encodedQuery = encodeURIComponent(query);
-        const response = await fetch(`http://localhost:5281/api/File/Search?query=${encodedQuery}`);
+        const response = await fetch('http://localhost:5281/api/File/Search?query=${encodedQuery}');
         if (!response.ok) throw new Error('Network response was not ok');
 
         const results = await response.json();
@@ -196,7 +315,7 @@ async function performSearch() {
             downloadLink.className = 'download-button';
             downloadLink.innerText = 'Download';
             downloadLink.href = doc.file_Url; // The URL to download the document
-            downloadLink.download = `${doc.title}.${doc.file_Type}`; // Optional: specify a filename
+            downloadLink.download = '${doc.title}.${doc.file_Type}'; // Optional: specify a filename
 
             // Create Report button
             const reportButton = document.createElement('button');
@@ -344,119 +463,7 @@ function showError(message, errorType) {
     }, 5000);
 }
 
-// Function to perform login
-async function performLogin(event) {
-    event.preventDefault(); // Prevent the form from submitting and reloading the page
-    
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value.trim();
-    const errorMessage = document.getElementById('error-message');
-    const successMessage = document.getElementById('success-message'); // Success message element
-    
-    errorMessage.style.display = 'none'; // Hide the error message by default
-    successMessage.style.display = 'none'; // Hide the success message by default
 
-    let errors = [];
-
-    // Validate if fields are not empty
-    if (!email) {
-        errors.push('Email is required.');
-    } else if (!validateEmail(email)) {
-        errors.push('Please enter a valid email address.');
-    }
-
-    if (!password) {
-        errors.push('Password is required.');
-    } else if (password.length < 6) {
-        errors.push('Password must be at least 6 characters long.');
-    }
-
-    // Display error messages if there are any
-    if (errors.length > 0) {
-        errorMessage.style.display = 'block';
-        errorMessage.innerHTML = errors.join('<br>'); // Join errors with a line break for multiple errors
-        return;
-    }
-
-    // Prepare FormData to send to the server
-    const formData = new FormData();
-    formData.append('Email', email);
-    formData.append('Password', password);
-
-    try {
-        // Perform login logic by sending data to the backend
-        const response = await fetch('http://localhost:5281/api/Authenticate/login', {
-            method: 'POST',
-            body: formData
-        });
-
-        // Check if the login was successful
-        if (response.ok) {
-            const result = await response.json();
-            console.log('Login successful:', result.message);
-            console.log('Token:', result.token);
-            console.log('User Name:', result.userName);
-
-            // Store user information in localStorage for later use
-            localStorage.setItem('userName', result.userName);
-            localStorage.setItem('isLoggedIn', 'true'); // Mark user as logged in
-            localStorage.setItem('userRole', result.role); // Storing the user role
-
-            // Show animated success popup
-            successMessage.style.display = 'block';
-            successMessage.innerHTML = 'Logged in successfully!';
-            successMessage.style.backgroundColor = "#4CAF50"; // Green for success
-            successMessage.style.bottom = '-100px'; // Initially below the page
-            successMessage.style.opacity = '0';    // Initially transparent
-
-            setTimeout(() => {
-                successMessage.style.bottom = '20px'; // Slide it up
-                successMessage.style.opacity = '1';   // Fade in
-            }, 100);
-
-            // Hide the popup after 2 seconds
-            setTimeout(() => {
-                successMessage.style.bottom = '-100px'; // Slide back down
-                successMessage.style.opacity = '0';     // Fade out
-            }, 2000);
-
-            // Completely hide the message after the animation ends
-            setTimeout(() => {
-                successMessage.style.display = 'none';
-                // Redirect to the landing page (index.html) after successful login
-                window.location.href = './index.html';  // Ensure the path is correct
-            }, 2300);
-
-            // Update UI elements after login
-            loadUserProfile();
-
-        } else if (response.status === 400) {
-            // Handle validation errors from the backend
-            errorMessage.style.display = 'block';
-            errorMessage.innerHTML = 'Invalid input. Please check your email and password.';
-        } else if (response.status === 401) {
-            // Handle unauthorized login attempt
-            errorMessage.style.display = 'block';
-            errorMessage.innerHTML = 'Invalid login attempt. Please check your email and password.';
-        } else {
-            // Handle other server-side errors
-            errorMessage.style.display = 'block';
-            errorMessage.innerHTML = 'An error occurred while logging in. Please try again later.';
-        }
-    } catch (error) {
-        // Handle network or unexpected errors
-        console.error('An error occurred:', error);
-        errorMessage.style.display = 'block';
-        errorMessage.innerHTML = 'An unexpected error occurred. Please try again.';
-    }
-}
-
-
-// Check login status on page load
-document.addEventListener('DOMContentLoaded', () => {
-    checkLoginStatus();
-    loadUserProfile();
-});
 
 // Function to clear the login form
 function clearLoginForm() {
