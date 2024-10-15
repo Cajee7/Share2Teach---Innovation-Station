@@ -272,7 +272,7 @@ async function performSearch() {
 
     try {
         const encodedQuery = encodeURIComponent(query);
-        const response = await fetch('http://localhost:5281/api/File/Search?query=${encodedQuery}');
+        const response = await fetch(`http://localhost:5281/api/File/Search?query=${encodedQuery}`);
         if (!response.ok) throw new Error('Network response was not ok');
 
         const results = await response.json();
@@ -288,6 +288,9 @@ async function performSearch() {
             docElement.className = 'doc-item';
 
             const tags = doc.tags && doc.tags.length > 0 ? doc.tags.join(', ') : 'No tags available';
+            
+            console.log(doc);
+            console.log('File URL:', doc.file_Url);
 
             docElement.innerHTML = `
                 <p><strong>Title:</strong> ${doc.title || 'No title available'}</p>
@@ -310,12 +313,127 @@ async function performSearch() {
             previewButton.innerText = 'Preview';
             previewButton.onclick = () => previewDocument(doc.file_Url); // Ensure preview works
 
-            // Create Download button using an anchor
+            // Create Download button
             const downloadLink = document.createElement('a');
             downloadLink.className = 'download-button';
             downloadLink.innerText = 'Download';
-            downloadLink.href = doc.file_Url; // The URL to download the document
-            downloadLink.download = '${doc.title}.${doc.file_Type}'; // Optional: specify a filename
+
+            // Check if file URL exists in the document metadata
+            if (doc.file_Url) {
+                downloadLink.href = doc.file_Url; // Use the Nextcloud file URL for downloading
+                downloadLink.download = `${doc.title || 'document'}.pdf`; // Specify a filename
+            } else {
+                console.error('File URL is undefined in the document:', doc);
+                downloadLink.href = '#'; // If no URL, set to '#' 
+                downloadLink.innerText = 'File URL not available'; // Indicate unavailability
+            }
+
+            // Create Report button
+            const reportButton = document.createElement('button');
+            reportButton.className = 'report-button'; // Use your CSS class for report button
+            reportButton.innerHTML = '<strong>!</strong>'; // Exclamation mark as content
+            reportButton.onclick = () => openReportModal(doc.id); // Pass the document ID to the report modal
+
+            // Append buttons to the container
+            buttonContainer.appendChild(previewButton);
+            buttonContainer.appendChild(downloadLink); // Append anchor as a button
+            buttonContainer.appendChild(reportButton); // Append report button
+            docElement.appendChild(buttonContainer);
+
+            resultsContainer.appendChild(docElement);
+        });
+
+    } catch (error) {
+        console.error('Error fetching search results:', error);
+        searchErrorMessage.innerText = 'Error fetching search results. Please try again later.';
+        searchErrorMessage.style.display = 'block'; // Show the error message
+    }
+}
+async function performSearch() {
+    const searchInputElement = document.getElementById('search-input');
+    const resultsContainer = document.getElementById('results-container');
+    const searchErrorMessage = document.getElementById('search-error-message'); // Error message for search
+    searchErrorMessage.style.display = 'none'; // Hide previous error messages
+
+    // Clear previous results
+    resultsContainer.innerHTML = '';
+
+    // Check if the search input element exists
+    if (!searchInputElement) {
+        searchErrorMessage.innerText = 'Search input not found. Please check the HTML structure.';
+        searchErrorMessage.style.display = 'block';
+        return;
+    }
+
+    const query = searchInputElement.value.trim();
+    
+    if (!query) {
+        searchErrorMessage.innerText = 'Please enter a search term.';
+        searchErrorMessage.style.display = 'block';
+        return;
+    }
+
+    try {
+        const encodedQuery = encodeURIComponent(query);
+        const response = await fetch(`http://localhost:5281/api/File/Search?query=${encodedQuery}`);
+        if (!response.ok) throw new Error('Network response was not ok');
+
+        const results = await response.json();
+
+        if (results.length === 0) {
+            resultsContainer.innerHTML = '<p>No documents found matching the search criteria.</p>';
+            return;
+        }
+
+        // Display the results
+        results.forEach(doc => {
+            const docElement = document.createElement('div');
+            docElement.className = 'doc-item';
+
+            const tags = doc.tags && doc.tags.length > 0 ? doc.tags.join(', ') : 'No tags available';
+            
+            console.log(doc);
+            console.log('File URL:', doc.file_Url);
+
+            docElement.innerHTML = `
+    <p><strong>Title:</strong> ${doc.title || 'No title available'}</p>
+    <p><strong>Subject:</strong> ${doc.subject || 'No subject available'}</p>
+    <p><strong>Grade:</strong> ${doc.grade || 'No grade available'}</p>
+    <p><strong>Description:</strong> ${doc.description || 'No description available'}</p>
+    <p><strong>File Size:</strong> ${doc.file_Size ? doc.file_Size + ' MB' : 'File size not available'}</p>
+    <p><strong>Tags:</strong> ${tags}</p>
+    <p><strong>Date Uploaded:</strong> ${doc.date_Uploaded ? new Date(doc.date_Uploaded).toLocaleDateString() : 'Date not available'}</p>
+    <p><strong>Date Updated:</strong> ${doc.date_Updated ? new Date(doc.date_Updated).toLocaleDateString() : 'Date not available'}</p>
+    <p><strong>File URL:</strong> <a href="${doc.file_Url}" target="_blank">${doc.file_Url}</a></p>
+`;
+
+            // Create buttons
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'button-container';
+
+            // Create Preview button
+            const previewButton = document.createElement('button');
+            previewButton.className = 'preview-button';
+            previewButton.innerText = 'Preview';
+            previewButton.onclick = () => previewDocument(doc.file_Url); // Ensure preview works
+
+            // Create Download button
+            const downloadLink = document.createElement('a');
+            downloadLink.className = 'download-button';
+            downloadLink.innerText = 'Download';
+            downloadLink.href = doc.file_Url; // Ensure this is the correct file URL
+            downloadLink.download = doc.title ? `${doc.title}.pdf` : 'download.pdf'; // Set a default name
+
+
+            // Check if file URL exists in the document metadata
+            if (doc.file_Url) {
+                downloadLink.href = doc.file_Url; // Use the Nextcloud file URL for downloading
+                downloadLink.download = `${doc.title || 'document'}.pdf`; // Specify a filename
+            } else {
+                console.error('File URL is undefined in the document:', doc);
+                downloadLink.href = '#'; // If no URL, set to '#' 
+                downloadLink.innerText = 'File URL not available'; // Indicate unavailability
+            }
 
             // Create Report button
             const reportButton = document.createElement('button');
