@@ -1,5 +1,6 @@
 // Base URL for Nextcloud documents
-const baseUrl = 'http://4.222.22.37/index.php/s/';
+
+const baseUrl = 'https://innovationstation.ddns.net/remote.php/dav/files/InnovationStation/Uploads/ ';
 const username = "InnovationStation"; // Nextcloud username
 const password = "IS_S2T24"; // Nextcloud password
 
@@ -107,7 +108,7 @@ function populateTable(documents) {
             <td>${doc.grade}</td>
             <td>${doc.description}</td>
             <td>${doc.file_Size} MB</td>
-            <td><a href="#" class="view-file-link" data-file-url="${fileUrl}">View File</a></td>
+            <td><a href="https://innovationstation.ddns.net/s/your-shared-link" target="_blank">View File</a></td>
             <td>${doc.moderation_Status}</td>
             <td>${doc.ratings}</td>
             <td>${new Date(doc.date_Uploaded).toLocaleDateString()}</td>
@@ -116,36 +117,25 @@ function populateTable(documents) {
     });
 }
 
-// Function to open file with Basic Authentication
+// Function to open file with Basic Authentication directly
 function openFileWithAuth(fileUrl) {
+    // Construct a URL with embedded Basic Authentication (only for test/dev purposes)
+    const credentials = `${username}:${password}`;
+    const authUrl = fileUrl.replace('http://', `http://${credentials}@`);
+
+    console.log('Opening file with URL:', authUrl); // Log the authenticated URL
+    
+    // Open the file in a new tab using the authenticated URL
+    window.open(authUrl, '_blank');
+    function openFileWithAuth(fileUrl) {
     const credentials = btoa(`${username}:${password}`);
+    const authUrl = `http://${username}:${password}@${fileUrl}`;
 
-    console.log('Fetching file with URL:', fileUrl); // Log the file URL being fetched
+    console.log('Opening file with authenticated URL:', authUrl); // Log the URL
 
-    fetch(fileUrl, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Basic ${credentials}`
-        }
-    })
-    .then(response => {
-        console.log('Response status:', response.status); // Log response status
-        if (!response.ok) {
-            throw new Error(`Network response was not ok: ${response.statusText}`);
-        }
-        return response.blob();  // Read response as blob
-    })
-    .then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        console.log('Opening file in new tab with blob URL:', url); // Log the blob URL
-        window.open(url, '_blank'); // Open the blob URL in a new tab
-    })
-    .catch(error => {
-        console.error('Error opening file:', error);
-        alert(`Failed to open the file: ${error.message}`); // Show detailed error
-    });
-
-    return false; // Prevent default anchor click behavior
+    // Open the file in a new tab
+    window.open(authUrl, '_blank');
+}
 }
 
 // Handle modal operations
@@ -192,3 +182,4 @@ function openModerationModal() {
         alert("Please select a document to moderate.");
     }
 }
+
