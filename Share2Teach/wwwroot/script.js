@@ -144,7 +144,7 @@ async function loadFAQs() {
     faqErrorMessage.style.display = 'none'; // Hide previous error messages
 
     try {
-        const response = await fetch('http://localhost:5281/api/FAQ/list'); // Replace with your actual API endpoint
+        const response = await fetch('http://localhost:5281/api/FAQ/list'); // API endpoint
         if (!response.ok) throw new Error('Network response was not ok');
 
         const faqs = await response.json();
