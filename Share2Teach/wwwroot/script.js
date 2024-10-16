@@ -975,3 +975,65 @@ function performLogout() {
     localStorage.removeItem('userRole');
     window.location.href = './index.html'; // Redirect to landing page
 };
+
+document.addEventListener('DOMContentLoaded', function() {
+    const featureItems = document.querySelectorAll('.feature-item');
+
+    // Use setTimeout to stagger the visibility for each feature item
+    featureItems.forEach((item, index) => {
+        setTimeout(() => {
+            item.classList.add('visible');
+        }, index * 200); // Stagger visibility by 200ms
+    });
+});
+
+// JavaScript for handling subject click and fetching document
+
+// JavaScript for handling subject click and fetching document
+
+document.querySelectorAll('.subject-block').forEach(subjectBlock => {
+    subjectBlock.addEventListener('click', function() {
+        const subject = this.textContent.trim(); // Get subject name
+
+        // Define subject IDs (this can be expanded as per your need)
+        const subjectIDs = {
+            "Mathematics": "670ed342be670e75745fe650", // Maths ID
+            // Add more subjects and their IDs if needed
+        };
+
+        if (subject in subjectIDs) {
+            // Construct the API URL using the subject ID
+            const apiUrl = `http://localhost:5281/api/Moderation/update/${subjectIDs[subject]}`;
+
+            console.log('Fetching document for subject:', subject); // Debug log
+            console.log('API URL:', apiUrl); // Debug log
+
+            // Fetch the document for the clicked subject using PUT with authorization header
+            fetch(apiUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTbG9hbmVDYXJseUBnaXJsc2hpZ2guZWR1IiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6IkNhcmx5IFNsb2FuZSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6InRlYWNoZXIiLCJqdGkiOiJlNjE4NTkzYy0wNTE3LTRkMzEtYTU1Yy1hMzIzM2E5ZjI2NmMiLCJleHAiOjE3MjkwODU4MjEsImlzcyI6IlNoYXJlMlRlYWNoIiwiYXVkIjoiU2hhcmUyVGVhY2hVc2VycyJ9.0nvYPdsmUlv_MdtYMyt3I58z7zBnmjPMYnWy0xsjnmM' // Add your token here
+                },
+                body: JSON.stringify({ subject: subject }) // You can modify the body if needed
+            })
+            .then(response => {
+                console.log('Response status:', response.status); // Debug log
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Document for', subject, data); // Debug log
+                document.getElementById('documentDisplay').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            })
+            .catch(error => {
+                console.error('Error fetching document:', error); // More detailed logging
+                alert(`Failed to fetch document for ${subject}: ${error.message}`);
+            });
+        } else {
+            alert('No document available for ' + subject);
+        }
+    });
+});
