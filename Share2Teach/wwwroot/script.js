@@ -408,7 +408,7 @@ async function deleteFaq(faqId) {
     }
 
     try {
-        const response = await fetch($,{apiUrl}/delete?id=$:{faqId}, {
+        const response = await fetch(`$,{apiUrl}/delete?id=$:{faqId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': Bearer, $:-{authToken},
@@ -486,7 +486,7 @@ async function performSearch() {
     try {
         console.log('Fetching search results for query:', query);
         const encodedQuery = encodeURIComponent(query);
-        const response = await fetch('http://localhost:5281/api/File/Search'?query=$:{encodedQuery});
+        const response = await fetch(`http://localhost:5281/api/File/Search?query=${encodedQuery}`);
         if (!response.ok) throw new Error('Network response was not ok');
 
         const results = await response.json();
@@ -499,22 +499,23 @@ async function performSearch() {
         }
 
         results.forEach((doc, index) => {
-            console.log(Processing ,document ,$,{index + 1}:, doc);
+            console.log(`Processing ,document ,$,{index + 1}:`, doc);
             const docElement = document.createElement('div');
             docElement.className = 'doc-item';
 
             const tags = doc.tags?.join(', ') ?? 'No tags available';
 
             docElement.innerHTML = `
-                <p><strong>Title:</strong> ${doc.title ?? 'No title available'}</p>
-                <p><strong>Subject:</strong> ${doc.subject ?? 'No subject available'}</p>
-                <p><strong>Grade:</strong> ${doc.grade ?? 'No grade available'}</p>
-                <p><strong>Description:</strong> ${doc.description ?? 'No description available'}</p>
-                <p><strong>File Size:</strong> ${doc.file_Size ? ${doc.file_Size} MB : 'File size not available'}</p>
-                <p><strong>Tags:</strong> ${tags}</p>
-                <p><strong>Date Uploaded:</strong> ${doc.date_Uploaded ? new Date(doc.date_Uploaded).toLocaleDateString() : 'Date not available'}</p>
-                <p><strong>Date Updated:</strong> ${doc.date_Updated ? new Date(doc.date_Updated).toLocaleDateString() : 'Date not available'}</p>
+            <p><strong>Title:</strong> ${doc.title ?? 'No title available'}</p>
+            <p><strong>Subject:</strong> ${doc.subject ?? 'No subject available'}</p>
+            <p><strong>Grade:</strong> ${doc.grade ?? 'No grade available'}</p>
+            <p><strong>Description:</strong> ${doc.description ?? 'No description available'}</p>
+            <p><strong>File Size:</strong> ${doc.file_Size ? `${doc.file_Size} MB` : 'File size not available'}</p>
+            <p><strong>Tags:</strong> ${tags ?? 'No tags available'}</p>  <!-- Ensure tags is defined -->
+            <p><strong>Date Uploaded:</strong> ${doc.date_Uploaded ? new Date(doc.date_Uploaded).toLocaleDateString() : 'Date not available'}</p>
+            <p><strong>Date Updated:</strong> ${doc.date_Updated ? new Date(doc.date_Updated).toLocaleDateString() : 'Date not available'}</p>
             `;
+
 
             const buttonContainer = document.createElement('div');
             buttonContainer.className = 'button-container';
@@ -523,10 +524,10 @@ async function performSearch() {
             const previewButton = document.createElement('button');
             previewButton.className = 'preview-button';
             previewButton.innerText = 'Preview';
-            if (doc.file_url) {
+            if (doc.file_Url) {
                 previewButton.onclick = function() {
                     console.log('Preview button clicked for document:', doc.title);
-                    previewDocument(doc.file_url);
+                    previewDocument(doc.file_Url);
                 };
             } else {
                 previewButton.disabled = true;
@@ -538,10 +539,10 @@ async function performSearch() {
             const downloadButton = document.createElement('button');
             downloadButton.className = 'download-button';
             downloadButton.innerText = 'Download';
-            if (doc.file_url) {
+            if (doc.file_Url) {
                 downloadButton.onclick = function() {
                     console.log('Download button clicked for document:', doc.title);
-                    downloadDocument(doc.file_url, doc.title);
+                    downloadDocument(doc.file_Url, doc.title);
                 };
             } else {
                 downloadButton.disabled = true;
@@ -815,13 +816,13 @@ function updateContributeTabAndNavigation(userRole) {
 
                     // Validate file size
                     if (file.size > maxFileSizeMb * 1024 * 1024) {
-                        throw new Error(File size exceeds the limit of ${maxFileSizeMb} MB.);
+                        throw new Error(`File size exceeds the limit of ${maxFileSizeMb} MB.`);
                     }
 
                     // Validate file type
                     const fileType = '.' + file.name.split('.').pop().toLowerCase();
                     if (!allowedFileTypes.includes(fileType)) {
-                        throw new Error(File type '${fileType}' is not allowed. Allowed types are: ${allowedFileTypes.join(', ')});
+                        throw new Error(`File type '${fileType}' is not allowed. Allowed types are: ${allowedFileTypes.join(', ')}`);
                     }
                 } catch (error) {
                     console.error('Upload error:', error.message);
@@ -871,12 +872,12 @@ function updateContributeTabAndNavigation(userRole) {
                     body: formData,
                     headers: {
                         
-                        'Authorization': Bearer ${authToken}
+                        'Authorization': Bearer `${authToken}`
                     }
                 });
 
                 if (!response.ok) {
-                    throw new Error(Upload failed: ${response.statusText});
+                    throw new Error(`Upload failed: ${response.statusText}`);
                 }
 
                 const result = await response.json();
@@ -943,7 +944,7 @@ function showMessage(message, type) {
     const contributeTab = document.getElementById('contribute');
     const messageElement = document.createElement('div');
     messageElement.textContent = message;
-    messageElement.className = message ${type};
+    messageElement.className = `message ${type}`;
     contributeTab.appendChild(messageElement);
     
     // Remove the message after 5 seconds
@@ -973,4 +974,4 @@ function performLogout() {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('userRole');
     window.location.href = './index.html'; // Redirect to landing page
-}
+};
