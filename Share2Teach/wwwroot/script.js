@@ -746,14 +746,13 @@ function loadUserProfile() {
 }
 
 
-// Function to update the contribute tab and navigation
 function updateContributeTabAndNavigation(userRole) {
     const contributeTab = document.getElementById('contribute');
     if (contributeTab) {
-        // Remove or hide the introductory message paragraph (e.g., "Calling all educators")
+        // Remove or hide the introductory message paragraph
         const introParagraph = contributeTab.querySelector('.contribute-message'); 
         if (introParagraph) {
-            introParagraph.style.display = 'none'; // Hide the introductory paragraph
+            introParagraph.style.display = 'none';
         }
 
         // Update heading and message for logged-in users
@@ -774,45 +773,42 @@ function updateContributeTabAndNavigation(userRole) {
         const fileUpload = document.createElement('input');
         fileUpload.type = 'file';
         fileUpload.id = 'file-upload';
-        fileUpload.style.display = 'none'; // Keep it hidden initially
+        fileUpload.style.display = 'none';
         contributeTab.appendChild(fileUpload);
 
         // Create and append the upload form (initially hidden)
         const uploadForm = document.createElement('div');
         uploadForm.id = 'upload-form';
-        uploadForm.style.display = 'none'; // Hide form initially
+        uploadForm.style.display = 'none';
         uploadForm.innerHTML = `
-        <input type="text" id="title" placeholder="Title" />
-        <input type="text" id="subject" placeholder="Subject" />
-        <input type="text" id="grade" placeholder="Grade (integer)" /> 
-        <textarea id="description" placeholder="Description"></textarea>
-        <button id="clear-btn" style="background-color: red; color: white;">Clear</button> 
-    `;
+            <input type="text" id="title" placeholder="Title" />
+            <input type="text" id="subject" placeholder="Subject" />
+            <input type="text" id="grade" placeholder="Grade (integer)" /> 
+            <textarea id="description" placeholder="Description"></textarea>
+            <button id="clear-btn" style="background-color: red; color: white;">Clear</button> 
+        `;
         contributeTab.appendChild(uploadForm);
 
         // Maximum file size in MB
-        const maxFileSizeMb = 10; // Adjust as needed
+        const maxFileSizeMb = 10;
 
         // Allowed file types
         const allowedFileTypes = ['.pdf', '.doc', '.docx'];
 
-        // Add event listener to the upload button to trigger file selection
+        // Add event listener to the upload button
         uploadBtn.addEventListener('click', () => {
             if (uploadForm.style.display === 'block') {
-                handleUpload(); // Call upload function if form is visible
+                handleUpload();
             } else {
-                fileUpload.click(); // Programmatically click the hidden file input
+                fileUpload.click();
             }
         });
 
-        // Handle file selection and show the input fields
-        fileUpload.addEventListener('change', async (event) => {
+        // Handle file selection
+        fileUpload.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file) {
                 try {
-                    // Show the upload form
-                    uploadForm.style.display = 'block'; // Show the form fields
-                
                     // Validate file size
                     if (file.size > maxFileSizeMb * 1024 * 1024) {
                         throw new Error(`File size exceeds the limit of ${maxFileSizeMb} MB.`);
@@ -823,9 +819,11 @@ function updateContributeTabAndNavigation(userRole) {
                     if (!allowedFileTypes.includes(fileType)) {
                         throw new Error(`File type '${fileType}' is not allowed. Allowed types are: ${allowedFileTypes.join(', ')}`);
                     }
+
+                    // Show the upload form
+                    uploadForm.style.display = 'block';
                 } catch (error) {
                     console.error('Upload error:', error.message);
-                    // Show error message to the user
                     showMessage(error.message, 'error');
                 }
             }
@@ -833,12 +831,17 @@ function updateContributeTabAndNavigation(userRole) {
 
         // Function to handle the upload process
         async function handleUpload() {
-            // Get input values
+            // Get input elements
             const titleInput = document.getElementById('title');
             const subjectInput = document.getElementById('subject');
             const gradeInput = document.getElementById('grade');
             const descriptionInput = document.getElementById('description');
-
+        
+            // Check if elements exist
+            if (!titleInput || !subjectInput || !gradeInput || !descriptionInput) {
+                return showMessage('One or more form elements are missing. Please check the HTML structure.', 'error');
+            }
+        
             // Validate inputs
             if (!titleInput.value.trim() || !subjectInput.value.trim() || !gradeInput.value.trim() || !descriptionInput.value.trim()) {
                 return showMessage('Please fill in all fields.', 'error');
@@ -852,10 +855,10 @@ function updateContributeTabAndNavigation(userRole) {
 
             // Prepare form data
             const formData = new FormData();
-            formData.append('UploadedFile', fileUpload.files[0]); // The file is already selected
+            formData.append('UploadedFile', fileUpload.files[0]);
             formData.append('Title', titleInput.value);
             formData.append('Subject', subjectInput.value);
-            formData.append('Grade', gradeValue); // Use the validated grade value
+            formData.append('Grade', gradeValue);
             formData.append('Description', descriptionInput.value);
 
             // Get the authentication token
@@ -870,13 +873,11 @@ function updateContributeTabAndNavigation(userRole) {
                     method: 'POST',
                     body: formData,
                     headers: {
-                        
-                        'Authorization': Bearer `${authToken}`
+                        'Authorization': `Bearer ${authToken}`
                     }
                 });
             
                 if (!response.ok) {
-                    throw new Error(`Upload failed: ${response.statusText}`);
                     throw new Error(`Upload failed: ${response.statusText}`);
                 }
 
@@ -892,14 +893,13 @@ function updateContributeTabAndNavigation(userRole) {
                 descriptionInput.value = '';
 
                 // Hide the form again
-                uploadForm.style.display = 'none'; // Hide the form fields again
+                uploadForm.style.display = 'none';
 
                 // Update UI to show success message
                 showPopup("Success!! File uploaded successfully!");
 
             } catch (error) {
                 console.error('Upload error:', error.message);
-                // Show error message to the user
                 showMessage(error.message, 'error');
             }
         }
@@ -907,21 +907,15 @@ function updateContributeTabAndNavigation(userRole) {
         // Add event listener for the clear button
         const clearBtn = document.getElementById('clear-btn');
         clearBtn.addEventListener('click', () => {
-            // Clear input fields
             document.getElementById('title').value = '';
             document.getElementById('subject').value = '';
             document.getElementById('grade').value = '';
             document.getElementById('description').value = '';
-
-            // Clear the file input
             fileUpload.value = '';
-
-            // Hide the upload form
-            uploadForm.style.display = 'none'; // Hide the form fields
+            uploadForm.style.display = 'none';
         });
-
-
     }
+
 
     // Update dropdown menu: change the login button to logout
     const logoutBtn = document.getElementById('logout-btn');
@@ -938,7 +932,6 @@ function updateContributeTabAndNavigation(userRole) {
         }
     }
 }
-
 // Helper function to show messages to the user
 function showMessage(message, type) {
     const contributeTab = document.getElementById('contribute');
