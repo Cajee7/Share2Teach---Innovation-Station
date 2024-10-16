@@ -268,6 +268,7 @@ namespace Combined.Controllers
         /// <param name="request">The search request containing the query string.</param>
         /// <returns>An IActionResult containing the search results or an error message.</returns>
         [HttpGet("Search")]
+        [AllowAnonymous]
         public async Task<IActionResult> SearchDocuments([FromQuery] SearchRequest request)
         {
             try

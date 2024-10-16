@@ -1,102 +1,95 @@
-document.getElementById('signup-form').addEventListener('submit', async function(event) {
-    event.preventDefault(); // Prevent the default form submission
+document.addEventListener("DOMContentLoaded", function () {
+  const signupForm = document.getElementById("signup-form");
+  const passwordInput = document.getElementById("password");
+  const confirmPasswordInput = document.getElementById("confirmPassword");
+  const togglePassword = document.getElementById("togglePassword");
+  const toggleConfirmPassword = document.getElementById("toggleConfirmPassword");
+  const roleSelect = document.getElementById("role");
+  const subjectsGroup = document.getElementById("subjects-group");
+  const message = document.getElementById("message");
+  
+  // Toggle Password Visibility
+  togglePassword.addEventListener("click", function () {
+      const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+      passwordInput.setAttribute("type", type);
+      togglePassword.textContent = type === "password" ? "👁️" : "👁️‍🗨️"; // Open/close eye icon
+  });
 
-    const firstName = document.getElementById('firstName').value.trim();
-    const lastName = document.getElementById('lastName').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    const subjects = document.getElementById('subjects').value.split(',').map(subject => subject.trim()).filter(subject => subject);
+  toggleConfirmPassword.addEventListener("click", function () {
+      const type = confirmPasswordInput.getAttribute("type") === "password" ? "text" : "password";
+      confirmPasswordInput.setAttribute("type", type);
+      toggleConfirmPassword.textContent = type === "password" ? "👁️" : "👁️‍🗨️"; // Open/close eye icon
+  });
 
-    // Clear previous error messages
-    clearErrorMessages();
+  // Show subjects input only for "Teacher" role
+  roleSelect.addEventListener("change", function () {
+      if (roleSelect.value === "teacher") {
+          subjectsGroup.style.display = "block";
+      } else {
+          subjectsGroup.style.display = "none";
+      }
+  });
 
-    // Validations
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Basic email validation
-    const errorMessages = [];
+  // Handle form submission
+  signupForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
 
-    if (!firstName) {
-        errorMessages.push("First name cannot be empty.");
-    }
-    
-    if (!lastName) {
-        errorMessages.push("Last name cannot be empty.");
-    }
+      const firstName = document.getElementById("firstName").value;
+      const lastName = document.getElementById("lastName").value;
+      const email = document.getElementById("email").value;
+      const role = document.getElementById("role").value;
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+      const subjects = role === "teacher" ? document.getElementById("subjects").value.split(',').map(subject => subject.trim()) : [];
 
-    if (!email) {
-        errorMessages.push("Email cannot be empty.");
-    } else if (!emailPattern.test(email)) {
-        errorMessages.push("Please enter a valid email address.");
-    }
+      if (password !== confirmPassword) {
+          message.textContent = "Passwords do not match.";
+          return;
+      }
 
-    if (!password) {
-        errorMessages.push("Password cannot be empty.");
-    } else if (password.length < 8) {
-        errorMessages.push("Password must be at least 8 characters long.");
-    }
+      // Prepare form data
+      const formData = new FormData();
+      formData.append("FirstName", firstName);
+      formData.append("LastName", lastName);
+      formData.append("Email", email);
+      formData.append("Role", role);
+      formData.append("Password", password);
+      formData.append("ConfirmPassword", confirmPassword);
 
-    if (!confirmPassword) {
-        errorMessages.push("Confirm password cannot be empty.");
-    } else if (password !== confirmPassword) {
-        errorMessages.push("Passwords do not match.");
-    }
+      if (role === "teacher") {
+          formData.append("Subjects", subjects);
+      }
 
-    if (subjects.length === 0) {
-        errorMessages.push("Please provide at least one subject.");
-    }
+      try {
+          const response = await fetch('http://localhost:5281/api/Authenticate/register', {
+              method: 'POST',
+              body: formData
+          });
 
-    if (errorMessages.length > 0) {
-        showErrorMessages(errorMessages);
-        return;
-    }
+          const result = await response.json();
 
-    // Continue with the form submission logic (AJAX call or form submission)
-    const response = await fetch('api/Authenticate/register', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            FirstName: firstName,
-            LastName: lastName,
-            Email: email,
-            Password: password,
-            ConfirmPassword: confirmPassword,
-            Role: 'teacher', // Automatically assign role as teacher
-            Subjects: subjects
-        })
-    });
+          if (response.ok) {
+              // Show success message
+              message.textContent = "Account created successfully! Redirecting...";
+              
+              // Redirect to index.html after 2 seconds
+              setTimeout(() => {
+                  window.location.href = "index.html";
+              }, 2000);
+          } else {
+              // Show error message from the response
+              message.textContent = result.message || "Registration failed.";
+          }
+      } catch (error) {
+          console.error('Error:', error);
+          message.textContent = "An error occurred during registration.";
+      }
+  });
 
-    const data = await response.json();
-
-    if (response.ok) {
-        showMessage(data.message);
-    } else {
-        showErrorMessages([data.message || "An error occurred."]);
-    }
+  // Clear form fields
+  document.getElementById("clearButton").addEventListener("click", function () {
+      signupForm.reset();
+      subjectsGroup.style.display = "none"; // Hide subjects if it was shown
+      message.textContent = "";
+  });
 });
-
-function showErrorMessages(messages) {
-    const errorBox = document.getElementById('error-box');
-    const errorList = document.getElementById('error-list');
-
-    // Clear previous error messages
-    errorList.innerHTML = '';
-
-    // Add new error messages to the list
-    messages.forEach(message => {
-        const li = document.createElement('li');
-        li.textContent = message;
-        errorList.appendChild(li);
-    });
-
-    // Show the error box
-    errorBox.style.display = 'block';
-}
-
-function clearErrorMessages() {
-    const errorBox = document.getElementById('error-box');
-    errorBox.style.display = 'none'; // Hide the error box
-    const errorList = document.getElementById('error-list');
-    errorList.innerHTML = ''; // Clear the error list
-}
