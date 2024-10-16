@@ -1,3 +1,9 @@
+// Base URL for Nextcloud documents
+
+const baseUrl = 'https://innovationstation.ddns.net/remote.php/dav/files/InnovationStation/Uploads/ ';
+const username = "InnovationStation"; // Nextcloud username
+const password = "IS_S2T24"; // Nextcloud password
+
 document.addEventListener('DOMContentLoaded', () => {
     let currentRating = 1;
     const maxRating = 10;
@@ -16,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ratingDisplay.textContent = currentRating;
     }
 
-    // Increment rating
+    // Increment and decrement rating functions
     function incrementRating() {
         if (currentRating < maxRating) {
             currentRating++;
@@ -24,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Decrement rating
     function decrementRating() {
         if (currentRating > minRating) {
             currentRating--;
@@ -34,8 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize the display with the current rating
     updateRatingDisplay();
-
-    // Fetch unmoderated documents
     fetchUnmoderatedDocuments();
 
     // Event listeners
@@ -48,25 +51,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Handle submit rating button click
     document.getElementById('submitRating').addEventListener('click', submitRating);
-    
-    // Handle More Info button click
     moreInfoButton.addEventListener('click', toggleAdditionalInfo);
-    
-    // New moderate button event
     document.getElementById('submitModeration').addEventListener('click', openModerationModal);
+
+    // Add event listener to dynamically created View File links
+    const tableBody = document.querySelector('#documentsTable tbody');
+    tableBody.addEventListener('click', (event) => {
+        if (event.target.matches('.view-file-link')) {
+            const fileUrl = event.target.dataset.fileUrl;
+            openFileWithAuth(fileUrl);
+        }
+    });
 });
 
 // Fetch unmoderated documents
 async function fetchUnmoderatedDocuments() {
     try {
-        const response = await fetch('http://localhost:5281/api/Moderation/unmoderated'); 
+        const response = await fetch('http://localhost:5281/api/Moderation/unmoderated');
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
         const documents = await response.json();
-        console.log('Fetched documents:', documents);
         populateTable(documents);
     } catch (error) {
         console.error('Error fetching unmoderated documents:', error);
@@ -85,6 +91,10 @@ function populateTable(documents) {
     }
 
     documents.forEach(doc => {
+        // Use the provided URL to construct the full link for each document
+        const fileUrl = baseUrl + doc.file_Url; // Ensure this matches your Nextcloud structure
+        console.log('Constructed File URL:', fileUrl); // Log the URL for debugging
+
         const row = document.createElement('tr');
         row.innerHTML = `
             <td><input type="radio" name="document" 
@@ -98,14 +108,34 @@ function populateTable(documents) {
             <td>${doc.grade}</td>
             <td>${doc.description}</td>
             <td>${doc.file_Size} MB</td>
-            <td><a href="file:///${doc.file_Url.replace(/\\/g, '/')}" target="_blank">View File</a></td>
+            <td><a href="https://innovationstation.ddns.net/s/your-shared-link" target="_blank">View File</a></td>
             <td>${doc.moderation_Status}</td>
             <td>${doc.ratings}</td>
             <td>${new Date(doc.date_Uploaded).toLocaleDateString()}</td>
-
         `;
         tableBody.appendChild(row);
     });
+}
+
+// Function to open file with Basic Authentication directly
+function openFileWithAuth(fileUrl) {
+    // Construct a URL with embedded Basic Authentication (only for test/dev purposes)
+    const credentials = `${username}:${password}`;
+    const authUrl = fileUrl.replace('http://', `http://${credentials}@`);
+
+    console.log('Opening file with URL:', authUrl); // Log the authenticated URL
+    
+    // Open the file in a new tab using the authenticated URL
+    window.open(authUrl, '_blank');
+    function openFileWithAuth(fileUrl) {
+    const credentials = btoa(`${username}:${password}`);
+    const authUrl = `http://${username}:${password}@${fileUrl}`;
+
+    console.log('Opening file with authenticated URL:', authUrl); // Log the URL
+
+    // Open the file in a new tab
+    window.open(authUrl, '_blank');
+}
 }
 
 // Handle modal operations
@@ -152,3 +182,4 @@ function openModerationModal() {
         alert("Please select a document to moderate.");
     }
 }
+

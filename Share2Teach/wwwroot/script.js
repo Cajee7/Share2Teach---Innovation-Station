@@ -26,7 +26,7 @@ async function loadFAQs() {
     faqErrorMessage.style.display = 'none'; // Hide previous error messages
 
     try {
-        const response = await fetch(`http://localhost:5281/api/FAQ/list`); // Replace with your actual API endpoint
+        const response = await fetch('http://localhost:5281/api/FAQ/list'); // Replace with your actual API endpoint
         if (!response.ok) throw new Error('Network response was not ok');
 
         const faqs = await response.json();
@@ -336,10 +336,10 @@ async function addFaq(question, answer) {
     }
 
     try {
-        const response = await fetch(`${apiUrl}/add`, {
+        const response = await fetch($,{apiUrl}/add, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${authToken}`,
+                'Authorization': Bearer ,$:{authToken},
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ question, answer })
@@ -371,10 +371,10 @@ async function updateFaq(faqId, question, answer) {
     }
 
     try {
-        const response = await fetch(`${apiUrl}/update?id=${faqId}`, {
+        const response = await fetch($,{apiUrl}/update?id=$:{faqId}, {
             method: 'PUT',
             headers: {
-                'Authorization': `Bearer ${authToken}`,
+                'Authorization': Bearer, $:{authToken},
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ question, answer })
@@ -408,10 +408,10 @@ async function deleteFaq(faqId) {
     }
 
     try {
-        const response = await fetch(`${apiUrl}/delete?id=${faqId}`, {
+        const response = await fetch($,{apiUrl}/delete?id=$:{faqId}, {
             method: 'DELETE',
             headers: {
-                'Authorization': `Bearer ${authToken}`,
+                'Authorization': Bearer, $:-{authToken},
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             }
@@ -486,7 +486,7 @@ async function performSearch() {
     try {
         console.log('Fetching search results for query:', query);
         const encodedQuery = encodeURIComponent(query);
-        const response = await fetch(`http://localhost:5281/api/File/Search?query=${encodedQuery}`);
+        const response = await fetch('http://localhost:5281/api/File/Search'?query=$:{encodedQuery});
         if (!response.ok) throw new Error('Network response was not ok');
 
         const results = await response.json();
@@ -499,7 +499,7 @@ async function performSearch() {
         }
 
         results.forEach((doc, index) => {
-            console.log(`Processing document ${index + 1}:`, doc);
+            console.log(Processing ,document ,$,{index + 1}:, doc);
             const docElement = document.createElement('div');
             docElement.className = 'doc-item';
 
@@ -510,7 +510,7 @@ async function performSearch() {
                 <p><strong>Subject:</strong> ${doc.subject ?? 'No subject available'}</p>
                 <p><strong>Grade:</strong> ${doc.grade ?? 'No grade available'}</p>
                 <p><strong>Description:</strong> ${doc.description ?? 'No description available'}</p>
-                <p><strong>File Size:</strong> ${doc.file_Size ? `${doc.file_Size} MB` : 'File size not available'}</p>
+                <p><strong>File Size:</strong> ${doc.file_Size ? ${doc.file_Size} MB : 'File size not available'}</p>
                 <p><strong>Tags:</strong> ${tags}</p>
                 <p><strong>Date Uploaded:</strong> ${doc.date_Uploaded ? new Date(doc.date_Uploaded).toLocaleDateString() : 'Date not available'}</p>
                 <p><strong>Date Updated:</strong> ${doc.date_Updated ? new Date(doc.date_Updated).toLocaleDateString() : 'Date not available'}</p>
@@ -815,13 +815,13 @@ function updateContributeTabAndNavigation(userRole) {
 
                     // Validate file size
                     if (file.size > maxFileSizeMb * 1024 * 1024) {
-                        throw new Error(`File size exceeds the limit of ${maxFileSizeMb} MB.`);
+                        throw new Error(File size exceeds the limit of ${maxFileSizeMb} MB.);
                     }
 
                     // Validate file type
                     const fileType = '.' + file.name.split('.').pop().toLowerCase();
                     if (!allowedFileTypes.includes(fileType)) {
-                        throw new Error(`File type '${fileType}' is not allowed. Allowed types are: ${allowedFileTypes.join(', ')}`);
+                        throw new Error(File type '${fileType}' is not allowed. Allowed types are: ${allowedFileTypes.join(', ')});
                     }
                 } catch (error) {
                     console.error('Upload error:', error.message);
@@ -871,12 +871,12 @@ function updateContributeTabAndNavigation(userRole) {
                     body: formData,
                     headers: {
                         
-                        'Authorization': `Bearer ${authToken}`
+                        'Authorization': Bearer ${authToken}
                     }
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Upload failed: ${response.statusText}`);
+                    throw new Error(Upload failed: ${response.statusText});
                 }
 
                 const result = await response.json();
@@ -943,7 +943,7 @@ function showMessage(message, type) {
     const contributeTab = document.getElementById('contribute');
     const messageElement = document.createElement('div');
     messageElement.textContent = message;
-    messageElement.className = `message ${type}`;
+    messageElement.className = message ${type};
     contributeTab.appendChild(messageElement);
     
     // Remove the message after 5 seconds
