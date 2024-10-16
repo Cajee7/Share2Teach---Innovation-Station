@@ -1,0 +1,199 @@
+/* Resetting default margin and padding for the body */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #4CAF50, #8E44AD); /* Green to Purple gradient */
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Container styling */
+.container {
+    width: 80%;
+    max-width: 800px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 2s ease-in-out;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Animation to fade the content in */
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Fancy heading styles */
+h1 {
+    font-size: 3em;
+    background: -webkit-linear-gradient(#8E44AD, #3498DB); /* Purple to Blue gradient */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: glow 3s infinite alternate;
+
+    /* Black outline using text stroke */
+    -webkit-text-stroke: 2px black;
+    text-stroke: 2px black; /* For other browsers that support this */
+}
+
+
+/* Fancy subheading styles */
+h2 {
+    font-size: 2em;
+    color: #000000; /* Golden color */
+    margin-bottom: 20px;
+}
+
+/* Glow animation for headings */
+@keyframes glow {
+    from {
+        text-shadow: 0 0 10px #3498DB, 0 0 20px #3498DB, 0 0 30px #8E44AD;
+    }
+    to {
+        text-shadow: 0 0 20px #f39c12, 0 0 30px #f39c12, 0 0 40px #3498DB;
+    }
+}
+
+/* Paragraph styles */
+p {
+    font-size: 18px;
+    color: #ecf0f1;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+/* Highlighted text in bold color */
+.highlight {
+    color: #1abc9c; /* Light Green */
+    font-weight: bold;
+    transition: color 0.3s ease-in-out;
+}
+
+/* Author's names italicized */
+.authors {
+    font-style: italic;
+    color: #e74c3c; /* Red for the authors' names */
+}
+
+/* Blockquote styles for emphasis */
+.quote {
+    font-size: 20px;
+    color: black; /* Purple */
+    padding: 15px;
+    border-left: 5px solid #3498DB; /* Blue border */
+    background-color: rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+    animation: slideIn 1.5s ease-out;
+}
+
+/* Animation for sliding in the quote */
+@keyframes slideIn {
+    0% {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Hover effect for the highlighted text */
+.highlight:hover {
+    color: #f39c12; /* Golden color on hover */
+}
+
+/* Adding a floating effect to the container */
+.container::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    left: -50px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    animation: float 6s ease-in-out infinite;
+}
+
+/* Float animation for the bubble effect */
+@keyframes float {
+    0% {
+        transform: translate(0, 0);
+    }
+    50% {
+        transform: translate(20px, 20px);
+    }
+    100% {
+        transform: translate(0, 0);
+    }
+}
+
+.container::after {
+    content: '';
+    position: absolute;
+    bottom: -50px;
+    right: -50px;
+    width: 150px;
+    height: 150px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    animation: float2 8s ease-in-out infinite;
+}
+
+/* A second float animation to add more dynamic movement */
+@keyframes float2 {
+    0% {
+        transform: translate(0, 0);
+    }
+    50% {
+        transform: translate(-30px, -30px);
+    }
+    100% {
+        transform: translate(0, 0);
+    }
+}
+
+.textbook-image {
+    max-width: 50%; /* Set a maximum width */
+    height: auto; /* Maintain aspect ratio */
+    display: block; /* Center the image */
+    margin: 20px auto; /* Add margin at the top and bottom */
+    border-radius: 10px; /* Optional: rounded corners for the image */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Optional: shadow effect */
+}
+
+.disclaimer {
+    background-color: #f1f1f1; /* Light gray background */
+    border: 1px solid #8E44AD; /* Darker purple border for professionalism */
+    padding: 20px; /* Padding around the text */
+    margin-top: 20px; /* Space above the disclaimer */
+    border-radius: 8px; /* Rounded corners */
+    font-family: Arial, sans-serif; /* Formal font style */
+    color: #333; /* Dark text color for readability */
+}
+
+.disclaimer h3 {
+    color: #8E44AD; /* Color for the heading */
+    border-bottom: 2px solid #3498DB; /* Blue underline for emphasis */
+    padding-bottom: 5px; /* Space between heading and text */
+}
+
+.disclaimer p {
+    color: #555; /* Slightly lighter gray for the paragraph text */
+    line-height: 1.6; /* Improve readability with line height */
+}
