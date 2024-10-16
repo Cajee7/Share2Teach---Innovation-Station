@@ -112,14 +112,14 @@ async function performLogin(event) {
             setTimeout(() => {
                 successMessage.style.bottom = '-100px'; // Slide back down
                 successMessage.style.opacity = '0';     // Fade out
-            }, 2000);
+            }, 20000);
 
             // Completely hide the message after the animation ends
             setTimeout(() => {
                 successMessage.style.display = 'none';
                 // Redirect to the landing page (index.html) after successful login
                 window.location.href = './index.html';  // Ensure the path is correct
-            }, 2300);
+            }, 23000);
 
             // Update UI elements after login
             loadUserProfile();
@@ -182,6 +182,117 @@ function validateEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
 }
+
+document.querySelector('.forgot-password a').addEventListener('click', function() {
+    document.getElementById('login').style.display = 'none'; // Hide login form
+    document.getElementById('forgot-password').style.display = 'block'; // Show forgot password form
+});
+
+
+async function submitForgotPassword(event) {
+    event.preventDefault();
+    const email = document.getElementById('forgot-email').value.trim();
+    const errorMessage = document.getElementById('forgot-error-message');
+    const successMessage = document.getElementById('forgot-success-message');
+
+    errorMessage.style.display = 'none';
+    successMessage.style.display = 'none';
+
+    // Validate email
+    if (!email) {
+        errorMessage.style.display = 'block';
+        errorMessage.innerHTML = 'Email is required.';
+        return;
+    }
+
+    // Prepare FormData
+    const formData = new FormData();
+    formData.append('Email', email);
+
+    try {
+        const response = await fetch('http://localhost:5281/api/Authenticate/forgot-password', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            successMessage.style.display = 'block';
+            successMessage.innerHTML = 'Password reset token sent to your email.';
+            // Optionally show reset password form
+            document.getElementById('forgot-password').style.display = 'none';
+            document.getElementById('reset-password').style.display = 'block';
+        } else {
+            const result = await response.json();
+            errorMessage.style.display = 'block';
+            errorMessage.innerHTML = result.message || 'An error occurred.';
+        }
+    } catch (error) {
+        errorMessage.style.display = 'block';
+        errorMessage.innerHTML = 'An unexpected error occurred. Please try again.';
+    }
+}
+
+async function submitResetPassword(event) {
+    event.preventDefault();
+    const token = document.getElementById('reset-token').value.trim();
+    const newPassword = document.getElementById('new-password').value.trim();
+    const confirmPassword = document.getElementById('confirm-password').value.trim();
+    const errorMessage = document.getElementById('reset-error-message');
+    const successMessage = document.getElementById('reset-success-message');
+
+    errorMessage.style.display = 'none';
+    successMessage.style.display = 'none';
+
+    // Validate passwords
+    if (newPassword !== confirmPassword) {
+        errorMessage.style.display = 'block';
+        errorMessage.innerHTML = 'Passwords do not match.';
+        return;
+    }
+    
+    // Prepare FormData
+    const formData = new FormData();
+    formData.append('Token', token);
+    formData.append('NewPassword', newPassword);
+    formData.append('ConfirmPassword', confirmPassword);
+
+    try {
+        const response = await fetch('http://localhost:5281/api/Authenticate/reset-password', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            successMessage.style.display = 'block';
+            successMessage.innerHTML = 'Password has been reset successfully. You can now log in with your new password.';
+            // Redirect to login or show login form
+            // Optionally: window.location.href = './login.html'; // Uncomment to redirect
+            
+
+            
+        } else {
+            const result = await response.json();
+            errorMessage.style.display = 'block';
+            errorMessage.innerHTML = result.message || 'An error occurred.';
+        }
+    } catch (error) {
+        errorMessage.style.display = 'block';
+        errorMessage.innerHTML = 'An unexpected error occurred. Please try again.';
+    }
+}
+
+function clearForgotPasswordForm() {
+    document.getElementById('forgot-password-form').reset();
+    document.getElementById('forgot-error-message').style.display = 'none';
+    document.getElementById('forgot-success-message').style.display = 'none';
+}
+
+function clearResetPasswordForm() {
+    document.getElementById('reset-password-form').reset();
+    document.getElementById('reset-error-message').style.display = 'none';
+    document.getElementById('reset-success-message').style.display = 'none';
+}
+
 
 // Function to render FAQs
 function renderFAQs(faqs) {

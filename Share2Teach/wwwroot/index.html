@@ -269,6 +269,52 @@
             <div id="success-message" class="success-message"></div>
         </div>
 
+        <!-- Forgot Password Form -->
+        <div id="forgot-password" class="tab-content" style="display: none;">
+            <h2>Forgot Password</h2>
+            <div class="login-container">
+                <form id="forgot-password-form" class="login-form" onsubmit="submitForgotPassword(event)">
+                    <div class="form-group">
+                        <label for="forgot-email">Email:</label>
+                        <input type="email" id="forgot-email" class="login-input" required autocomplete="on">
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="login-btn">Submit</button>
+                        <button type="button" class="clear-btn" onclick="clearForgotPasswordForm()">Clear</button>
+                    </div>
+                </form>
+                <div id="forgot-error-message" class="error-message" style="display: none; color: red;"></div>
+                <div id="forgot-success-message" class="success-message"></div>
+            </div>
+        </div>
+
+        <!-- Reset Password Form -->
+        <div id="reset-password" class="tab-content" style="display: none;">
+            <h2>Reset Password</h2>
+            <div class="login-container">
+                <form id="reset-password-form" class="login-form" onsubmit="submitResetPassword(event)">
+                    <div class="form-group">
+                        <label for="reset-token">Token:</label>
+                        <input type="text" id="reset-token" class="login-input" required autocomplete="on">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">New Password:</label>
+                        <input type="password" id="new-password" class="login-input" required autocomplete="on">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm New Password:</label>
+                        <input type="password" id="confirm-password" class="login-input" required autocomplete="on">
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="login-btn">Reset Password</button>
+                        <button type="button" class="clear-btn" onclick="clearResetPasswordForm()">Clear</button>
+                    </div>
+                </form>
+                <div id="reset-error-message" class="error-message" style="display: none; color: red;"></div>
+                <div id="reset-success-message" class="success-message"></div>
+            </div>
+        </div>
+
         <!-- About Us Tab -->
         <div id="aboutUs" class="tab-content">
             <div class="about-us-container">
