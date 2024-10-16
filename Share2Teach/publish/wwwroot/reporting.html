@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Management</title>
+    <link rel="stylesheet" href="reporting.css"> <!-- Link to external CSS file -->
+</head>
+<body>
+    <div class="container">
+        <h1>Report Management</h1>
+
+        <div class="card">
+            <h2>Create Report</h2>
+            <div class="form-group">
+                <label for="documentId">Document ID:</label>
+                <input type="text" id="documentId" placeholder="Enter Document ID" />
+            </div>
+            <div class="form-group">
+                <label for="reason">Reason:</label>
+                <textarea id="reason" rows="3" placeholder="Enter the reason for reporting"></textarea>
+            </div>
+            <button class="btn" onclick="submitReport()">Submit Report</button>
+            <div class="feedback" id="createReportFeedback"></div>
+        </div>
+
+        <div class="card">
+            <h2>All Reports</h2>
+            <button class="btn" onclick="fetchReports()">Fetch Reports</button>
+            <div class="feedback" id="fetchReportFeedback"></div>
+            <table id="reports-table">
+                <thead>
+                    <tr>
+                        <th>Report ID</th>
+                        <th>Document ID</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="reports-list">
+                    <!-- Reports will be inserted here dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Update Report Status</h2>
+            <div class="form-group">
+                <label for="reportId">Report ID:</label>
+                <input type="text" id="reportId" placeholder="Enter Report ID" />
+            </div>
+            <div class="form-group">
+                <label for="status">New Status:</label>
+                <select id="status">
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="denied">Denied</option>
+                </select>
+            </div>
+            <button class="btn" onclick="updateReportStatus()">Update Status</button>
+            <div class="feedback" id="updateStatusFeedback"></div>
+        </div>
+
+        <div class="card">
+            <h2>Delete Reports</h2>
+            <button class="btn" onclick="deleteApprovedReports()">Delete Approved Reports</button>
+            <div class="feedback" id="deleteReportFeedback"></div>
+        </div>
+    </div>
+
+    <script src="reporting.js"></script> <!-- Link to external JavaScript file -->
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Share2Teach</title>
+    <link rel="stylesheet" href="signup.css">
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back</a>
+        <h2>Sign Up</h2>
+
+        <form id="signup-form" novalidate>
+            <div class="form-group">
+                <label for="firstName">First Name:</label>
+                <input type="text" id="firstName" placeholder="Enter your first name" required>
+            </div>
+            <div class="form-group">
+                <label for="lastName">Last Name:</label>
+                <input type="text" id="lastName" placeholder="Enter your last name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" placeholder="Enter your email (must end with .edu, .gov, or .org)" required>
+            </div>
+            <div class="form-group">
+                <label for="role">Role:</label>
+                <select id="role" required>
+                    <option value="user">User</option>
+                    <option value="teacher">Teacher</option>
+                </select>
+            </div>
+            <div class="form-group" id="subjects-group" style="display: none;">
+                <label for="subjects">Subjects You Teach:</label>
+                <input type="text" id="subjects" placeholder="Enter subjects separated by commas">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <div class="password-container">
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                    <span id="togglePassword" class="eye-icon">👁️</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password:</label>
+                <div class="password-container">
+                    <input type="password" id="confirmPassword" placeholder="Confirm your password" required>
+                    <span id="toggleConfirmPassword" class="eye-icon">👁️</span>
+                </div>
+            </div>
+            <button type="submit">Sign Up</button>
+            <button type="button" id="clearButton">Clear</button>
+            <div id="message" class="message"></div>
+            <div id="error-box" class="error-box" style="display: none;">
+                <ul id="error-list"></ul>
+            </div>
+        </form>
+    </div>
+
+    <script src="signup.js"></script>
+</body>
+</html>
