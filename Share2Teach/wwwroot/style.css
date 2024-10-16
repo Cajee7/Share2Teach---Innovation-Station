@@ -634,7 +634,7 @@ button:hover {
 }
 
 /* Center the upload button */
-#upload-btn {
+#upload-btn, #clear-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -661,6 +661,7 @@ button:hover {
 #file-upload {
   margin-top: 10px;
 }
+
 
 
 a.login-link {
@@ -720,6 +721,9 @@ p {
   text-align: center; /* Center text within the item */
 }
 
+.faq-item h4 {
+   color: #f6df18;
+}
 /* FAQ Item Heading Style */
 .faq-item h3 {
   color: #6a0dad; /* Purple color for FAQ item headings */
@@ -777,6 +781,7 @@ p {
   text-align: center; /* Center the text */
 }
 
+
 /* Logo Style */
 .footer-logo {
   display: block; /* Ensure the logo is centered */
@@ -819,12 +824,24 @@ p {
   background-color: #4CAF50; /* Green for Add FAQ */
 }
 
+#add-faq:hover {
+  background-color: #218838;
+}
+
 #delete-faq {
   background-color: #f44336; /* Red for Delete FAQ */
 }
 
+#delete-faq:hover {
+  background-color: brown;
+}
+
 #update-faq {
   background-color: #2196F3; /* Blue for Update FAQ */
+}
+
+#update-faq:hover{
+  background-color: #0a56d0;
 }
 
 /* Hover effect */
@@ -834,98 +851,120 @@ p {
 
 /* General Modal Styles */
 .modal {
-  position: fixed;                  /* Fixed positioning to cover the entire viewport */
-  z-index: 1;                      /* Ensure the modal appears above other content */
-  left: 0;                         /* Align to the left */
-  top: 0;                          /* Align to the top */
-  width: 100%;                     /* Full width */
-  height: 100%;                    /* Full height */
-  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-  display: flex;                   /* Flexbox for centering */
-  justify-content: center;         /* Center horizontally */
-  align-items: center;             /* Center vertically */
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Modal Content Container */
 .modal-content {
-  background-color: #fff;          /* White background for the content */
-  padding: 20px;                   /* Inner padding */
-  border-radius: 8px;              /* Rounded corners */
-  width: 400px;                    /* Set a fixed width */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 450px; /* Increased width for better text alignment */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 /* Modal Header Styles */
 .modal-header {
-  display: flex;                   /* Flexbox for layout */
-  justify-content: space-between; /* Space between back button and title */
-  align-items: center;             /* Center align items */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px; /* Add space between header and body */
 }
 
 /* Back Button Styles */
 .back-btn {
-  background-color: #f0f0f0;    /* Light grey background for better contrast */
-  border: 1px solid #ccc;       /* Light grey border */
-  border-radius: 5px;           /* Rounded corners */
-  color: #2196F3;                /* Blue text color */
-  cursor: pointer;               /* Pointer cursor on hover */
-  font-size: 14px;               /* Font size */
-  font-weight: bold;             /* Bold text */
-  padding: 8px 12px;            /* Inner padding for better spacing */
-  transition: background-color 0.3s; /* Smooth background transition */
-  margin-bottom: 15px;                      /* Bold text */
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  color: #2196F3;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 8px 12px;
+  transition: background-color 0.3s;
 }
 
-/* Modal Body Header */
-.modal-body h2 {
-  margin-bottom: 10px;              /* Space below the heading */
+/* Question and Answer Heading Styles */
+.modal-body label {
+  display: block;
+  font-size: 16px; /* Increased font size for better readability */
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+#question-field,
+#answer-field {
+  margin-bottom: 15px; /* Add space between question and answer fields */
+}
+
+#faq-id-field {
+  margin-bottom: 15px; /* Ensure proper spacing for the ID field as well */
 }
 
 /* Textarea Styles */
-textarea {
-  width: 100%;                     /* Full width */
-  margin-bottom: 10px;             /* Space below the textarea */
-  padding: 8px;                    /* Inner padding */
-  border-radius: 4px;              /* Rounded corners */
-  border: 1px solid #ccc;          /* Light grey border */
-  font-size: 14px;                 /* Font size */
-  resize: vertical;                /* Allow vertical resizing only */
+textarea, 
+input[type="text"] {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px; /* Increased padding for a better typing experience */
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  resize: vertical;
+  box-sizing: border-box; /* Ensures padding does not overflow */
 }
 
 /* FAQ Modal Buttons Container */
 .faq-modal-buttons {
-  display: flex;                   /* Flexbox for layout */
-  justify-content: space-between; /* Space between buttons */
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px; /* Add space above the buttons */
 }
 
 /* Clear Button Styles */
 .faq-clear-btn {
-  padding: 10px 15px;             /* Inner padding */
-  border: none;                   /* No border */
-  border-radius: 5px;             /* Rounded corners */
-  background-color: #f44336;      /* Red background */
-  color: white;                   /* White text */
-  cursor: pointer;                 /* Pointer cursor on hover */
-  transition: opacity 0.3s;       /* Smooth opacity transition */
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  background-color: #f44336;
+  color: white;
+  cursor: pointer;
+  transition: opacity 0.3s;
 }
 
 /* Submit Button Styles */
 .faq-submit-btn {
-  padding: 10px 15px;             /* Inner padding */
-  border: none;                   /* No border */
-  border-radius: 5px;             /* Rounded corners */
-  background-color: #4CAF50;      /* Green background */
-  color: white;                   /* White text */
-  cursor: pointer;                 /* Pointer cursor on hover */
-  transition: opacity 0.3s;       /* Smooth opacity transition */
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  background-color: #4CAF50;
+  color: white;
+  cursor: pointer;
+  transition: opacity 0.3s;
 }
 
 /* Hover Effect for Buttons */
 .faq-clear-btn:hover,
 .faq-submit-btn:hover {
-  opacity: 0.9;                   /* Slightly fade on hover */
+  opacity: 0.9;
 }
 
+/* Enhanced Modal Title */
+#modal-title {
+  font-size: 22px; /* Increased font size for better visibility */
+  font-weight: bold;
+  color: #333;
+}
 /* Responsive Adjustments */
 @media (max-width: 500px) {
   .modal-content {

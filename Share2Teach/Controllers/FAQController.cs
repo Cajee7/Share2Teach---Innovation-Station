@@ -74,6 +74,7 @@ namespace FAQApp.Controllers
             }
         }    
 
+        
         /// <summary>
         /// Retrieves a list of all FAQs.
         /// </summary>
@@ -102,6 +103,7 @@ namespace FAQApp.Controllers
                 // Convert to a model that includes and handles missing fields
                 var faqList = faqs.Select(faq => new
                 {
+                    Id = faq["_id"].ToString(),
                     Question = faq.Contains("question") ? faq["question"].ToString() : "No question field",
                     Answer = faq.Contains("answer") ? faq["answer"].ToString() : "No answer field",
                     DateAdded = faq.Contains("dateAdded") ? faq["dateAdded"].ToUniversalTime() : DateTime.MinValue
@@ -197,5 +199,31 @@ namespace FAQApp.Controllers
             _logger.LogInformation("Updated FAQ with id: {Id} at {Timestamp}.", id, DateTime.UtcNow);
             return Ok("FAQ updated successfully.");
         }
+
+        [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetFAQById(string id)
+        {
+            if (!ObjectId.TryParse(id, out ObjectId objectId))
+            {
+                return BadRequest("Invalid ObjectId format.");
+            }
+
+            var filter = Builders<BsonDocument>.Filter.Eq("_id", objectId);
+            var faq = _faqCollection.Find(filter).FirstOrDefault();
+
+            if (faq == null)
+            {
+                return NotFound("FAQ with the specified id not found.");
+            }
+
+            return Ok(new { 
+                question = faq["question"].AsString, 
+                answer = faq["answer"].AsString 
+            });
+        }
+
+
     }
 }
