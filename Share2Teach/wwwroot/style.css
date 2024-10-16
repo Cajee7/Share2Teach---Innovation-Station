@@ -133,6 +133,61 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Slight shadow for depth */
 }
 
+/* Style for the forgot password form */
+.forgot-password-form,
+.reset-password-form {
+    margin-top: 20px;
+    max-width: 400px;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #ffffff; /* White background for the form */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Slight shadow for depth */
+}
+
+/* Input styles for both forms */
+.forgot-password-form input,
+.reset-password-form input {
+    width: 100%; /* Full width input fields */
+    padding: 10px; /* Padding for input fields */
+    margin: 10px 0; /* Margin for spacing */
+    border: 1px solid #ccc; /* Light border */
+    border-radius: 4px; /* Slightly rounded corners */
+}
+
+/* Button styles for both forms */
+.forgot-password-form button,
+.reset-password-form button {
+    width: 100%; /* Full width button */
+    padding: 10px; /* Padding for buttons */
+    background-color: #4CAF50; /* Green background */
+    color: white; /* White text */
+    border: none; /* Remove border */
+    border-radius: 4px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s; /* Transition for hover effect */
+}
+
+/* Button hover effect */
+.forgot-password-form button:hover,
+.reset-password-form button:hover {
+    background-color: #45a049; /* Darker green on hover */
+}
+
+/* Error message style */
+.error-message {
+    color: red; /* Red for errors */
+    margin-top: 10px; /* Spacing above error message */
+}
+
+/* Success message style */
+.success-message {
+    color: green; /* Green for success messages */
+    margin-top: 10px; /* Spacing above success message */
+}
+
+
 .form-group {
   margin-bottom: 15px;
 }
