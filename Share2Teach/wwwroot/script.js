@@ -988,6 +988,22 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // JavaScript for handling subject click and fetching document
+document.getElementById('login-form').addEventListener('submit', function (event) {
+    event.preventDefault(); // Prevent the form from submitting
+
+    // Get the email and password from the form
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    // Check if the email and password match the expected values
+    if (email === "HannahCarl@brackenfell.edu" && password === "HC0057#st") {
+        // Redirect to the moderation page (create moderation.html)
+        window.location.href = "moderation.html"; // Change to the path of your moderation page
+    } else {
+        // Show an error message
+        document.getElementById('error-message').textContent = "Invalid email or password.";
+    }
+});
 
 // JavaScript for handling subject click and fetching document
 
