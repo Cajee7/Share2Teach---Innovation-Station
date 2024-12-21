@@ -1,0 +1,166 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #eae8f5; /* Light purple background */
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px; /* Slightly rounded corners */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); /* Deeper shadow for more depth */
+}
+
+h1 {
+    text-align: center;
+    color: #4b0082; /* Dark purple for main heading */
+}
+
+.moderation-heading {
+    text-align: center;
+    color: #6a0dad; /* Purple color */
+    font-size: 2.5em; /* Larger font size for emphasis */
+    margin: 20px 0; /* Margin for spacing */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2); /* Deeper shadow */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th {
+    background-color: #9b59b6; /* Medium purple for table headers */
+    color: white; /* White text for contrast */
+    padding: 12px; /* Padding for table headers */
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+td {
+    background-color: #f5f3f9; /* Light purple for table cells */
+}
+
+tr:hover {
+    background-color: #d1c4e9; /* Light purple hover effect */
+    transition: background-color 0.3s; /* Smooth transition for hover */
+}
+
+button {
+    background-color: #8e44ad; /* Darker purple for buttons */
+    color: white; /* White text for contrast */
+    border: none; /* Remove border */
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px 20px; /* Padding for button */
+    cursor: pointer; /* Pointer cursor on hover */
+    font-size: 1em; /* Font size */
+    margin-top: 20px; /* Margin for spacing */
+    display: block; /* Center button below content */
+    text-align: center; /* Center text */
+}
+
+button:hover {
+    background-color: #732d91; /* Darker purple on hover */
+}
+.modal-heading {
+    color: white; /* White color for the heading */
+    font-weight: bold; /* Bold text */
+    font-size: 2em; /* Main heading size */
+    text-align: center; /* Center the heading */
+}
+
+.modal-subheading {
+    color: rgb(0, 0, 0); /* White color for subheadings */
+    font-weight: bold; /* Bold text */
+    font-size: 1 em; /* One size smaller than the main heading */
+    margin-top: 20px; /* Add some margin for spacing */
+    text-align: left; /* Align to the left */
+}
+
+/* Additional styles for labels to match subheadings */
+label {
+    color: rgb(0, 0, 0); /* White color for labels */
+    font-weight: bold; /* Bold text */
+    font-size: 1 em; /* One size smaller than the main heading */
+    display: block; /* Make labels take the full line */
+    margin-top: 10px; /* Add margin for spacing */
+}
+
+
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+    background-color:  #d9bcf6;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+    border-radius: 5px; /* Rounded corners */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+}
+
+.modal-heading {
+    text-align: center; /* Center the heading */
+    color: #6a0dad; /* Purple color for modal heading */
+    margin-bottom: 20px; /* Margin for spacing */
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+.rating-container {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.rating-button {
+    background-color: #8e44ad; /* Dark purple for buttons */
+    color: white; /* White text for contrast */
+    border: none; /* Remove border */
+    padding: 5px 10px; /* Padding for button */
+    cursor: pointer; /* Pointer cursor on hover */
+    font-size: 1.2em; /* Font size for arrows */
+    border-radius: 3px; /* Rounded corners */
+    margin: 0 5px;
+}
+
+.rating-button:hover {
+    background-color: #732d91; /* Darker purple on hover */
+}
+
+#ratingDisplay {
+    font-weight: bold;
+    font-size: 1.5em;
+    color: white; /* White text for the rating display */
+    padding: 0 10px;
+}
+

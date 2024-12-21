@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share2Teach - Landing Page</title>
+    <link rel="stylesheet" href="style.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7BM1508TJZ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-7BM1508TJZ');
+    </script>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <span class="left">Share2Teach</span>
+        </div>
+        <nav class="tabs">
+            <button class="tab-button active" onclick="openTab(event, 'home')">Home</button>
+            <button class="tab-button" onclick="openTab(event, 'subjectView')">Subject View</button>
+            <button class="tab-button" onclick="openTab(event, 'search')">Search</button>
+            <button class="tab-button" onclick="openTab(event, 'contribute')">Contribute</button>
+            <button class="tab-button" onclick="openTab(event, 'faq')">FAQ</button>
+    
+            <!-- Slide out tab for More button -->
+            <div class="more-tab">
+                <button class="tab-button">More</button>
+                <div class="slide-out-content">
+                    <a href="#otherOER">Other useful OER's</a>
+                    <a href="#selfDirectedLearning">Self-Directed Learning</a>
+                    <a href="#login" onclick="openTab(event, 'login')">Login</a>
+                    <a id="logout-btn" href="#" style="display: none;" onclick="performLogout()">Logout</a>
+                    <a href="#aboutUs" onclick="openTab(event, 'aboutUs')">About Us</a>
+            
+                    <!-- Profile Icon under More tab -->
+                    <div id="user-profile" style="display: none;">
+                        <div id="profile-icon" class="profile-icon">
+                            <span id="profile-name"></span>
+                        </div>
+                    </div>
+                </div>
+        </nav>
+
+        <div id="user-profile" style="display: none;">
+            <div id="profile-icon" class="profile-icon">
+                <span id="profile-name"></span>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Home Tab -->
+        <div id="home" class="tab-content active">
+            <div class="hero-section">
+                <h1>Welcome to Share2Teach</h1>
+                <p>Unlock a world of educational resources, share your knowledge, and empower learners everywhere!</p>
+                <button class="cta-button" onclick="openTab(event, 'contribute')">Contribute Resources</button>
+            </div>
+            <div class="features">
+                <div class="feature-item">
+                    <h3>🌟 Contribute Your Knowledge</h3>
+                    <p>Share your educational materials and help students succeed.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>📚 Access Resources</h3>
+                    <p>Explore a vast library of documents tailored to your teaching needs.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>🔍 Discover & Collaborate</h3>
+                    <p>Connect with other educators and enhance your teaching strategies.</p>
+                </div>
+            </div>
+            <div class="image-gallery">
+                <img src="https://services.nwu.ac.za/sites/services.nwu.ac.za/files/files/designs-branding/NWU-Acronym-logo-acronym-RGB.png" alt="Resource Image" />
+            </div>
+        </div>
+
+        <!-- Subject View Tab -->
+        <div id="subjectView" class="tab-content">
+            <h2>Subject View</h2>
+            <p>Explore documents within specific subjects.</p>
+            <div class="subjects">
+                <div class="subject-block">Mathematics</div>
+                <div class="subject-block">Science</div>
+                <div class="subject-block">History</div>
+                <div class="subject-block">Literature</div>
+                <div class="subject-block">Geography</div>
+                <div class="subject-block">Computer Science</div>
+                <div class="subject-block">Art</div>
+                <div class="subject-block">Physical Education</div>
+                <div class="subject-block">Music</div>
+            </div>
+        </div>
+
+        <!-- This div will display the fetched document -->
+<div id="documentDisplay"></div>
+
+
+        <!-- Search Tab -->
+        <div id="search" class="tab-content">
+            <h2>Search</h2>
+            <p>Search for documents based on Title, Subject, Grade, or Tags.</p>
+            <div id="search-container">
+                <input type="text" id="search-input" placeholder="Search documents..." />
+                <button id="search-button" onclick="performSearch()">Search</button>
+            </div>
+            <div id="results-container" class="results-container" style="margin-top: 20px;"></div>
+
+            <div id="preview-modal" class="modal" style="display:none;">
+                <div class="modal-content">
+                    <span class="close" onclick="closePreviewModal()">&times;</span>
+                    <iframe id="preview-iframe" style="width:100%; height:400px;"></iframe>
+                </div>
+            </div>
+            
+            <!-- Report Modal -->
+            <div id="report-modal" class="modal" style = "display: none;">
+                <div class="modal-content">
+                    <span class="close" onclick="closeReportModal()">&times;</span>
+                    <h2>Report Document</h2>
+                    <input type="hidden" id="report-doc-id" value="" />
+                    <label for="report-reason">Reason for Reporting:</label>
+                    <select id="report-reason">
+                        <option value="Inappropriate Content">Inappropriate Content</option>
+                        <option value="Spam">Spam</option>
+                        <option value="Copyright Violation">Copyright Violation</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <div class="modal-buttons">
+                        <button class="submit-button" onclick="submitReport()">Submit</button>
+                        <button class="cancel-button" onclick="closeReportModal()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-container" id="button-container" style="display: none;">
+                <button class="preview-button" onclick="previewDocument(selectedDocUrl)">Preview</button>
+                <button class="download-button" onclick="downloadDocument(selectedDocUrl)">Download</button>
+                <button class="report-button" onclick="openReportModal()">!</button>
+            </div>
+
+            <div id="search-error-message" class="error-message" style="display: none; color: red; margin-top: 10px;"></div>
+        </div>
+
+        <!-- Contribute Tab -->
+        <div id="contribute" class="tab-content">
+            <h2>Contribute</h2>
+            <p>Share your documents and tag them for others.</p>
+            <div class="contribute-message">
+                <h3>🌟 Calling All Educators: Let's Shape the Future of Learning Together! 🌟</h3>
+                <p>Are you passionate about empowering students and enhancing educational resources? At <strong>Share2Teach</strong>, we believe that <strong>every great educator has something valuable to share!</strong></p>
+                <h4 class="centered">Join our mission to revolutionize education! ✨</h4>
+                <p>If you're ready to make a real impact and help students thrive, we want YOU to contribute your knowledge and resources to our vibrant community.</p>
+                <h4 class="centered">🔍 Why Contribute?</h4>
+                <ul>
+                    <li><strong>Inspire Others:</strong> Share your expertise and best practices.</li>
+                    <li><strong>Collaborate:</strong> Connect with like-minded educators who share your passion.</li>
+                    <li><strong>Make a Difference:</strong> Your contributions can transform learning experiences for countless students.</li>
+                </ul>
+                <p><strong>Ready to take the leap?</strong> Sign up today and be part of a movement that celebrates collaboration and innovation in education!</p>
+                <p><strong>👉 <a href="signup.html">Sign Up Now</a></strong> and let's change the world of education together!</p>
+                <p>If you're already a member of our platform, <a href="#login" class="login-link" onclick="showTab('login')">Log in here</a> to start contributing!</p>
+            </div>
+            <img src="https://services.nwu.ac.za/sites/services.nwu.ac.za/files/files/designs-branding/NWU-Acronym-logo-acronym-RGB.png" alt="Logo" class="footer-logo">
+
+            <!-- Hidden Input Fields for Upload -->
+            <div id="upload-form" style="display: none;">
+                <input type="text" id="title-input" placeholder="Enter title" required />
+                <input type="text" id="subject-input" placeholder="Enter subject" required />
+                <input type="text" id="grade-input" placeholder="Grade (integer)" required />
+                <textarea id="description-input" placeholder="Description"></textarea>
+                <div class="button-container">
+                    <button id="uploadBtn">Upload</button>
+                    <button id="clearBtn">Clear</button>
+                </div>
+                
+                <div id="message" class="message"></div>
+            </div>
+        </div>
+
+        <!-- FAQ Tab -->
+        <div id="faq" class="tab-content">
+            <h2>Frequently Asked Questions</h2>
+            <p>Find answers to common questions.</p>
+            
+            <!-- FAQ management buttons (invisible by default) -->
+            <div id="faq-buttons" style="display: none;">
+                <button id="add-faq">Add FAQ</button>
+                <button id="update-faq">Update FAQ</button>
+                <button id="delete-faq">Delete FAQ</button>
+            </div>
+
+           <!-- FAQ Modal -->
+            <div id="faq-modal" class="modal" style="display: none;">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modal-title"></h2>
+                    <span class="close" onclick="closeFaqModal()">&times;</span> <!-- Correct close function -->
+                </div>
+                <div class="modal-body">
+                    <div id="faq-id-field">
+                    <label for="faq-id">FAQ ID:</label>
+                    <input type="text" id="faq-id" placeholder="Enter FAQ ID">
+                    </div>
+                    <div id="question-field">
+                    <label for="question">Question:</label>
+                    <textarea id="question" rows="3" placeholder="Enter the FAQ question"></textarea>
+                    </div>
+                    <div id="answer-field">
+                    <label for="answer">Answer:</label>
+                    <textarea id="answer" rows="5" placeholder="Enter the FAQ answer"></textarea>
+                    </div>
+                    <div id="faq-error-message" class="error-message" style="display: none;"></div>
+                    <div class="faq-modal-buttons">
+                    <button id="clear-btn" class="faq-clear-btn">Clear</button>
+                    <button id="submit-btn" class="faq-submit-btn">Submit</button>
+                    </div>
+                </div>
+                </div>
+            </div>
+
+            <!-- FAQ List Display -->
+            <div class="faq-list" id="faq-list-container"></div>
+
+            <!-- General Error Message -->
+            <div id="faq-error-message" class="error-message" style="display: none; color: red; margin-top: 10px;"></div>
+
+            <!-- Footer -->
+            <div class="footer-logo-container">
+                <div class="purple-line"></div>
+                <img src="https://services.nwu.ac.za/sites/services.nwu.ac.za/files/files/designs-branding/NWU-Acronym-logo-acronym-RGB.png" alt="Logo" class="footer-logo">
+                <div class="purple-line"></div>
+            </div>
+        </div>
+
+        <!-- Login Tab -->
+        <div id="login" class="tab-content">
+            <h2>Login</h2>
+            <div class="login-container">
+                <form id="login-form" class="login-form" onsubmit="performLogin(event)">
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" class="login-input" required autocomplete="on">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" class="login-input" required autocomplete="on">
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="login-btn">Login</button>
+                        <button type="button" class="clear-btn" onclick="clearLoginForm()">Clear</button>
+                    </div>
+                </form>
+                <div class="extra-links">
+                    <div class="forgot-password">
+                        <a href="#">Forgot Password?</a>
+                    </div>
+                    <div class="sign-up-text">
+                        <p>Don't have an account? <a href="signup.html">Sign up here</a>.</p>
+                    </div>
+                </div>
+                <!-- Error message container -->
+                <div id="error-message" class="error-message" style="display: none; color: red; margin-top: 10px;"></div>
+            </div>
+            <!-- Success message container -->
+            <div id="success-message" class="success-message"></div>
+        </div>
+
+        <!-- Forgot Password Form -->
+        <div id="forgot-password" class="tab-content" style="display: none;">
+            <h2>Forgot Password</h2>
+            <div class="login-container">
+                <form id="forgot-password-form" class="login-form" onsubmit="submitForgotPassword(event)">
+                    <div class="form-group">
+                        <label for="forgot-email">Email:</label>
+                        <input type="email" id="forgot-email" class="login-input" required autocomplete="on">
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="login-btn">Submit</button>
+                        <button type="button" class="clear-btn" onclick="clearForgotPasswordForm()">Clear</button>
+                    </div>
+                </form>
+                <div id="forgot-error-message" class="error-message" style="display: none; color: red;"></div>
+                <div id="forgot-success-message" class="success-message"></div>
+            </div>
+        </div>
+
+        <!-- Reset Password Form -->
+        <div id="reset-password" class="tab-content" style="display: none;">
+            <h2>Reset Password</h2>
+            <div class="login-container">
+                <form id="reset-password-form" class="login-form" onsubmit="submitResetPassword(event)">
+                    <div class="form-group">
+                        <label for="reset-token">Token:</label>
+                        <input type="text" id="reset-token" class="login-input" required autocomplete="on">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">New Password:</label>
+                        <input type="password" id="new-password" class="login-input" required autocomplete="on">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm New Password:</label>
+                        <input type="password" id="confirm-password" class="login-input" required autocomplete="on">
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="login-btn">Reset Password</button>
+                        <button type="button" class="clear-btn" onclick="clearResetPasswordForm()">Clear</button>
+                    </div>
+                </form>
+                <div id="reset-error-message" class="error-message" style="display: none; color: red;"></div>
+                <div id="reset-success-message" class="success-message"></div>
+            </div>
+        </div>
+
+        <!-- About Us Tab -->
+        <div id="aboutUs" class="tab-content">
+            <div class="about-us-container">
+                <h2 class="about-us-heading">About Us</h2>
+                <p class="about-us-text">
+                    Welcome to <strong>Share2Teach</strong>, a vibrant open educational resource (OER) project designed to foster a global community of learners and educators. At the heart of our initiative is the belief that knowledge should be accessible, collaborative, and free. Share2Teach is a testament to the power of collective effort, co-created by the innovative minds of students under the guidance of their facilitators.
+                </p>
+
+                <h3 class="about-us-subheading">Our Founders</h3>
+                <p class="about-us-text">
+                    The project was founded by <strong>Dr. Chantelle Bosch</strong>, a dedicated lecturer and the sub-area leader for Blended Learning to Enhance Self-Directed Learning within the Research Unit Self-Directed Learning at the North-West University (NWU). Alongside her, <strong>Prof. Dorothy Laubscher</strong>, the chairholder of the UNESCO Chair on Multimodal Learning and OER, has been instrumental in shaping the vision and direction of Share2Teach.
+                </p>
+
+                <h3 class="about-us-subheading">Our Vision</h3>
+                <p class="about-us-text">
+                    Share2Teach stands as a beacon for educational innovation, inviting educators and learners worldwide to contribute, explore, and grow within this open, inclusive community. Join us in our journey to make learning a shared adventure, breaking down barriers and building bridges towards a more knowledgeable and connected world.
+                </p>
+
+                <h3 class="about-us-subheading">Contributing to Share2Teach</h3>
+                <p class="about-us-text">
+                    If you're a teacher or lecturer passionate about education and eager to make a difference, we invite you to join our collaborative community.<a href="#contribute" onclick="openTab(event, 'contribute')">Click here</a> to contribute a resource.
+                </p>
+
+                <!-- NWU Logo at the bottom -->
+                <div class="about-us-logo">
+                    <img src="https://services.nwu.ac.za/sites/services.nwu.ac.za/files/files/designs-branding/NWU-Acronym-logo-acronym-RGB.png" alt="NWU Logo" class="nwu-logo-img">
+                </div>
+            </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 Share2Teach. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

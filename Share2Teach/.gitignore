@@ -93,3 +93,8 @@ paket-files/
 
 # Ignore Solution files
 *.sln
+
+# Ignore log files
+*.log
+logs/
+.txt

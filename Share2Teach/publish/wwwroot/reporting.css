@@ -1,0 +1,98 @@
+body {
+    background-color: #f2eafc; /* Light purple background */
+    font-family: Arial, sans-serif;
+    color: #4b0082; /* Deep purple text */
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1000px; /* Increased the max-width for a wider layout */
+    margin: 0 auto;
+    padding: 40px; /* Added more padding for a spacious look */
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+h1 {
+    text-align: center;
+    color: #4b0082;
+    margin-bottom: 30px;
+}
+
+.card {
+    background-color: #fff;
+    padding: 25px; /* Adjusted padding for more spacing */
+    margin-bottom: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card h2 {
+    color: #4b0082;
+    border-bottom: 2px solid #b39ddb; /* Softer purple underline */
+    padding-bottom: 5px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    color: #4b0082;
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.btn {
+    background-color: #6b00b6; /* Softer purple */
+    color: #fff;
+    padding: 12px 18px; /* Slightly bigger buttons */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.btn:hover {
+    background-color: #4b0082; /* Darker purple */
+}
+
+.feedback {
+    color: #4b0082;
+    font-weight: bold;
+    margin-top: 10px;
+    text-align: center;
+}
+
+#reports-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#reports-table th, #reports-table td {
+    border: 1px solid #ddd;
+    padding: 12px; /* More padding for better readability */
+    text-align: left;
+}
+
+#reports-table th {
+    background-color: #4b0082;
+    color: white;
+}
+
+#reports-table tr:nth-child(even) {
+    background-color: #f3f0ff;
+}

@@ -1,0 +1,126 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 320px;
+    position: relative;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #4a4a8e; /* Dark purple */
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #4a4a8e;
+}
+
+input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+input:focus {
+    border-color: #4a8ea4; /* Teal */
+    outline: none;
+    box-shadow: 0 0 5px rgba(74, 142, 164, 0.3);
+}
+
+.password-container .eye-icon {
+    color: #4a8ea4;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(90deg, #4a8ea4, #4a4a8e);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button:hover {
+    background: linear-gradient(90deg, #39778c, #3d3d7a);
+}
+
+.back-button {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    text-decoration: none;
+    color: #4a8ea4;
+}
+
+.back-button:hover {
+    color: #3d3d7a;
+}
+
+.message {
+    margin-top: 10px;
+    text-align: center;
+    color: #4a4a8e;
+}
+
+.error-box {
+    border: 1px solid #ff6b6b;
+    background-color: #ffe6e6;
+    color: #d63031;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+}
+
+.error-message {
+    color: #d63031;
+}
+.container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    border: 3px solid #4a4a8e; /* Purple border */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 320px;
+    position: relative;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.password-container {
+    position: relative;
+    width: 100%;
+}
+
+.password-container input[type="password"] {
+    width: 100%;
+    padding-right: 40px; /* To prevent text overlap with the eye icon */
+}
+
+.eye-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 18px;
+}

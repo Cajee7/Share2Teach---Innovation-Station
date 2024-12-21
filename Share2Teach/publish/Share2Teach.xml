@@ -1,0 +1,931 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Share2Teach</name>
+    </assembly>
+    <members>
+        <member name="T:Share2Teach.Analytics.GoogleAnalyticsMiddleware">
+            <summary>
+            Middleware for sending requests and events to Google Analytics.
+            </summary>
+        </member>
+        <member name="M:Share2Teach.Analytics.GoogleAnalyticsMiddleware.#ctor(Microsoft.AspNetCore.Http.RequestDelegate,Share2Teach.Analytics.GoogleAnalyticsService,Microsoft.Extensions.Logging.ILogger{Share2Teach.Analytics.GoogleAnalyticsMiddleware})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Share2Teach.Analytics.GoogleAnalyticsMiddleware"/> class.
+            </summary>
+            <param name="next">The next middleware in the request pipeline.</param>
+            <param name="googleAnalyticsService">Service to send events to Google Analytics.</param>
+            <param name="logger">Logger to log request details and errors.</param>
+        </member>
+        <member name="M:Share2Teach.Analytics.GoogleAnalyticsMiddleware.Invoke(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>
+            Invokes the middleware to process the HTTP context and send events to Google Analytics.
+            </summary>
+            <param name="context">The current HTTP context.</param>
+            <returns>A task representing the asynchronous operation.</returns>
+        </member>
+        <member name="T:Share2Teach.Analytics.GoogleAnalyticsService">
+            <summary>
+            Service for sending events to Google Analytics.
+            </summary>
+        </member>
+        <member name="M:Share2Teach.Analytics.GoogleAnalyticsService.#ctor(Microsoft.Extensions.Logging.ILogger{Share2Teach.Analytics.GoogleAnalyticsService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Share2Teach.Analytics.GoogleAnalyticsService"/> class.
+            </summary>
+            <param name="logger">Logger to log information and errors.</param>
+        </member>
+        <member name="M:Share2Teach.Analytics.GoogleAnalyticsService.SendEventAsync(System.String,System.String,System.String)">
+            <summary>
+            Sends an event to Google Analytics with the specified parameters.
+            </summary>
+            <param name="eventCategory">Category of the event (e.g., API request).</param>
+            <param name="clientId">Unique client identifier (based on IP and User-Agent).</param>
+            <param name="endpointLabel">Label describing the endpoint being accessed.</param>
+            <returns>A task that represents the asynchronous operation.</returns>
+        </member>
+        <member name="T:Share2Teach.Models.FAQS">
+            <summary>
+            Represents a Frequently Asked Question (FAQ) in the system.
+            </summary>
+        </member>
+        <member name="P:Share2Teach.Models.FAQS.Question">
+            <summary>
+            Gets or sets the unique identifier for the FAQ.
+            This will map to the _id field in MongoDB.
+            </summary>
+            <summary>
+            Gets or sets the question being asked.
+            This will map to the "question" field in the document.
+            </summary>
+        </member>
+        <member name="P:Share2Teach.Models.FAQS.Answer">
+            <summary>
+            Gets or sets the answer to the question.
+            This will map to the "answer" field in the document.
+            </summary>
+        </member>
+        <member name="T:DatabaseConnection.Controllers.AuthenticateController">
+            <summary>
+            This is the controller responsible for user authentication.
+            </summary>
+        </member>
+        <member name="M:DatabaseConnection.Controllers.AuthenticateController.#ctor(MongoDB.Driver.IMongoDatabase,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DatabaseConnection.Controllers.AuthenticateController"/> class.
+            </summary>
+            <param name="database">The MongoDB database instance used for user authentication.</param>
+            <param name="configuration">The configuration settings for the application.</param>
+        </member>
+        <member name="M:DatabaseConnection.Controllers.AuthenticateController.Register(UserRegistrationDto)">
+            <summary>
+            Registers a new user account.
+            </summary>
+            <param name="model">The user registration data transfer object.</param>
+            <returns>A success message upon successful registration.</returns>
+            <response code="200">If the user is registered successfully.</response>
+            <response code="400">If the model is invalid or if the user already exists.</response>
+            <response code="404">If the user is not found.</response>
+            <response code="500">If an internal server error occurs.</response>
+        </member>
+        <member name="M:DatabaseConnection.Controllers.AuthenticateController.Login(UserLoginDto)">
+            <summary>
+            Logs in a user.
+            </summary>
+            <param name="model">The user login data transfer object.</param>
+            <returns>A success message and a JWT token upon successful login.</returns>
+            <response code="200">If the user is logged in successfully.</response>
+            <response code="400">If the model is invalid.</response>
+            <response code="401">If the login attempt is invalid.</response>
+            <response code="500">If an internal server error occurs.</response>
+        </member>
+        <member name="M:DatabaseConnection.Controllers.AuthenticateController.ForgotPassword(ForgotPasswordDto)">
+            <summary>
+            Initiates the password reset process by sending a reset token to the user's email.
+            </summary>
+            <param name="model">The forgot password data transfer object.</param>
+            <returns>A success message upon successful initiation of the password reset process.</returns>
+            <response code="200">If the password reset token is sent successfully.</response>
+            <response code="400">If the user with the provided email does not exist.</response>
+            <response code="500">If an internal server error occurs.</response>
+        </member>
+        <member name="M:DatabaseConnection.Controllers.AuthenticateController.ResetPassword(ResetPasswordDto)">
+            <summary>
+            Resets the user's password using the provided reset token.
+            </summary>
+            <param name="model">The reset password data transfer object.</param>
+            <returns>A success message upon successful password reset.</returns>
+            <response code="200">If the password is reset successfully.</response>
+            <response code="400">If the passwords do not match, or the reset token is invalid or expired.</response>
+            <response code="500">If an internal server error occurs.</response>
+        </member>
+        <member name="M:DatabaseConnection.Controllers.AuthenticateController.SendResetEmail(System.String,System.String)">
+            <summary>
+            Sends the password reset token to the user's email.
+            </summary>
+            <param name="email">The user's email address.</param>
+            <param name="resetToken">The password reset token.</param>
+        </member>
+        <member name="M:DatabaseConnection.Controllers.AuthenticateController.GenerateJwtToken(MongoDB.Bson.BsonDocument)">
+            <summary>
+            Generates a JWT token for the authenticated user.
+            </summary>
+            <param name="user">The user's BSON document.</param>
+            <returns>A JWT token.</returns>
+        </member>
+        <member name="M:DatabaseConnection.Controllers.AuthenticateController.UpgradeUser(System.String,System.String)">
+            <summary>
+            Upgrades a user's role to a higher level (e.g., user to admin, teacher to moderator).
+            </summary>
+            <param name="email">The email of the user to be upgraded.</param>
+            <param name="newRole">The new role to assign to the user.</param>
+            <returns>A success message upon successful role upgrade.</returns>
+            <response code="200">If the user's role is upgraded successfully.</response>
+            <response code="400">If the new role is invalid or if the user cannot be upgraded.</response>
+            <response code="401">If the request is not authorized (only admins can perform this action).</response>
+            <response code="404">If the user with the specified email is not found.</response>
+            <response code="500">If an internal server error occurs.</response>
+        </member>
+        <member name="M:DatabaseConnection.Controllers.AuthenticateController.GetCurrentUser">
+            <summary>
+            Retrieves the details of the currently authenticated user.
+            </summary>
+            <returns>The user's details including email, name, and role.</returns>
+            <response code="200">If the user's details are retrieved successfully.</response>
+            <response code="401">If the user is not authenticated.</response>
+        </member>
+        <member name="M:DatabaseConnection.Controllers.AuthenticateController.DeleteUser(System.String)">
+            <summary>
+            Deletes a user account based on the provided email.
+            </summary>
+            <param name="email">The email of the user to be deleted.</param>
+            <returns>A success message upon successful deletion.</returns>
+            <response code="200">If the user is deleted successfully.</response>
+            <response code="400">If the email is invalid or the user does not exist.</response>
+            <response code="401">If the request is not authorized (only admins can perform this action).</response>
+            <response code="500">If an internal server error occurs.</response>
+        </member>
+        <member name="M:DatabaseConnection.Controllers.AuthenticateController.GetAllUsers">
+            <summary>
+            Gets a list of all users.
+            </summary>
+            <returns>A list of users.</returns>
+            <response code="200">If the users are retrieved successfully.</response>
+            <response code="401">If the request is not authorized (only admins can perform this action).</response>
+            <response code="500">If an internal server error occurs.</response>
+        </member>
+        <member name="T:DatabaseConnection.Program">
+            <summary>
+            Provides methods to connect to a MongoDB database.
+            </summary>
+        </member>
+        <member name="F:DatabaseConnection.Program.connectionString">
+            <summary>
+            The connection string for the MongoDB database.
+            </summary>
+        </member>
+        <member name="F:DatabaseConnection.Program.databasename">
+            <summary>
+            The name of the MongoDB database to use.
+            </summary>
+        </member>
+        <member name="M:DatabaseConnection.Program.ConnectToDatabase">
+            <summary>
+            Connects to the MongoDB database using the specified connection string and database name.
+            </summary>
+            <returns>
+            An instance of <see cref="T:MongoDB.Driver.IMongoDatabase"/> representing the connected database.
+            Returns null if the connection fails.
+            </returns>
+        </member>
+        <member name="T:DatabaseConnection.DTOs.FileModerationDto">
+            <summary>
+            Represents the data transfer object for file moderation, containing information about the file and moderation status.
+            </summary>
+        </member>
+        <member name="P:DatabaseConnection.DTOs.FileModerationDto.Id">
+            <summary>
+            Gets or sets the unique identifier for the file moderation entry.
+            </summary>
+        </member>
+        <member name="P:DatabaseConnection.DTOs.FileModerationDto.FileName">
+            <summary>
+            Gets or sets the name of the file being moderated.
+            </summary>
+        </member>
+        <member name="P:DatabaseConnection.DTOs.FileModerationDto.FilePath">
+            <summary>
+            Gets or sets the file path of the file being moderated.
+            </summary>
+        </member>
+        <member name="P:DatabaseConnection.DTOs.FileModerationDto.Subject">
+            <summary>
+            Gets or sets the subject or category of the file.
+            </summary>
+        </member>
+        <member name="P:DatabaseConnection.DTOs.FileModerationDto.IsApproved">
+            <summary>
+            Gets or sets the approval status of the file. Nullable to indicate pending approval.
+            </summary>
+        </member>
+        <member name="P:DatabaseConnection.DTOs.FileModerationDto.ModeratorComments">
+            <summary>
+            Gets or sets comments from the moderator regarding the file.
+            </summary>
+        </member>
+        <member name="P:DatabaseConnection.DTOs.FileModerationDto.Rating">
+            <summary>
+            Gets or sets the rating given to the file by the moderator. Nullable to represent no rating.
+            </summary>
+        </member>
+        <member name="T:DatabaseConnection.DTOs.ModerationActionDto">
+            <summary>
+            Represents the data transfer object for moderation actions, containing information about the moderation status, comments, and rating.
+            </summary>
+        </member>
+        <member name="P:DatabaseConnection.DTOs.ModerationActionDto.Status">
+            <summary>
+            Gets or sets the moderation status (e.g., Approve or Deny).
+            </summary>
+        </member>
+        <member name="P:DatabaseConnection.DTOs.ModerationActionDto.Comments">
+            <summary>
+            Gets or sets the comments provided by the moderator regarding the moderation action.
+            </summary>
+        </member>
+        <member name="P:DatabaseConnection.DTOs.ModerationActionDto.Rating">
+            <summary>
+            Gets or sets the rating provided by the moderator (e.g., 1 to 5).
+            </summary>
+        </member>
+        <member name="T:FAQApp.Controllers.FAQController">
+            <summary>
+            Provides an API for managing Frequently Asked Questions (FAQs).
+            </summary>
+        </member>
+        <member name="M:FAQApp.Controllers.FAQController.#ctor(Microsoft.Extensions.Logging.ILogger{FAQApp.Controllers.FAQController})">
+            <summary>
+            Initializes a new instance of the <see cref="T:FAQApp.Controllers.FAQController"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:FAQApp.Controllers.FAQController.AddFAQ(Share2Teach.Models.FAQS)">
+            <summary>
+            Adds a new FAQ.
+            </summary>
+            <param name="faqInput">The FAQ input model containing question and answer.</param>
+            <returns>A success message upon successful addition.</returns>
+            <response code="200">If the FAQ is added successfully.</response>
+            <response code="400">If the request is invalid.</response>
+            <response code="500">If an internal server error occurs.</response>
+        </member>
+        <member name="M:FAQApp.Controllers.FAQController.GetAllFAQs">
+            <summary>
+            Retrieves a list of all FAQs.
+            </summary>
+            <returns>A list of FAQs with their details.</returns>
+            <response code="200">Returns the list of FAQs.</response>
+            <response code="404">If no FAQs are found.</response>
+            <response code="500">If an internal server error occurs.</response>
+        </member>
+        <member name="M:FAQApp.Controllers.FAQController.DeleteFAQById(System.String)">
+            <summary>
+            Deletes an FAQ by its ObjectId.
+            </summary>
+            <param name="id">The ObjectId of the FAQ to delete.</param>
+            <returns>A success message upon successful deletion.</returns>
+            <response code="200">If the FAQ is deleted successfully.</response>
+            <response code="400">If the ObjectId format is invalid.</response>
+            <response code="404">If the FAQ with the specified ID is not found.</response>
+            <response code="500">If an internal server error occurs.</response>
+        </member>
+        <member name="M:FAQApp.Controllers.FAQController.UpdateFAQById(System.String,Share2Teach.Models.FAQS)">
+            <summary>
+            Updates an existing FAQ by its ObjectId.
+            </summary>
+            <param name="id">The ObjectId of the FAQ to update.</param>
+            <param name="faqInput">The updated FAQ input model containing new question and answer.</param>
+            <returns>A success message upon successful update.</returns>
+            <response code="200">If the FAQ is updated successfully.</response>
+            <response code="400">If the ObjectId format is invalid or required fields are missing.</response>
+            <response code="404">If the FAQ with the specified ID is not found.</response>
+            <response code="500">If an internal server error occurs.</response>
+        </member>
+        <member name="M:Combined.Controllers.FileController.#ctor(MongoDB.Driver.IMongoDatabase)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Combined.Controllers.FileController"/> class.
+            </summary>
+            <param name="database">The MongoDB database instance.</param>
+        </member>
+        <member name="M:Combined.Controllers.FileController.UploadFile(CombinedUploadRequest)">
+            <summary>
+            Uploads a file to Nextcloud and stores its metadata in MongoDB.
+            </summary>
+            <param name="request">The combined upload request containing file and metadata.</param>
+            <returns>An action result indicating the outcome of the upload operation.</returns>
+        </member>
+        <member name="M:Combined.Controllers.FileController.GenerateTags(System.String)">
+            <summary>
+            Generates tags based on the document text by filtering out stopwords and selecting the most frequent words.
+            </summary>
+            <param name="documentText">The text content of the document.</param>
+            <returns>A list of generated tags.</returns>
+        </member>
+        <member name="M:Combined.Controllers.FileController.LemmatizeWord(System.String)">
+            <summary>
+            Lemmatizes a given word based on basic rules.
+            </summary>
+            <param name="word">The word to be lemmatized.</param>
+            <returns>The lemmatized form of the word.</returns>
+        </member>
+        <member name="M:Combined.Controllers.FileController.SearchDocuments(Search.Models.SearchRequest)">
+            <summary>
+            Searches for moderated documents based on the provided search query, including tags.
+            </summary>
+            <param name="request">The search request containing the query string.</param>
+            <returns>An IActionResult containing the search results or an error message.</returns>
+        </member>
+        <member name="M:Combined.Controllers.FileController.UpdateDocument(System.String,UpdateDocumentDto)">
+            <summary>
+            Updates a document with the specified ID in MongoDB without modifying Nextcloud.
+            </summary>
+            <param name="id">The ID of the document to update.</param>
+            <param name="updateDocumentDto">The DTO containing updated document information.</param>
+            <returns>An IActionResult indicating the result of the update operation.</returns>
+            <response code="204">No Content - Document updated successfully.</response>
+            <response code="400">Bad Request - UpdateDocumentDto cannot be null.</response>
+            <response code="404">Not Found - Document with specified ID not found.</response>
+            <response code="500">Internal Server Error - An error occurred while updating the document.</response>
+        </member>
+        <member name="M:Combined.Controllers.FileController.DownloadDocument(System.String)">
+            <summary>
+            Downloads a document from Nextcloud based on the provided document ID.
+            </summary>
+            <param name="id">The ID of the document to download.</param>
+            <returns>An IActionResult to handle the download.</returns>
+        </member>
+        <member name="M:Combined.Controllers.FileController.DeleteDocument(System.String)">
+            <summary>
+            Deletes a document with the specified ID and its associated file from Nextcloud.
+            </summary>
+            <param name="id">The ID of the document to delete.</param>
+            <returns>An IActionResult indicating the outcome of the delete operation.</returns>
+        </member>
+        <member name="T:FileModeration.Controllers.ModerationController">
+            <summary>
+            API Controller for managing document moderation functionality.
+            </summary>
+        </member>
+        <member name="M:FileModeration.Controllers.ModerationController.#ctor(MongoDB.Driver.IMongoDatabase)">
+            <summary>
+            Constructor to initialize MongoDB collections for documents and moderation entries.
+            </summary>
+            <param name="database">The MongoDB database instance.</param>
+        </member>
+        <member name="M:FileModeration.Controllers.ModerationController.GetUnmoderatedDocuments">
+            <summary>
+            Retrieves all unmoderated documents.
+            </summary>
+            <returns>List of unmoderated documents.</returns>
+            <response code="200">Returns the list of unmoderated documents.</response>
+            <response code="500">If an internal server error occurs.</response>
+        </member>
+        <member name="M:FileModeration.Controllers.ModerationController.UpdateModerationStatus(System.String,Moderation.Models.UpdateModerationRequest)">
+            <summary>
+            Updates the moderation status of a document.
+            </summary>
+            <param name="documentId">The ID of the document to be updated.</param>
+            <param name="request">The request body containing status, comment, and rating.</param>
+            <returns>Confirmation of status update and moderation entry addition.</returns>
+            <response code="200">If the status was successfully updated and moderation entry was added.</response>
+            <response code="400">If the request body is null or the document ID format is invalid.</response>
+            <response code="401">If the user is unauthorized or moderator information is missing in the token.</response>
+            <response code="404">If the document was not found or status was not changed.</response>
+            <response code="500">If an internal server error occurs.</response>
+        </member>
+        <member name="M:FileModeration.Controllers.ModerationController.GetCurrentUser">
+            <summary>
+            Retrieves the current user's information from the JWT token.
+            </summary>
+            <returns>The current user's email, name, and role.</returns>
+            <response code="200">Returns the current user's information.</response>
+            <response code="401">If the user is unauthorized.</response>
+        </member>
+        <member name="T:LogController.Controllers.BaseLogController`1">
+            <summary>
+            Abstract base class for logging controllers.
+            Provides logging functionality to derived controllers.
+            </summary>
+            <typeparam name="T">The type of the class that is using the logger.</typeparam>
+        </member>
+        <member name="F:LogController.Controllers.BaseLogController`1._logger">
+            <summary>
+            The logger instance used for logging events and messages.
+            </summary>
+        </member>
+        <member name="M:LogController.Controllers.BaseLogController`1.#ctor(Microsoft.Extensions.Logging.ILogger{`0})">
+            <summary>
+            Initializes a new instance of the <see cref="T:LogController.Controllers.BaseLogController`1"/> class.
+            </summary>
+            <param name="logger">An instance of <see cref="T:Microsoft.Extensions.Logging.ILogger`1"/> used for logging.</param>
+        </member>
+        <member name="T:CombinedUploadRequest">
+            <summary>
+            Represents a combined upload request, containing the uploaded file and its metadata.
+            </summary>
+        </member>
+        <member name="P:CombinedUploadRequest.UploadedFile">
+            <summary>
+            Gets or sets the uploaded file.
+            </summary>
+        </member>
+        <member name="P:CombinedUploadRequest.Title">
+            <summary>
+            Gets or sets the title of the file.
+            </summary>
+            <remarks>
+            The title is required and must be between 2 and 30 characters.
+            </remarks>
+        </member>
+        <member name="P:CombinedUploadRequest.Subject">
+            <summary>
+            Gets or sets the subject of the file.
+            </summary>
+            <remarks>
+            The subject is required and must be between 2 and 15 characters.
+            </remarks>
+        </member>
+        <member name="P:CombinedUploadRequest.Grade">
+            <summary>
+            Gets or sets the grade level associated with the file.
+            </summary>
+            <remarks>
+            The grade is required.
+            </remarks>
+        </member>
+        <member name="P:CombinedUploadRequest.Description">
+            <summary>
+            Gets or sets the description of the file.
+            </summary>
+            <remarks>
+            The description is required and must be between 2 and 200 characters.
+            </remarks>
+        </member>
+        <member name="T:CreateReportDto">
+            <summary>
+            Data transfer object for creating a report submission with required fields.
+            </summary>
+        </member>
+        <member name="P:CreateReportDto.DocumentId">
+            <summary>
+            Gets or sets the ID of the document being reported.
+            This field is required.
+            </summary>
+        </member>
+        <member name="P:CreateReportDto.Reason">
+            <summary>
+            Gets or sets the reason for reporting the document.
+            This field is required.
+            </summary>
+        </member>
+        <member name="T:FileUploadDto">
+            <summary>
+            Data transfer object for uploading a file.
+            </summary>
+        </member>
+        <member name="P:FileUploadDto.File">
+            <summary>
+            Gets or sets the file to be uploaded.
+            This field is required.
+            </summary>
+        </member>
+        <member name="T:Document_Model.DTOs.FileDownloadDto">
+            <summary>
+            Data transfer object for downloading a file.
+            </summary>
+        </member>
+        <member name="P:Document_Model.DTOs.FileDownloadDto.File">
+            <summary>
+            Gets or sets the file to be downloaded.
+            </summary>
+        </member>
+        <member name="P:Document_Model.DTOs.FileDownloadDto.Title">
+            <summary>
+            Gets or sets the title of the file.
+            </summary>
+        </member>
+        <member name="P:Document_Model.DTOs.FileDownloadDto.Subject">
+            <summary>
+            Gets or sets the subject of the file.
+            </summary>
+        </member>
+        <member name="P:Document_Model.DTOs.FileDownloadDto.Grade">
+            <summary>
+            Gets or sets the grade level associated with the file.
+            </summary>
+        </member>
+        <member name="P:Document_Model.DTOs.FileDownloadDto.Description">
+            <summary>
+            Gets or sets the description of the file.
+            </summary>
+        </member>
+        <member name="P:Document_Model.DTOs.FileDownloadDto.Tags">
+            <summary>
+            Gets or sets the tags associated with the file.
+            </summary>
+        </member>
+        <member name="T:Document_Model.Models.Documents">
+            <summary>
+            Represents a document in the system, containing metadata and file information.
+            </summary>
+        </member>
+        <member name="P:Document_Model.Models.Documents.Id">
+            <summary>
+            Gets or sets the MongoDB ID of the document.
+            </summary>
+        </member>
+        <member name="P:Document_Model.Models.Documents.Title">
+            <summary>
+            Gets or sets the title of the document.
+            </summary>
+        </member>
+        <member name="P:Document_Model.Models.Documents.Subject">
+            <summary>
+            Gets or sets the subject of the document.
+            </summary>
+        </member>
+        <member name="P:Document_Model.Models.Documents.Grade">
+            <summary>
+            Gets or sets the grade level associated with the document.
+            </summary>
+        </member>
+        <member name="P:Document_Model.Models.Documents.Description">
+            <summary>
+            Gets or sets the description of the document.
+            </summary>
+        </member>
+        <member name="P:Document_Model.Models.Documents.File_Size">
+            <summary>
+            Gets or sets the file size of the document in bytes.
+            </summary>
+        </member>
+        <member name="P:Document_Model.Models.Documents.File_Url">
+            <summary>
+            Gets or sets the URL of the uploaded document.
+            </summary>
+        </member>
+        <member name="P:Document_Model.Models.Documents.File_Type">
+            <summary>
+            Gets or sets the file type of the document (e.g., PDF, Word).
+            </summary>
+        </member>
+        <member name="P:Document_Model.Models.Documents.User_id">
+            <summary>
+            Gets or sets the ID of the user who uploaded the document.
+            </summary>
+        </member>
+        <member name="P:Document_Model.Models.Documents.User_Name">
+            <summary>
+            Gets or sets the name of the user who uploaded the document.
+            </summary>
+        </member>
+        <member name="P:Document_Model.Models.Documents.Moderation_Status">
+            <summary>
+            Gets or sets the moderation status of the document (e.g., Unmoderated).
+            </summary>
+        </member>
+        <member name="P:Document_Model.Models.Documents.Ratings">
+            <summary>
+            Gets or sets the ratings for the document.
+            </summary>
+        </member>
+        <member name="P:Document_Model.Models.Documents.Tags">
+            <summary>
+            Gets or sets the list of tags associated with the document.
+            </summary>
+        </member>
+        <member name="P:Document_Model.Models.Documents.Date_Uploaded">
+            <summary>
+            Gets or sets the date when the document was uploaded.
+            </summary>
+        </member>
+        <member name="P:Document_Model.Models.Documents.Date_Updated">
+            <summary>
+            Gets or sets the date when the document was last updated.
+            </summary>
+        </member>
+        <member name="T:ForgotPasswordDto">
+            <summary>
+            Data Transfer Object (DTO) for handling forgot password requests.
+            </summary>
+        </member>
+        <member name="P:ForgotPasswordDto.Email">
+            <summary>
+            Gets or sets the email address associated with the user account.
+            </summary>
+            <value>
+            The email address used for sending password reset instructions.
+            </value>
+        </member>
+        <member name="T:ReportDto">
+            <summary>
+            Data transfer object for a report.
+            </summary>
+        </member>
+        <member name="P:ReportDto.Id">
+            <summary>
+            Gets or sets the unique identifier of the report.
+            </summary>
+        </member>
+        <member name="P:ReportDto.DocumentId">
+            <summary>
+            Gets or sets the document identifier associated with the report.
+            Treated as ObjectId in the database, but used as a string in the application.
+            </summary>
+        </member>
+        <member name="P:ReportDto.Reason">
+            <summary>
+            Gets or sets the reason for the report.
+            </summary>
+        </member>
+        <member name="P:ReportDto.Status">
+            <summary>
+            Gets or sets the status of the report.
+            Default value is "pending".
+            </summary>
+        </member>
+        <member name="P:ReportDto.DateReported">
+            <summary>
+            Gets or sets the date and time when the report was made.
+            </summary>
+        </member>
+        <member name="M:ReportDto.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:ReportDto"/> class.
+            Sets the <see cref="P:ReportDto.DateReported"/> property to the current UTC time.
+            </summary>
+        </member>
+        <member name="T:ResetPasswordDto">
+            <summary>
+            Data Transfer Object (DTO) for handling password reset requests.
+            </summary>
+        </member>
+        <member name="P:ResetPasswordDto.Token">
+            <summary>
+            Gets or sets the reset token.
+            </summary>
+            <value>
+            The token sent to the user for resetting their password.
+            </value>
+        </member>
+        <member name="P:ResetPasswordDto.NewPassword">
+            <summary>
+            Gets or sets the new password.
+            </summary>
+            <value>
+            The new password that the user wants to set.
+            </value>
+        </member>
+        <member name="P:ResetPasswordDto.ConfirmPassword">
+            <summary>
+            Gets or sets the confirmation password.
+            </summary>
+            <value>
+            The password entered again for confirmation, must match the new password.
+            </value>
+        </member>
+        <member name="T:UpdateDocumentDto">
+            <summary>
+            Data Transfer Object (DTO) for updating a document in the Share2Teach system.
+            </summary>
+        </member>
+        <member name="P:UpdateDocumentDto.Title">
+            <summary>
+            Gets or sets the title of the document.
+            </summary>
+        </member>
+        <member name="P:UpdateDocumentDto.Subject">
+            <summary>
+            Gets or sets the subject of the document.
+            </summary>
+        </member>
+        <member name="P:UpdateDocumentDto.Grade">
+            <summary>
+            Gets or sets the grade level associated with the document.
+            </summary>
+        </member>
+        <member name="P:UpdateDocumentDto.Description">
+            <summary>
+            Gets or sets a brief description of the document.
+            </summary>
+        </member>
+        <member name="P:UpdateDocumentDto.Ratings">
+            <summary>
+            Gets or sets the rating of the document.
+            </summary>
+        </member>
+        <member name="T:UserDto">
+            <summary>
+            Data Transfer Object (DTO) for representing user information.
+            </summary>
+        </member>
+        <member name="P:UserDto.FirstName">
+            <summary>
+            Gets or sets the user's first name.
+            </summary>
+            <value>
+            The first name of the user.
+            </value>
+        </member>
+        <member name="P:UserDto.LastName">
+            <summary>
+            Gets or sets the user's last name.
+            </summary>
+            <value>
+            The last name of the user.
+            </value>
+        </member>
+        <member name="P:UserDto.Email">
+            <summary>
+            Gets or sets the user's email address.
+            </summary>
+            <value>
+            The email address of the user.
+            </value>
+        </member>
+        <member name="P:UserDto.Role">
+            <summary>
+            Gets or sets the user's role.
+            </summary>
+            <value>
+            The role of the user (e.g., "User", "Admin", "Teacher").
+            </value>
+        </member>
+        <member name="P:UserDto.Subjects">
+            <summary>
+            Gets or sets the list of subjects for the user.
+            </summary>
+            <value>
+            A list of subjects associated with the user, typically required for teachers.
+            </value>
+        </member>
+        <member name="T:UserLoginDto">
+            <summary>
+            Data Transfer Object (DTO) for user login information.
+            </summary>
+        </member>
+        <member name="P:UserLoginDto.Email">
+            <summary>
+            Gets or sets the user's email address.
+            </summary>
+            <value>
+            A valid email address required for login.
+            </value>
+        </member>
+        <member name="P:UserLoginDto.Password">
+            <summary>
+            Gets or sets the user's password.
+            </summary>
+            <value>
+            A password that must be at least 8 characters long.
+            </value>
+        </member>
+        <member name="T:UserRegistrationDto">
+            <summary>
+            Data transfer object for user registration.
+            </summary>
+        </member>
+        <member name="P:UserRegistrationDto.FirstName">
+            <summary>
+            Gets or sets the first name of the user.
+            This field is required and must be between 2 and 15 characters.
+            </summary>
+        </member>
+        <member name="P:UserRegistrationDto.LastName">
+            <summary>
+            Gets or sets the last name of the user.
+            This field is required and must be between 2 and 20 characters.
+            </summary>
+        </member>
+        <member name="P:UserRegistrationDto.Email">
+            <summary>
+            Gets or sets the email of the user.
+            This field is required and must be a valid email address.
+            </summary>
+        </member>
+        <member name="P:UserRegistrationDto.Password">
+            <summary>
+            Gets or sets the password of the user.
+            This field is required and must be at least 8 characters long.
+            </summary>
+        </member>
+        <member name="P:UserRegistrationDto.ConfirmPassword">
+            <summary>
+            Gets or sets the confirmation password for the user.
+            Must match the password field.
+            </summary>
+        </member>
+        <member name="P:UserRegistrationDto.Role">
+            <summary>
+            Gets or sets the role of the user.
+            This field is required. Defaults to "User".
+            </summary>
+        </member>
+        <member name="P:UserRegistrationDto.Subjects">
+            <summary>
+            Gets or sets the subjects the user teaches.
+            Only required for users with a teacher role.
+            </summary>
+        </member>
+        <member name="T:FAQPage.FAQPage">
+            <summary>
+            Represents a page for managing frequently asked questions (FAQs).
+            </summary>
+        </member>
+        <member name="M:FAQPage.FAQPage.GetFAQCollection">
+            <summary>
+            Retrieves the FAQ collection from the database.
+            </summary>
+            <returns>The MongoDB collection containing FAQs.</returns>
+        </member>
+        <member name="M:FAQPage.FAQPage.RetrieveFAQS">
+            <summary>
+            Retrieves and displays all FAQs from the collection.
+            </summary>
+        </member>
+        <member name="M:FAQPage.FAQPage.CreateFAQ(System.String,System.String)">
+            <summary>
+            Creates a new FAQ entry in the collection.
+            </summary>
+            <param name="question">The question of the FAQ.</param>
+            <param name="answer">The answer of the FAQ.</param>
+        </member>
+        <member name="M:FAQPage.FAQPage.UpdateFAQ(System.String,System.String,System.String)">
+            <summary>
+            Updates an existing FAQ entry in the collection.
+            </summary>
+            <param name="question">The original question of the FAQ to be updated.</param>
+            <param name="newQuestion">The new question to replace the original question.</param>
+            <param name="newAnswer">The new answer to replace the original answer.</param>
+        </member>
+        <member name="M:FAQPage.FAQPage.DeleteFAQ(System.String)">
+            <summary>
+            Deletes an existing FAQ entry from the collection.
+            </summary>
+            <param name="question">The question of the FAQ to be deleted.</param>
+        </member>
+        <member name="M:FAQPage.FAQPage.Main(System.String[])">
+            <summary>
+            The main entry point for the application.
+            Calls the method to retrieve FAQs.
+            </summary>
+            <param name="args">Command-line arguments.</param>
+        </member>
+        <member name="T:Search.Models.SearchRequest">
+            <summary>
+            Represents a search request containing the user's query.
+            </summary>
+        </member>
+        <member name="P:Search.Models.SearchRequest.Query">
+            <summary>
+            Gets or sets the search query.
+            </summary>
+        </member>
+        <member name="T:ReportManagement.Controllers.ReportingController">
+            <summary>
+            Handles reporting-related operations.
+            </summary>
+        </member>
+        <member name="M:ReportManagement.Controllers.ReportingController.#ctor(MongoDB.Driver.IMongoDatabase)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ReportManagement.Controllers.ReportingController"/> class.
+            </summary>
+            <param name="database">The MongoDB database instance.</param>
+        </member>
+        <member name="M:ReportManagement.Controllers.ReportingController.GetAllReports">
+            <summary>
+            Retrieves all reports.
+            </summary>
+            <returns>A task representing the asynchronous operation.</returns>
+        </member>
+        <member name="M:ReportManagement.Controllers.ReportingController.UpdateReportStatus(System.String,UpdateReportDto)">
+            <summary>
+            Updates the status of an existing report.
+            </summary>
+            <param name="id">The ID of the report to update.</param>
+            <param name="updateDto">The new status data for the report.</param>
+            <returns>A task representing the asynchronous operation.</returns>
+        </member>
+        <member name="M:ReportManagement.Controllers.ReportingController.DeleteApprovedReports">
+            <summary>
+            Deletes all approved reports.
+            </summary>
+            <returns>A task representing the asynchronous operation.</returns>
+        </member>
+        <member name="T:UploadDocuments.DocumentUploader">
+            <summary>
+            Provides functionality for uploading documents to Nextcloud.
+            </summary>
+        </member>
+    </members>
+</doc>

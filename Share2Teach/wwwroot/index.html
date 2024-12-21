@@ -26,31 +26,21 @@
             <button class="tab-button" onclick="openTab(event, 'faq')">FAQ</button>
     
             <!-- Slide out tab for More button -->
-        <div class="more-tab">
-            <button class="tab-button">More</button>
-            <div class="slide-out-content">
-                <!-- Profile Section -->
-                <div class="profile-section" id="user-profile" style="display: none;">
-                    <div id="profile-icon" class="profile-icon">
-                        <span id="profile-initials"></span> 
+            <div class="more-tab">
+                <button class="tab-button">More</button>
+                <div class="slide-out-content">
+                    <a href="#otherOER">Other useful OER's</a>
+                    <a href="#selfDirectedLearning">Self-Directed Learning</a>
+                    <a href="#login" onclick="openTab(event, 'login')">Login</a>
+                    <a id="logout-btn" href="#" style="display: none;" onclick="performLogout()">Logout</a>
+                    <a href="#aboutUs" onclick="openTab(event, 'aboutUs')">About Us</a>
+            
+                    <!-- Profile Icon under More tab -->
+                    <div id="user-profile" style="display: none;">
+                        <div id="profile-icon" class="profile-icon">
+                            <span id="profile-name"></span>
+                        </div>
                     </div>
-                    <p class="profile-name" id="profile-name"></p>
-                    <p class="profile-id" id="profile-id"></p>
-                </div>
-
-                <!-- Middle Buttons -->
-                <a href="#login" id="login-btn" onclick="openTab(event, 'login')">Login</a>
-                <a href="#otherOER">Other useful OER's</a>
-                <a href="#selfDirectedLearning">Self-Directed Learning</a>
-                <div id="admin-links" style="display: none;">
-                    <a href="#moderate" id="moderate-link">Moderate</a>
-                    <a href="#reports" id="reports-link">Reports</a>
-                </div>
-                <a href="#aboutUs" onclick="openTab(event, 'aboutUs')">About Us</a>
-
-                <!-- Bottom Logout Button -->
-                <div class="bottom-link">
-                    <a id="logout-btn" href="#" style="display: none;" onclick="performLogout()">Log Out</a>
                 </div>
             </div>
         </div>

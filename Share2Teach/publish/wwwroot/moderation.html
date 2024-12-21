@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="moderation.css">
+    <title>Document Moderation</title>
+</head>
+<body>
+    <div class="container">
+        <h2 class="moderation-heading">Moderation</h2> 
+        <table id="documentsTable">
+            <thead>
+                <tr>
+                    <th>Select</th> <!-- Checkbox for selection -->
+                    <th>Title</th>
+                    <th>Subject</th>
+                    <th>Grade</th>
+                    <th>Description</th>
+                    <th>File Size</th>
+                    <th>File URL</th>
+                    <th>Moderation Status</th>
+                    <th>Ratings</th>
+                    <th>Date Uploaded</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Document rows will be inserted here -->
+            </tbody>
+        </table>
+        <button id="moderateButton" style="display: none;">Moderate</button>
+
+        <button id="submitModeration" style="margin-top: 20px;">Moderate Document</button> <!-- New button to moderate selected documents -->
+    </div>
+
+   <!-- Modal for comments and rating -->
+<div id="ratingModal" class="modal">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2 class="modal-heading">Moderate Document</h2>
+        
+        <!-- Basic Document Info -->
+        <h3 class="modal-subheading">Document Selected:</h3>
+        <p id="documentTitle"></p>
+
+        <!-- More Info Button -->
+        <button id="moreInfoButton" onclick="toggleMoreInfo()">More Info</button>
+
+        <!-- Hidden Additional Info -->
+        <div id="additionalInfo" style="display: none;">
+            <p><strong>Grade:</strong> <span id="documentGrade"></span></p>
+            <p><strong>Subject:</strong> <span id="documentSubject"></span></p>
+            <p><strong>Description:</strong> <span id="documentDescription"></span></p>
+            <p><strong>File Size:</strong> <span id="documentFileSize"></span></p>
+        </div>
+
+        <!-- Rating Selection with a Dropdown -->
+        <label class="modal-subheading">Rating:</label>
+<div class="rating-container">
+    <button id="decrementRating" class="rating-button">-</button>
+    <span id="ratingDisplay">1</span>
+    <button id="incrementRating" class="rating-button">+</button>
+</div>
+    
+        <br>
+        <label for="comments" class="modal-subheading">Comments:</label>
+        <textarea id="comments" rows="4" cols="50"></textarea>
+        <br>
+        <button id="submitRating">Submit</button>
+    </div>
+</div>
+
+
+
+
+
+    <script src="moderation.js"></script>
+</body>
+</html>
