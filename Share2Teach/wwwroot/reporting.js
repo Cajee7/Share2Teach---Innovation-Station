@@ -95,3 +95,7 @@ async function deleteApprovedReports() {
         feedbackElement.innerText = "Error: " + error.message;
     }
 }
+
+function goBack() {
+    window.location.href = 'index.html';
+}

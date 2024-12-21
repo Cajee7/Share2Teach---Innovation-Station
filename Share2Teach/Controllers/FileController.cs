@@ -323,6 +323,7 @@ namespace Combined.Controllers
                     .Find(combinedFilter)
                     .Project(d => new
                     {
+                        d.Id,
                         d.Title,
                         d.Subject,
                         d.Grade,
@@ -349,7 +350,62 @@ namespace Combined.Controllers
             }
         }
 
-    
+        [HttpGet("GetModerated")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetModeratedDocuments()
+        {
+            try
+            {
+                // Create a filter for moderated documents
+                var moderationFilter = Builders<Documents>.Filter.Eq(d => d.Moderation_Status, "Moderated");
+
+                // Define the sort definition by Subject
+                var sortDefinition = Builders<Documents>.Sort.Ascending(d => d.Subject);
+
+                // Perform the query with sorting and project the required fields
+                var result = await _documentsCollection
+                    .Find(moderationFilter)
+                    .Sort(sortDefinition)
+                    .Project(d => new
+                    {
+                        d.Id,
+                        d.Title,
+                        d.Subject,
+                        d.Grade,
+                        d.Description,
+                        d.File_Size,
+                        d.File_Url,
+                        d.Ratings,
+                        d.Tags,
+                        d.Date_Uploaded,
+                        d.Date_Updated
+                    })
+                    .ToListAsync();
+
+                if (!result.Any())
+                {
+                    return NotFound(new { message = "No moderated documents found." });
+                }
+
+                // Group the results by subject
+                var groupedResult = result
+                    .GroupBy(d => d.Subject)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.ToList()
+                    );
+
+                return Ok(new
+                {
+                    TotalDocuments = result.Count,
+                    GroupedBySubject = groupedResult
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
+            }
+        }
 
         /// <summary>
         /// Updates a document with the specified ID in MongoDB without modifying Nextcloud.

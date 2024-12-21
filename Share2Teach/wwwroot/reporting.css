@@ -96,3 +96,25 @@ input, textarea, select {
 #reports-table tr:nth-child(even) {
     background-color: #f3f0ff;
 }
+
+.back-button-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+.back-button {
+    background-color: #f0f0f0;
+    color: #000000;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+}
+
+.back-button:hover {
+    background-color: #2196F3;
+    text-shadow: #000000;
+}
+

@@ -52,6 +52,7 @@ namespace FileModeration.Controllers
         // Create a list of anonymous objects to exclude the unwanted fields
         var filteredDocuments = unmoderatedDocuments.Select(doc => new
         {
+            ID = doc.Id,
             Title = doc.Title,
             Subject = doc.Subject,
             Grade = doc.Grade,

@@ -26,29 +26,35 @@
             <button class="tab-button" onclick="openTab(event, 'faq')">FAQ</button>
     
             <!-- Slide out tab for More button -->
-            <div class="more-tab">
-                <button class="tab-button">More</button>
-                <div class="slide-out-content">
-                    <a href="#otherOER">Other useful OER's</a>
-                    <a href="#selfDirectedLearning">Self-Directed Learning</a>
-                    <a href="#login" onclick="openTab(event, 'login')">Login</a>
-                    <a id="logout-btn" href="#" style="display: none;" onclick="performLogout()">Logout</a>
-                    <a href="#aboutUs" onclick="openTab(event, 'aboutUs')">About Us</a>
-            
-                    <!-- Profile Icon under More tab -->
-                    <div id="user-profile" style="display: none;">
-                        <div id="profile-icon" class="profile-icon">
-                            <span id="profile-name"></span>
-                        </div>
+        <div class="more-tab">
+            <button class="tab-button">More</button>
+            <div class="slide-out-content">
+                <!-- Profile Section -->
+                <div class="profile-section" id="user-profile" style="display: none;">
+                    <div id="profile-icon" class="profile-icon">
+                        <span id="profile-initials"></span> 
                     </div>
+                    <p class="profile-name" id="profile-name"></p>
+                    <p class="profile-id" id="profile-id"></p>
                 </div>
-        </nav>
 
-        <div id="user-profile" style="display: none;">
-            <div id="profile-icon" class="profile-icon">
-                <span id="profile-name"></span>
+                <!-- Middle Buttons -->
+                <a href="#login" id="login-btn" onclick="openTab(event, 'login')">Login</a>
+                <a href="#otherOER">Other useful OER's</a>
+                <a href="#selfDirectedLearning">Self-Directed Learning</a>
+                <div id="admin-links" style="display: none;">
+                    <a href="#moderate" id="moderate-link">Moderate</a>
+                    <a href="#reports" id="reports-link">Reports</a>
+                </div>
+                <a href="#aboutUs" onclick="openTab(event, 'aboutUs')">About Us</a>
+
+                <!-- Bottom Logout Button -->
+                <div class="bottom-link">
+                    <a id="logout-btn" href="#" style="display: none;" onclick="performLogout()">Log Out</a>
+                </div>
             </div>
         </div>
+
     </header>
     
     <div class="container">
@@ -96,8 +102,7 @@
         </div>
 
         <!-- This div will display the fetched document -->
-<div id="documentDisplay"></div>
-
+        <div id="documentDisplay"></div>
 
         <!-- Search Tab -->
         <div id="search" class="tab-content">
@@ -343,11 +348,20 @@
                     <img src="https://services.nwu.ac.za/sites/services.nwu.ac.za/files/files/designs-branding/NWU-Acronym-logo-acronym-RGB.png" alt="NWU Logo" class="nwu-logo-img">
                 </div>
             </div>
+        </div>
 
-    <footer class="footer">
-        <p>&copy; 2024 Share2Teach. All rights reserved.</p>
-    </footer>
+        <!-- Footer outside the About Us section -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="https://services.nwu.ac.za/sites/services.nwu.ac.za/files/files/designs-branding/NWU-Acronym-logo-acronym-RGB.png" alt="NWU Logo">
+                </div>
+                <div class="footer-text">
+                    © 2024 Share2Teach. All rights reserved.
+                </div>
+            </div>
+        </footer>
 
-    <script src="script.js"></script>
-</body>
+        <script src="script.js"></script>
+    </body>
 </html>

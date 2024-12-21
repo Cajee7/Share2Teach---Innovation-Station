@@ -28,53 +28,71 @@ namespace ReportManagement.Controllers
             _reportCollection = database.GetCollection<ReportDto>("Reports");
         }
 
-        [HttpPost("CreateReport")]
+       [HttpPost("CreateReport")]
         public async Task<IActionResult> SubmitReport([FromBody] CreateReportDto newReport)
         {
             try
             {
-                _logger.LogInformation($"Received report: DocumentId={newReport?.DocumentId}, Reason={newReport?.Reason}");
+                _logger.LogInformation("Received report request: {@ReportData}", 
+                    new { DocumentId = newReport?.DocumentId, Reason = newReport?.Reason });
 
                 // Validate the input
-                if (newReport == null || string.IsNullOrEmpty(newReport.DocumentId) || string.IsNullOrEmpty(newReport.Reason))
+                if (newReport == null)
                 {
-                    _logger.LogWarning("Invalid report data received");
-                    return BadRequest(new { message = "Please provide all required information (DocumentId and Reason)." });
+                    return BadRequest(new { message = "Report data is required." });
                 }
 
-                // Validate DocumentId format (MongoDB ObjectId)
-                if (!ObjectId.TryParse(newReport.DocumentId, out _))
+                if (string.IsNullOrEmpty(newReport.DocumentId) || string.IsNullOrEmpty(newReport.Reason))
                 {
-                    _logger.LogWarning($"Invalid DocumentId format: {newReport.DocumentId}");
-                    return BadRequest(new { message = "Invalid DocumentId format. It should be a 24-character hexadecimal string." });
+                    return BadRequest(new { message = "DocumentId and Reason are required." });
                 }
 
-                // Create the report DTO
+                // Extract the necessary components from the provided ID
+                var idComponents = newReport.DocumentId.Split('-');
+                string documentId;
+
+                if (idComponents.Length > 1)
+                {
+                    // If the ID contains hyphens, combine all parts
+                    documentId = string.Join("", idComponents);
+                    // Ensure it's exactly 24 characters by padding if necessary
+                    documentId = documentId.PadRight(24, '0').Substring(0, 24);
+                }
+                else
+                {
+                    documentId = newReport.DocumentId.PadRight(24, '0').Substring(0, 24);
+                }
+
+                // Create the report
                 var report = new ReportDto
                 {
                     Id = ObjectId.GenerateNewId().ToString(),
-                    DocumentId = newReport.DocumentId,
-                    Reason = newReport.Reason,
+                    DocumentId = documentId,
+                    Reason = newReport.Reason.Trim(),
                     Status = "pending",
                     DateReported = DateTime.UtcNow
                 };
 
-                // Insert the report into MongoDB
-                _logger.LogInformation($"Inserting report: {JsonSerializer.Serialize(report)}");
+                // Insert into MongoDB
                 await _reportCollection.InsertOneAsync(report);
-                _logger.LogInformation($"Report inserted successfully: Id={report.Id}");
+                _logger.LogInformation("Report created successfully with ID: {ReportId}", report.Id);
 
-                // Return success response with the created report's ID
-                return CreatedAtAction(nameof(GetAllReports), new { id = report.Id }, new { id = report.Id });
+                return Ok(new { 
+                    message = "Report created successfully",
+                    id = report.Id 
+                });
             }
             catch (Exception ex)
             {
-                // Log the error and return 500 status code
-                _logger.LogError(ex, "Error occurred while processing report. Request body: {@newReport}", newReport);
-                return StatusCode(500, new { message = "An error occurred while processing your request.", error = ex.Message });
+                _logger.LogError(ex, "Error processing report: {@ReportData}", 
+                    new { DocumentId = newReport?.DocumentId, Reason = newReport?.Reason });
+                
+                return StatusCode(500, new { 
+                    message = "An error occurred while processing your request.",
+                    error = ex.Message 
+                });
             }
         }
-
 
         /// <summary>
         /// Retrieves all reports.

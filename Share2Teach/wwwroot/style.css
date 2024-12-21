@@ -43,10 +43,11 @@ body {
   text-align: center;
   color: white;
   font-weight: bold;
+  height: 50px
 }
 
 .tab-button:hover {
-  background-color: #87cefa;
+  background-color: #4a9acc;
 }
 
 .tab-button.active {
@@ -56,13 +57,12 @@ body {
 /* More tab styles */
 .more-tab {
   position: relative;
-  flex: 0 0 auto;
   margin-left: 10px;
 }
 
 .more-tab .tab-button {
-  flex: 0 0 auto;
   width: auto;
+  cursor: pointer;
 }
 
 .slide-out-content {
@@ -70,29 +70,37 @@ body {
   position: absolute;
   right: 0;
   top: 100%;
-  background-color: #f9f9f9;
-  box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   z-index: 1;
-  transition: transform 0.3s ease-in-out;
-  transform: translateX(100%);
+  width: 250px; /* Set width */
+  padding: 10px;
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  opacity: 0;
+  transform: translateY(20px);
 }
 
 .more-tab:hover .slide-out-content {
   display: block;
-  transform: translateX(0);
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .slide-out-content a {
-  color: black;
-  padding: 10px 20px;
+  color: #6a0dad; /* Purple text */
+  padding: 10px 0;
   text-decoration: none;
   display: block;
   white-space: nowrap;
+  font-size: 16px;
 }
 
 .slide-out-content a:hover {
-  background-color: #ddd;
+  background-color: #f0f0f0;
 }
+
 
 /* Container and tab content styles remain the same */
 .container {
@@ -132,61 +140,6 @@ body {
   background-color: #ffffff; /* White background for the form */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Slight shadow for depth */
 }
-
-/* Style for the forgot password form */
-.forgot-password-form,
-.reset-password-form {
-    margin-top: 20px;
-    max-width: 400px;
-    margin: auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #ffffff; /* White background for the form */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Slight shadow for depth */
-}
-
-/* Input styles for both forms */
-.forgot-password-form input,
-.reset-password-form input {
-    width: 100%; /* Full width input fields */
-    padding: 10px; /* Padding for input fields */
-    margin: 10px 0; /* Margin for spacing */
-    border: 1px solid #ccc; /* Light border */
-    border-radius: 4px; /* Slightly rounded corners */
-}
-
-/* Button styles for both forms */
-.forgot-password-form button,
-.reset-password-form button {
-    width: 100%; /* Full width button */
-    padding: 10px; /* Padding for buttons */
-    background-color: #4CAF50; /* Green background */
-    color: white; /* White text */
-    border: none; /* Remove border */
-    border-radius: 4px; /* Rounded corners */
-    cursor: pointer; /* Pointer cursor on hover */
-    transition: background-color 0.3s; /* Transition for hover effect */
-}
-
-/* Button hover effect */
-.forgot-password-form button:hover,
-.reset-password-form button:hover {
-    background-color: #45a049; /* Darker green on hover */
-}
-
-/* Error message style */
-.error-message {
-    color: red; /* Red for errors */
-    margin-top: 10px; /* Spacing above error message */
-}
-
-/* Success message style */
-.success-message {
-    color: green; /* Green for success messages */
-    margin-top: 10px; /* Spacing above success message */
-}
-
 
 .form-group {
   margin-bottom: 15px;
@@ -295,28 +248,326 @@ body {
 
 
 
+/* Container Styles */
 .subjects {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Subject Block Styles */
+.subject-block {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 160px;
+}
+
+.subject-block-interactive {
+    cursor: pointer;
+}
+
+.subject-block-interactive:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.subject-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 12px;
+}
+
+.document-count {
+    font-size: 0.875rem;
+    color: #64748b;
+    background: #f8fafc;
+    padding: 4px 12px;
+    border-radius: 16px;
+    margin-top: 8px;
+}
+
+/* Subject Block States */
+.has-documents {
+    background: linear-gradient(145deg, #ffffff, #f8fafc);
+    border: 1px solid #e2e8f0;
+}
+
+.has-documents:hover {
+    border-color: #93c5fd;
+    background: linear-gradient(145deg, #ffffff, #f0f9ff);
+}
+
+.no-documents {
+    background: linear-gradient(145deg, #f8fafc, #f1f5f9);
+    border: 1px solid #e2e8f0;
+    opacity: 0.8;
+}
+
+/* Container Styles */
+.documents-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem;
+  min-width: 300px; /* Ensures minimum width for content */
+}
+
+.documents-title {
+  text-align: center;
+  font-size: clamp(1.25rem, 4vw, 2rem); /* Responsive font size */
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 1.5rem;
+  padding: 0 1rem;
+}
+
+.documents-grid {
+  display: grid;
+  /* Adjusted minmax to handle smaller widths */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  padding: 0.25rem;
+}
+
+/* Document Card Styles */
+.document-card {
+  background: white;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+  min-width: 0; /* Prevents overflow in flex containers */
+}
+
+.document-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.document-header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.document-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+  /* Prevent long titles from breaking layout */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-content {
+  padding: 0.75rem 1rem;
+  flex: 1;
+}
+
+/* Details Styling */
+.document-details {
+  margin-bottom: 0.75rem;
+}
+
+.detail-row {
+  display: grid;
+  grid-template-columns: minmax(70px, auto) 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  /* Handle long content */
+  min-width: 0;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #4b5563;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.detail-value {
+  color: #6b7280;
+  font-size: 0.8125rem;
+  /* Handle overflow */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Tags Styling */
+.document-tags {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center; /* Center the subject blocks */
-  margin-top: 20px;
+  gap: 0.375rem;
+  margin-top: 0.75rem;
 }
 
-.subject-block {
-  background-color: #e7e7e7; /* Background color for subjects */
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 20px;
-  margin: 10px;
-  width: 150px; /* Adjust width as needed */
+.tag {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  /* Prevent long tags from breaking layout */
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tag:hover {
+  background: #bfdbfe;
+}
+
+/* Button Styles */
+.document-actions {
+  display: flex;
+  gap: 0.375rem;
+  padding: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  flex-wrap: wrap; /* Allow buttons to wrap on very narrow screens */
+}
+
+.button {
+  flex: 1;
+  min-width: 80px; /* Ensure buttons don't get too narrow */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+/* Button icon styles */
+.button svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.preview-button {
+  background: #3b82f6;
+  color: white;
+}
+
+.preview-button:hover {
+  background: #0a56d0;
+}
+
+.download-button {
+  background: white;
+  color: #1a1a1a;
+  border-color: #e5e7eb;
+  text-decoration: none;
+}
+
+.download-button:hover {
+  background: #218838;
+}
+
+.report-button {
+  background: #ef4444;
+  color: white;
+}
+
+.report-button:hover {
+  background: #dc2626;
+}
+
+/* No Documents Message */
+.no-documents-message {
   text-align: center;
-  transition: background-color 0.3s;
+  padding: 2rem 1rem;
+  background: #f9fafb;
+  border-radius: 0.75rem;
+  color: #6b7280;
+  font-size: 0.875rem;
 }
 
-.subject-block:hover {
-  background-color: #d3d3d3; /* Change background on hover */
-  cursor: pointer; /* Pointer cursor on hover */
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+  .documents-container {
+      padding: 0.75rem;
+  }
+
+  .documents-grid {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+  }
+
+  .document-content {
+      padding: 0.75rem;
+  }
+
+  .document-actions {
+      padding: 0.75rem;
+  }
+
+  .button {
+      padding: 0.375rem 0.5rem;
+  }
 }
+
+/* Medium screens */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .documents-grid {
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+}
+
+/* Loading State */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+    position: relative;
+}
+
+.loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    margin: -12px 0 0 -12px;
+    border: 2px solid #2563eb;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: loading-spinner 0.6s linear infinite;
+}
+
+@keyframes loading-spinner {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 
 #search-container {
   display: flex;
@@ -518,7 +769,97 @@ button {
 #subjectView {
   background-color: #e6ffe6; /* Light Green for Subject View */
   border-radius: 8px; /* Rounded corners */
-  padding: 20px;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* General Styles */
+.subjects {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* Center align blocks */
+  gap: 20px; /* Space between blocks */
+  margin-top: 20px;
+}
+
+.subject-block {
+  background-color: #f5f5f5; /* Light background */
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  padding: 20px; /* Inner spacing */
+  text-align: center; /* Center text */
+  width: 200px; /* Fixed width for uniform size */
+  font-family: 'Arial', sans-serif; /* Clean font */
+  font-size: 18px; /* Readable font size */
+  font-weight: bold;
+  color: #333; /* Darker text for contrast */
+  transition: transform 0.3s ease, background-color 0.3s ease; /* Smooth hover effect */
+  cursor: pointer;
+}
+
+/* Hover effect */
+.subject-block:hover {
+  transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(to bottom right, #3498db, #2980b9);
+    color: white;
+}
+
+/* Responsive layout for smaller screens */
+@media (max-width: 768px) {
+  .subject-block {
+      width: 150px; /* Reduce width for smaller screens */
+      padding: 15px;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #d7dcec;
+}
+
+/* New Footer Styles */
+.footer {
+  background-color: #f5f5f5;
+  padding: 1rem;
+  margin-top: 2rem;
+  text-align: center;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.footer-logo img {
+  width: 100px; /* Adjust based on your NWU logo size */
+  height: auto;
+}
+
+.footer-text {
+  color: #333;
+  font-family: 'Arial', sans-serif;
+  font-size: 15px;
+}
+
+@media (max-width: 768px) {
+  .footer {
+    padding: 1.5rem;
+  }
+  
+  .footer-logo img {
+    width: 120px;
+  }
 }
 
 /* Search Section Styling */
@@ -979,36 +1320,41 @@ input[type="text"] {
   box-sizing: border-box; /* Ensures padding does not overflow */
 }
 
-/* FAQ Modal Buttons Container */
+/* Modal Buttons Container */
 .faq-modal-buttons {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px; /* Add space above the buttons */
+  gap: 10px; /* Space between buttons */
+  margin-top: 20px;
 }
 
-/* Clear Button Styles */
-.faq-clear-btn {
-  padding: 10px 15px;
+/* Common styles for both buttons */
+.faq-clear-btn,
+.faq-submit-btn {
+  flex: 1; /* Make both buttons take equal space */
+  padding: 12px 20px;
   border: none;
   border-radius: 5px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.3s;
+  min-width: 120px; /* Ensure minimum width */
+}
+
+/* Clear button specific styles */
+.faq-clear-btn {
   background-color: #f44336;
   color: white;
-  cursor: pointer;
-  transition: opacity 0.3s;
 }
 
-/* Submit Button Styles */
+/* Submit button specific styles */
 .faq-submit-btn {
-  padding: 10px 15px;
-  border: none;
-  border-radius: 5px;
   background-color: #4CAF50;
   color: white;
-  cursor: pointer;
-  transition: opacity 0.3s;
 }
 
-/* Hover Effect for Buttons */
+/* Hover effects */
 .faq-clear-btn:hover,
 .faq-submit-btn:hover {
   opacity: 0.9;
@@ -1032,35 +1378,41 @@ input[type="text"] {
 }
 
 /* Profile Icon Styling */
-.profile-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #4a90e2;
-  color: white;
-  padding: 10px;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  margin-top: 10px;
-  font-size: 14px;
-}
-
-
-#profile-name {
-  display: inline-block;
-  max-width: 40px;
+.profile-section {
   text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  margin-bottom: 15px;
 }
 
+.profile-icon {
+  display: inline-block;
+  background-color: #a1f312;
+  color: white;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+  line-height: 60px;
+  margin-bottom: 10px;
+  border: 2px solid #2980b9;
+}
 
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f9; /* Light background for contrast */
-  color: #333; /* Dark text for readability */
+.profile-name {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.profile-id {
+  font-size: 14px;
+  color: #888;
+  margin: 0;
+}
+
+.bottom-link {
+  border-top: 1px solid #e0e0e0;
+  padding-top: 10px;
+  margin-top: 10px;
 }
 
 .hero-section {
@@ -1236,3 +1588,51 @@ body {
 .cta-button:hover {
   background-color: #218838;
 }
+
+.notification {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -100px;
+  padding: 15px 25px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  transition: all 0.3s ease-in-out;
+  z-index: 1000;
+  opacity: 0;
+  max-width: 350px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+.notification.success {
+  background-color: #10B981;
+  border-left: 5px solid #059669;
+}
+
+.notification.error {
+  background-color: #EF4444;
+  border-left: 5px solid #DC2626;
+}
+
+.notification.warning {
+  background-color: #F59E0B;
+  border-left: 5px solid #D97706;
+}
+
+.notification.show {
+  bottom: 20px;
+  opacity: 1;
+}
+
+.progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background-color: rgba(255, 255, 255, 0.7);
+  width: 100%;
+  transform-origin: left;
+}
+

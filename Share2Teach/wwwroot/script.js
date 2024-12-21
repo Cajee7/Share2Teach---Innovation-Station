@@ -1,3 +1,55 @@
+class NotificationManager {
+    constructor() {
+        this.notifications = new Set();
+    }
+
+    show(message, type = 'success', duration = 3000) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        
+        // Create message content
+        const messageContent = document.createElement('div');
+        messageContent.textContent = message;
+        notification.appendChild(messageContent);
+
+        // Create progress bar
+        const progressBar = document.createElement('div');
+        progressBar.className = 'progress-bar';
+        notification.appendChild(progressBar);
+
+        document.body.appendChild(notification);
+        this.notifications.add(notification);
+
+        // Trigger animation
+        requestAnimationFrame(() => {
+            notification.classList.add('show');
+            progressBar.style.transition = `transform ${duration}ms linear`;
+            progressBar.style.transform = 'scaleX(0)';
+        });
+
+        // Remove notification after duration
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                document.body.removeChild(notification);
+                this.notifications.delete(notification);
+            }, 300);
+        }, duration);
+    }
+
+    clearAll() {
+        this.notifications.forEach(notification => {
+            document.body.removeChild(notification);
+        });
+        this.notifications.clear();
+    }
+}
+
+// Create a single instance of NotificationManager
+const notificationManager = new NotificationManager();
+
+
+
 // Function to open tabs and handle dynamic loading
 function openTab(evt, tabName) {
     const tabContents = document.getElementsByClassName("tab-content");
@@ -13,6 +65,12 @@ function openTab(evt, tabName) {
     document.getElementById(tabName).style.display = "block"; // Show the selected tab content
     evt.currentTarget.className += " active"; // Set the active class
 
+    // Close document display when switching tabs
+    const displayDiv = document.getElementById('documentDisplay');
+    if (displayDiv) {
+        displayDiv.innerHTML = ""; // Clear the document display content
+    }
+
     // Load FAQs if the FAQ tab is opened
     if (tabName === 'faq') {
         loadFAQs(); // Load FAQs when FAQ tab is opened
@@ -26,32 +84,30 @@ async function loadFAQs() {
     faqErrorMessage.style.display = 'none'; // Hide previous error messages
 
     try {
-        const response = await fetch('http://localhost:5281/api/FAQ/list'); // Replace with your actual API endpoint
-        if (!response.ok) throw new Error('Network response was not ok');
+        const response = await fetch('http://localhost:5281/api/FAQ/list'); 
+        if (!response.ok) throw new Error(notificationManager.show('Error loading FAQS', 'error', 4000));
 
         const faqs = await response.json();
         renderFAQs(faqs); // Render the fetched FAQs
     } catch (error) {
-        faqErrorMessage.innerText = 'Error fetching FAQs. Please try again later.';
+        faqErrorMessage.innerText = notificationManager.show('Error fetching FAQS', 'error', 4000);
         faqErrorMessage.style.display = 'block'; // Show the error message
     }
 }
 
-// Function to perform login
 async function performLogin(event) {
-    event.preventDefault(); // Prevent the form from submitting and reloading the page
+    event.preventDefault();
     
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value.trim();
     const errorMessage = document.getElementById('error-message');
-    const successMessage = document.getElementById('success-message'); // Success message element
+    const successMessage = document.getElementById('success-message');
     
-    errorMessage.style.display = 'none'; // Hide the error message by default
-    successMessage.style.display = 'none'; // Hide the success message by default
+    errorMessage.style.display = 'none';
+    successMessage.style.display = 'none';
 
+    // Validation code remains the same...
     let errors = [];
-
-    // Validate if fields are not empty
     if (!email) {
         errors.push('Email is required.');
     } else if (!validateEmail(email)) {
@@ -64,82 +120,69 @@ async function performLogin(event) {
         errors.push('Password must be at least 6 characters long.');
     }
 
-    // Display error messages if there are any
     if (errors.length > 0) {
         errorMessage.style.display = 'block';
-        errorMessage.innerHTML = errors.join('<br>'); // Join errors with a line break for multiple errors
+        errorMessage.innerHTML = errors.join('<br>');
         return;
     }
 
-    // Prepare FormData to send to the server
     const formData = new FormData();
     formData.append('Email', email);
     formData.append('Password', password);
 
     try {
-        // Perform login logic by sending data to the backend
         const response = await fetch('http://localhost:5281/api/Authenticate/login', {
             method: 'POST',
             body: formData
         });
 
-        // Check if the login was successful
         if (response.ok) {
             const result = await response.json();
-            console.log('Login successful:', result.message);
-            console.log('Token:', result.token);
-            console.log('User Name:', result.userName);
-
-            // Store user information in localStorage for later use
+            
+            // Store user information
             localStorage.setItem('userName', result.userName);
-            localStorage.setItem('isLoggedIn', 'true'); // Mark user as logged in
-            localStorage.setItem('userRole', result.role); // Storing the user role
-            localStorage.setItem('token', result.token); //Strong jwt toke
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('userRole', result.role);
+            localStorage.setItem('token', result.token);
 
-            // Show animated success popup
+            // Show success message with shorter animation
             successMessage.style.display = 'block';
             successMessage.innerHTML = 'Logged in successfully!';
-            successMessage.style.backgroundColor = "#4CAF50"; // Green for success
-            successMessage.style.bottom = '-100px'; // Initially below the page
-            successMessage.style.opacity = '0';    // Initially transparent
+            successMessage.style.backgroundColor = "#4CAF50";
+            successMessage.style.bottom = '-100px';
+            successMessage.style.opacity = '0';
 
-            setTimeout(() => {
-                successMessage.style.bottom = '20px'; // Slide it up
-                successMessage.style.opacity = '1';   // Fade in
-            }, 100);
+            // Animate in
+            requestAnimationFrame(() => {
+                successMessage.style.bottom = '20px';
+                successMessage.style.opacity = '1';
+            });
 
-            // Hide the popup after 2 seconds
-            setTimeout(() => {
-                successMessage.style.bottom = '-100px'; // Slide back down
-                successMessage.style.opacity = '0';     // Fade out
-            }, 20000);
-
-            // Completely hide the message after the animation ends
-            setTimeout(() => {
-                successMessage.style.display = 'none';
-                // Redirect to the landing page (index.html) after successful login
-                window.location.href = './index.html';  // Ensure the path is correct
-            }, 23000);
-
-            // Update UI elements after login
+            // Update UI immediately
             loadUserProfile();
             updateContributeTabAndNavigation(result.role);
 
+            // Redirect after a short delay (just 1.5 seconds total)
+            setTimeout(() => {
+                successMessage.style.bottom = '-100px';
+                successMessage.style.opacity = '0';
+                
+                setTimeout(() => {
+                    window.location.href = './index.html';
+                }, 500); // Additional 0.5s for fade out
+            }, 1000); // Show message for 1s
+
         } else if (response.status === 400) {
-            // Handle validation errors from the backend
             errorMessage.style.display = 'block';
             errorMessage.innerHTML = 'Invalid input. Please check your email and password.';
         } else if (response.status === 401) {
-            // Handle unauthorized login attempt
             errorMessage.style.display = 'block';
             errorMessage.innerHTML = 'Invalid login attempt. Please check your email and password.';
         } else {
-            // Handle other server-side errors
             errorMessage.style.display = 'block';
             errorMessage.innerHTML = 'An error occurred while logging in. Please try again later.';
         }
     } catch (error) {
-        // Handle network or unexpected errors
         console.error('An error occurred:', error);
         errorMessage.style.display = 'block';
         errorMessage.innerHTML = 'An unexpected error occurred. Please try again.';
@@ -216,19 +259,16 @@ async function submitForgotPassword(event) {
         });
 
         if (response.ok) {
-            successMessage.style.display = 'block';
-            successMessage.innerHTML = 'Password reset token sent to your email.';
+            notificationManager.show('Password reset token sent to your email.', 'success', 4000);
             // Optionally show reset password form
             document.getElementById('forgot-password').style.display = 'none';
             document.getElementById('reset-password').style.display = 'block';
         } else {
             const result = await response.json();
-            errorMessage.style.display = 'block';
-            errorMessage.innerHTML = result.message || 'An error occurred.';
+            notificationManager.show('An error occured', 'error', 4000);
         }
     } catch (error) {
-        errorMessage.style.display = 'block';
-        errorMessage.innerHTML = 'An unexpected error occurred. Please try again.';
+        notificationManager.show('An unexpected error occured, please try again!', 'error', 4000);
     }
 }
 
@@ -245,8 +285,7 @@ async function submitResetPassword(event) {
 
     // Validate passwords
     if (newPassword !== confirmPassword) {
-        errorMessage.style.display = 'block';
-        errorMessage.innerHTML = 'Passwords do not match.';
+        notificationManager.show('Passwords do not match!', 'error', 4000);
         return;
     }
     
@@ -263,12 +302,10 @@ async function submitResetPassword(event) {
         });
 
         if (response.ok) {
-            successMessage.style.display = 'block';
-            successMessage.innerHTML = 'Password has been reset successfully. You can now log in with your new password.';
-            // Redirect to login or show login form
-            // Optionally: window.location.href = './login.html'; // Uncomment to redirect
+            notificationManager.show('Password has been reset successfully. You can now log in with your new password.', 'success', 4000);
+            window.location.href = './index.html'; // Redirect to landing page
             
-
+            //redirect
             
         } else {
             const result = await response.json();
@@ -436,13 +473,13 @@ async function handleSubmit() {
 
 async function addFaq(question, answer) {
     if (!question || !answer) {
-        showPopup("Please fill in all fields", "error");
+        notificationManager.show('Please fill in all fields.', 'error', 4000);
         return;
     }
 
     const authToken = getAuthToken();
     if (!authToken) {
-        showPopup('Authentication token not found. Please log in.', "error");
+        notificationManager.show('Authentication token not found, please login again', 'error', 4000);
         return;
     }
 
@@ -457,27 +494,27 @@ async function addFaq(question, answer) {
         });
 
         if (response.ok) {
-            showPopup("FAQ added successfully", "success");
+            notificationManager.show('FAQ added successfully', 'success', 4000);
             closeFaqModal();
             loadFAQs();
         } else {
-            showPopup("Error adding FAQ", "error");
+            notificationManager.show('Error adding FAQ', 'error', 4000);
         }
     } catch (error) {
         console.error('Error:', error);
-        showPopup("An error occurred while adding the FAQ", "error");
+        notificationManager.show('An error occurred while adding FAQ', 'error', 4000);
     }
 }
 
 async function updateFaq(faqId, question, answer) {
     if (!faqId || !question || !answer) {
-        showPopup("Please fill in all fields", "error");
+        notificationManager.show('Please fill in all fields', 'error', 4000);
         return;
     }
 
     const authToken = getAuthToken();
     if (!authToken) {
-        showPopup('Authentication token not found. Please log in.', "error");
+        notificationManager.show('Authentication token not found, please login again!', 'error', 4000);
         return;
     }
 
@@ -492,29 +529,29 @@ async function updateFaq(faqId, question, answer) {
         });
 
         if (response.ok) {
-            showPopup("FAQ updated successfully", "success");
+            notificationManager.show('FAQ updated successfully', 'success', 4000);
             closeFaqModal();
             loadFAQs();
         } else if (response.status === 404) {
-            showPopup("FAQ not found", "error");
+            notificationManager.show('FAQ not found', 'error', 4000);
         } else {
-            showPopup("Error updating FAQ", "error");
+            notificationManager.show('Error updating FAQ', 'error', 4000);
         }
     } catch (error) {
         console.error('Error:', error);
-        showPopup("An error occurred while updating the FAQ", "error");
+        notificationManager.show('An error occured while updating FAQ', 'error', 4000);
     }
 }
 
 async function deleteFaq(faqId) {
     if (!faqId) {
-        showPopup("Please enter an FAQ ID to delete.", "error");
+        notificationManager.show('Please enter a FAQ ID', 'error', 4000);
         return;
     }
 
     const authToken = getAuthToken();
     if (!authToken) {
-        showPopup('Authentication token not found. Please log in.', "error");
+        notificationManager.show('Authentication token not found, please login again!', 'error', 4000);
         return;
     }
 
@@ -528,45 +565,19 @@ async function deleteFaq(faqId) {
             }
         });
         if (response.ok) {
-            showPopup("FAQ deleted successfully", "success");
+            notificationManager.show('Faq deleted successfully', 'success', 4000);
             closeFaqModal();
             loadFAQs();
         } else if (response.status === 404) {
-            showPopup("FAQ not found", "error");
+            notificationManager.show('FAQ not found', 'error', 4000);
         } else {
-            showPopup("Error deleting FAQ", "error");
+            notificationManager.show('Error deleting FAQ', 'error', 4000);
         }
     } catch (error) {
         console.error('Error:', error);
-        showPopup("An error occurred while deleting the FAQ", "error");
+        notificationManager.show('An error occured while deleting FAQ', 'error', 4000);
     }
 }
-
-function showPopup(message, type) {
-    const popup = document.createElement('div');
-    popup.textContent = message;
-    popup.style.position = 'fixed';
-    popup.style.top = '20px';
-    popup.style.left = '50%';
-    popup.style.transform = 'translateX(-50%)';
-    popup.style.padding = '10px 20px';
-    popup.style.borderRadius = '5px';
-    popup.style.color = 'white';
-    popup.style.zIndex = '1000';
-
-    if (type === 'error') {
-        popup.style.backgroundColor = 'red';
-    } else if (type === 'success') {
-        popup.style.backgroundColor = 'green';
-    }
-
-    document.body.appendChild(popup);
-
-    setTimeout(() => {
-        document.body.removeChild(popup);
-    }, 3000);
-}
-
 
 async function performSearch() {
     console.log('Performing search...');
@@ -660,19 +671,60 @@ async function performSearch() {
                 console.log('Download not available for document:', doc.title);
             }
 
-            // Report button
+            // Report button creation and handler
             const reportButton = document.createElement('button');
             reportButton.className = 'report-button';
             reportButton.innerHTML = '<strong>!</strong>';
             reportButton.onclick = function() {
                 console.log('Report button clicked for document:', doc.title);
-                if (doc.id !== undefined) {
-                    openReportModal(doc.id);
+                
+                let documentId = null;
+                
+                if (doc.id) {
+                    try {
+                        // Properly format MongoDB ObjectId from components
+                        if (typeof doc.id === 'object' && 
+                            doc.id.timestamp && 
+                            doc.id.machine && 
+                            doc.id.pid && 
+                            doc.id.increment) {
+                            
+                            // Ensure proper padding for each component
+                            const timestamp = doc.id.timestamp.toString(16).padStart(8, '0');
+                            const machine = doc.id.machine.toString(16).padStart(6, '0');
+                            const pid = doc.id.pid.toString(16).padStart(4, '0');
+                            const increment = doc.id.increment.toString(16).padStart(6, '0');
+                            
+                            // Combine to create proper 24-character MongoDB ObjectId
+                            documentId = `${timestamp}${machine}${pid}${increment}`;
+                            
+                            // Validate the constructed ID length
+                            if (documentId.length !== 24) {
+                                console.error('Constructed ID invalid length:', documentId.length);
+                                throw new Error('Invalid ID construction');
+                            }
+                            
+                            console.log('Constructed MongoDB ObjectId:', documentId);
+                        }
+                    } catch (error) {
+                        console.error('Error constructing document ID:', error);
+                        console.error('Raw ID data:', doc.id);
+                        documentId = null;
+                    }
+                }
+
+                if (documentId && /^[0-9a-fA-F]{24}$/.test(documentId)) {
+                    openReportModal(documentId);
                 } else {
-                    console.error('Document ID is undefined for:', doc.title);
-                    alert('Unable to report this document. Document ID is missing.');
+                    console.error('Document ID construction failed:', {
+                        title: doc.title,
+                        rawId: doc.id,
+                        constructedId: documentId
+                    });
+                    alert('Unable to report this document. Invalid document ID format.');
                 }
             };
+            
 
             buttonContainer.appendChild(previewButton);
             buttonContainer.appendChild(downloadButton);
@@ -689,6 +741,12 @@ async function performSearch() {
     }
 }
 
+const AUTH_TOKEN = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+
+// Store the current document ID globally
+let currentDocumentId = null;
+
+// Simple direct preview function
 function previewDocument(url) {
     console.log('Previewing document:', url);
     const modal = document.getElementById('preview-modal');
@@ -696,74 +754,139 @@ function previewDocument(url) {
     
     if (!modal || !iframe) {
         console.error('Modal or iframe element not found');
-        alert('Preview functionality is not available. Please check your HTML structure.');
+        showFeedback('Preview functionality is not available. Please check your HTML structure.');
         return;
     }
     
     if (!url) {
         console.error('Invalid URL for preview:', url);
-        alert('Preview is not available for this document.');
+        showFeedback('Preview is not available for this document.');
         return;
     }
     
+    // Direct preview in iframe
     iframe.src = url;
     modal.style.display = 'block';
 }
 
-function downloadDocument(url, title) {
+async function downloadDocument(url, title) {
     console.log('Downloading document:', url, 'with title:', title);
     if (!url) {
         console.error('Invalid URL for download:', url);
-        alert('Download is not available for this document.');
+        showFeedback('Download is not available for this document.');
         return;
     }
-
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = title || 'document';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-// Close Preview Modal
-function closePreviewModal() {
-    const previewModal = document.getElementById('preview-modal');
-    previewModal.style.display = "none";
-}
-
-// Opens the report modal and sets the document ID for reporting
-function openReportModal(documentId) {
-    console.log('openReportModal called with documentId:', documentId);
-    const modal = document.getElementById('report-modal');
-    document.getElementById('report-doc-id').value = documentId; // Set the document ID in a hidden input
-    modal.style.display = 'block'; // Show the modal
-}
-
-// Closes the report modal
-function closeReportModal() {
-    const modal = document.getElementById('report-modal');
-    modal.style.display = 'none'; // Hide the modal
-}
-
-// Handles report submission
-async function submitReport() {
-    const documentId = document.getElementById('report-doc-id').value.trim(); // Hidden field for document ID
-    const reason = document.getElementById('report-reason').value.trim();
-
-    // Input validation
-    if (!documentId || !reason) {
-        alert('Please fill in all fields.');
-        return;
-    }
-
-    const reportData = {
-        DocumentId: documentId,
-        Reason: reason
-    };
 
     try {
-        // Submit the report data to the backend API
+        // Fetch the document with authorization
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': AUTH_TOKEN
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Get the blob from the response
+        const blob = await response.blob();
+        
+        // Create a URL for the blob
+        const downloadUrl = window.URL.createObjectURL(blob);
+        
+        // Create and trigger download
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = title || 'document';
+        document.body.appendChild(link);
+        link.click();
+        
+        // Cleanup
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+
+    } catch (error) {
+        console.error('Error downloading document:', error);
+        showFeedback('Error downloading document. Please try again later.');
+    }
+}
+
+// Modal management
+function closePreviewModal() {
+    const previewModal = document.getElementById('preview-modal');
+    if (previewModal) {
+        previewModal.style.display = "none";
+    }
+}
+
+function openReportModal(documentId) {
+    console.log('openReportModal called with documentId:', documentId);
+    if (!documentId) {
+        console.error('No document ID provided to report modal');
+        showFeedback('Error: Cannot report document without ID');
+        return;
+    }
+
+    const modal = document.getElementById('report-modal');
+    if (!modal) {
+        console.error('Report modal element not found');
+        return;
+    }
+
+    // Store the document ID globally
+    currentDocumentId = documentId;
+    
+    // Also set it in the hidden input as a backup
+    const hiddenInput = document.getElementById('report-doc-id');
+    if (hiddenInput) {
+        hiddenInput.value = documentId;
+    }
+    
+    modal.style.display = 'block';
+}
+
+function closeReportModal() {
+    const modal = document.getElementById('report-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        // Clear the form
+        const reasonInput = document.getElementById('report-reason');
+        if (reasonInput) {
+            reasonInput.value = '';
+        }
+        // Clear the stored document ID
+        currentDocumentId = null;
+    }
+}
+
+async function submitReport() {
+    // Get document ID from either global variable or hidden input
+    const documentId = currentDocumentId || document.getElementById('report-doc-id')?.value;
+    const reason = document.getElementById('report-reason')?.value?.trim();
+
+    console.log('Submitting report for document:', documentId);
+
+    try {
+        // Input validation
+        if (!documentId || !reason) {
+            throw new Error(
+                !documentId ? 'No document selected for reporting' : 'Please provide a reason for reporting'
+            );
+        }
+
+        // Validate DocumentId format (24-character hexadecimal string)
+        const objectIdRegex = /^[0-9a-fA-F]{24}$/;
+        if (!objectIdRegex.test(documentId)) {
+            throw new Error('Invalid document ID format. Please try again or contact support.');
+        }
+
+        const reportData = {
+            documentId: documentId,
+            reason: reason
+        };
+
         const response = await fetch('http://localhost:5281/api/Reporting/CreateReport', {
             method: 'POST',
             headers: {
@@ -772,37 +895,82 @@ async function submitReport() {
             body: JSON.stringify(reportData)
         });
 
-        const responseData = await response.json();
-
-        if (response.ok) {
-            console.log('Report submitted successfully:', responseData);
-            showFeedback("Report submitted successfully! ID: " + responseData.id);
-
-            // Clear form fields after successful submission
-            document.getElementById('report-reason').value = '';
-        } else {
-            console.error('Failed to submit report:', response.status, responseData);
-            showFeedback("Error: " + (responseData.message || response.statusText));
+        // Handle non-200 responses
+        if (!response.ok) {
+            let errorMessage = 'Failed to submit report';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.message || errorMessage;
+            } catch (e) {
+                errorMessage = response.statusText;
+            }
+            throw new Error(errorMessage);
         }
+
+        // Parse successful response
+        const responseData = await response.json();
+        console.log('Report submitted successfully:', responseData);
+        
+        // Show success message with report ID if available
+        showFeedback(
+            "Report submitted successfully!" + 
+            (responseData.id ? ` ID: ${responseData.id}` : ''),
+            'success'
+        );
+
+        // Clear form and close modal
+        const reasonInput = document.getElementById('report-reason');
+        if (reasonInput) {
+            reasonInput.value = '';
+        }
+        closeReportModal();
+
     } catch (error) {
         console.error('Error submitting report:', error);
-        showFeedback('Error submitting report: ' + error.message);
+        showFeedback(error.message, 'error');
     }
-
-    // Close the report modal after submission
-    closeReportModal();
 }
 
-// Function to display feedback messages
+
+// Feedback display
 function showFeedback(message) {
     const feedbackElement = document.getElementById('create-response');
     if (feedbackElement) {
         feedbackElement.textContent = message;
+        // Make sure the feedback is visible
+        feedbackElement.style.display = 'block';
     } else {
         console.warn('Feedback element not found. Message:', message);
         alert(message); // Fallback to alert if feedback element is missing
     }
 }
+
+// Event listeners for modal closing
+window.addEventListener('DOMContentLoaded', () => {
+    // Close modals when clicking outside
+    window.onclick = function(event) {
+        const previewModal = document.getElementById('preview-modal');
+        const reportModal = document.getElementById('report-modal');
+        
+        if (event.target === previewModal) {
+            closePreviewModal();
+        }
+        if (event.target === reportModal) {
+            closeReportModal();
+        }
+    };
+
+    // Close buttons for modals
+    const closePreviewButton = document.getElementById('close-preview-modal');
+    const closeReportButton = document.getElementById('close-report-modal');
+
+    if (closePreviewButton) {
+        closePreviewButton.onclick = closePreviewModal;
+    }
+    if (closeReportButton) {
+        closeReportButton.onclick = closeReportModal;
+    }
+});
 
 
 function showFeedback(message) {
@@ -922,7 +1090,7 @@ function updateContributeTabAndNavigation(userRole) {
                 try {
                     // Validate file size
                     if (file.size > maxFileSizeMb * 1024 * 1024) {
-                        throw new Error(`File size exceeds the limit of ${maxFileSizeMb} MB.`);
+                        throw new Error(`File size exceeds the limit of ${maxFileSizeMb} MB`);
                     }
                 
                     // Validate file type
@@ -931,37 +1099,39 @@ function updateContributeTabAndNavigation(userRole) {
                         throw new Error(`File type '${fileType}' is not allowed. Allowed types are: ${allowedFileTypes.join(', ')}`);
                     }
 
-                    // Show the upload form
                     uploadForm.style.display = 'block';
+                    notificationManager.show(`Selected file: ${file.name}`, 'success', 2000);
                 } catch (error) {
-                    console.error('Upload error:', error.message);
-                    showMessage(error.message, 'error');
+                    fileUpload.value = '';
+                    notificationManager.show(error.message, 'error', 4000);
                 }
             }
         });
 
         // Function to handle the upload process
         async function handleUpload() {
-            // Get input elements
             const titleInput = document.getElementById('title');
             const subjectInput = document.getElementById('subject');
             const gradeInput = document.getElementById('grade');
             const descriptionInput = document.getElementById('description');
-        
+
             // Check if elements exist
             if (!titleInput || !subjectInput || !gradeInput || !descriptionInput) {
-                return showMessage('One or more form elements are missing. Please check the HTML structure.', 'error');
+                notificationManager.show('One or more form elements are missing. Please check the HTML structure.', 'error', 4000);
+                return;
             }
-        
+
             // Validate inputs
             if (!titleInput.value.trim() || !subjectInput.value.trim() || !gradeInput.value.trim() || !descriptionInput.value.trim()) {
-                return showMessage('Please fill in all fields.', 'error');
+                notificationManager.show('Please fill in all fields.', 'error', 4000);
+                return;
             }
 
             // Validate grade is an integer
             const gradeValue = parseInt(gradeInput.value, 10);
             if (isNaN(gradeValue) || gradeValue <= 0) {
-                return showMessage('Please enter a valid grade as an integer.', 'error');
+                notificationManager.show('Please enter a valid grade as a positive integer.', 'error', 4000);
+                return;
             }
 
             // Prepare form data
@@ -973,13 +1143,16 @@ function updateContributeTabAndNavigation(userRole) {
             formData.append('Description', descriptionInput.value);
 
             // Get the authentication token
-            const authToken = getAuthToken();
+            const authToken = localStorage.getItem('token');
             if (!authToken) {
-                return showMessage('Authentication token not found. Please log in.', 'error');
+                notificationManager.show('Authentication token not found. Please log in.', 'error', 4000);
+                return;
             }
 
             try {
-                // Send file and metadata to server
+                // Show upload in progress notification
+                notificationManager.show('Uploading file...', 'warning', 6000);
+
                 const response = await fetch('http://localhost:5281/api/File/upload', {
                     method: 'POST',
                     body: formData,
@@ -993,25 +1166,24 @@ function updateContributeTabAndNavigation(userRole) {
                 }
 
                 const result = await response.json();
-                console.log('Upload successful:', result.message);
-                console.log('Generated tags:', result.tags);
+                
+                // Clear the uploading message
+                notificationManager.clearAll();
 
-                // Clear the file input and reset form
+                // Show success message
+                notificationManager.show(`File uploaded successfully! Generated tags: ${result.tags.join(', ')}`, 'success', 5000);
+
+                // Clear the form
                 fileUpload.value = '';
                 titleInput.value = '';
                 subjectInput.value = '';
                 gradeInput.value = '';
                 descriptionInput.value = '';
-
-                // Hide the form again
                 uploadForm.style.display = 'none';
 
-                // Update UI to show success message
-                showPopup("Success!! File uploaded successfully!");
-
             } catch (error) {
-                console.error('Upload error:', error.message);
-                showMessage(error.message, 'error');
+                console.error('Upload error:', error);
+                notificationManager.show(error.message, 'error', 4000);
             }
         }
 
@@ -1024,6 +1196,7 @@ function updateContributeTabAndNavigation(userRole) {
             document.getElementById('description').value = '';
             fileUpload.value = '';
             uploadForm.style.display = 'none';
+            notificationManager.show('Form cleared', 'success', 2000);
         });
     }
 
@@ -1035,6 +1208,53 @@ function updateContributeTabAndNavigation(userRole) {
     const loginLink = document.querySelector('a[href="#login"]');
     if (loginLink) loginLink.style.display = 'none'; // Hide the login link
 
+     // Get the more dropdown content
+     const dropdownContent = document.querySelector('.slide-out-content');
+     if (dropdownContent) {
+         // Remove existing admin links if they exist
+         const existingAdminLinks = document.getElementById('admin-links');
+         if (existingAdminLinks) {
+             existingAdminLinks.remove();
+         }
+ 
+         // Create new admin links container
+         const adminLinks = document.createElement('div');
+         adminLinks.id = 'admin-links';
+         
+         // Create Moderate link
+         const moderateLink = document.createElement('a');
+         moderateLink.href = '#moderate';
+         moderateLink.id = 'moderate-link';
+         moderateLink.textContent = 'Moderate';
+         moderateLink.addEventListener('click', (e) => {
+             e.preventDefault();
+             window.location.href = './moderation.html';
+         });
+ 
+         // Create Reports link
+         const reportsLink = document.createElement('a');
+         reportsLink.href = '#reports';
+         reportsLink.id = 'reports-link';
+         reportsLink.textContent = 'Reports';
+         reportsLink.addEventListener('click', (e) => {
+             e.preventDefault();
+             window.location.href = './reporting.html';
+         });
+ 
+         // Add the new links to the admin links container
+         adminLinks.appendChild(moderateLink);
+         adminLinks.appendChild(reportsLink);
+ 
+         // Add the admin links to the dropdown
+         dropdownContent.appendChild(adminLinks);
+ 
+         // Show admin links based on user role
+         if (userRole === 'admin' || userRole === 'teacher') {
+             adminLinks.style.display = 'block';
+         } else {
+             adminLinks.style.display = 'none';
+         }
+     }
     // Show FAQ management buttons only if the user is an admin
     if (userRole === 'admin') {
         const faqButtons = document.getElementById('faq-buttons');
@@ -1043,6 +1263,7 @@ function updateContributeTabAndNavigation(userRole) {
         }
     }
 }
+
 // Helper function to show messages to the user
 function showMessage(message, type) {
     const contributeTab = document.getElementById('contribute');
@@ -1091,69 +1312,248 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// JavaScript for handling subject click and fetching document
-document.getElementById('login-form').addEventListener('submit', function (event) {
-    event.preventDefault(); // Prevent the form from submitting
+// Global variable to store all documents
+let documentsBySubject = {};
 
-    // Get the email and password from the form
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-
-    // Check if the email and password match the expected values
-    if (email === "HannahCarl@brackenfell.edu" && password === "HC0057#st") {
-        // Redirect to the moderation page (create moderation.html)
-        window.location.href = "moderation.html"; // Change to the path of your moderation page
-    } else {
-        // Show an error message
-        document.getElementById('error-message').textContent = "Invalid email or password.";
+// Function to fetch documents from the API
+async function fetchModeratedDocuments() {
+    try {
+        const response = await fetch('http://localhost:5281/api/File/GetModerated');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        documentsBySubject = data.groupedBySubject;
+        updateSubjectBlocks();
+    } catch (error) {
+        console.error('Error fetching documents:', error);
+        showError('Failed to load documents. Please try again later.');
     }
-});
+}
 
-// JavaScript for handling subject click and fetching document
+// Function to handle report submission
+async function handleReport() {
+    const docIdInput = document.getElementById('report-doc-id');
+    const reasonSelect = document.getElementById('report-reason');
+    
+    try {
+        // Get values and validate
+        const documentId = docIdInput?.value;
+        const reason = reasonSelect?.value;
 
-document.querySelectorAll('.subject-block').forEach(subjectBlock => {
-    subjectBlock.addEventListener('click', function() {
-        const subject = this.textContent.trim(); // Get subject name
+        if (!documentId || !reason) {
+            throw new Error('Please provide both document ID and reason for reporting');
+        }
 
-        // Define subject IDs (this can be expanded as per your need)
-        const subjectIDs = {
-            "Mathematics": "670ed342be670e75745fe650", // Maths ID
-            // Add more subjects and their IDs if needed
+        // Validate DocumentId format (24-character hexadecimal string)
+        const objectIdRegex = /^[0-9a-fA-F]{24}$/;
+        if (!objectIdRegex.test(documentId)) {
+            throw new Error('Invalid document ID format');
+        }
+
+        // Prepare request data
+        const reportData = {
+            documentId: documentId,
+            reason: reason
         };
 
-        if (subject in subjectIDs) {
-            // Construct the API URL using the subject ID
-            const apiUrl = `http://localhost:5281/api/Moderation/update/${subjectIDs[subject]}`;
+        // Send request to API
+        const response = await fetch('http://localhost:5281/api/Reporting/CreateReport', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(reportData)
+        });
 
-            console.log('Fetching document for subject:', subject); // Debug log
-            console.log('API URL:', apiUrl); // Debug log
+        // Handle response
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to submit report');
+        }
 
-            // Fetch the document for the clicked subject using PUT with authorization header
-            fetch(apiUrl, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTbG9hbmVDYXJseUBnaXJsc2hpZ2guZWR1IiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6IkNhcmx5IFNsb2FuZSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6InRlYWNoZXIiLCJqdGkiOiJlNjE4NTkzYy0wNTE3LTRkMzEtYTU1Yy1hMzIzM2E5ZjI2NmMiLCJleHAiOjE3MjkwODU4MjEsImlzcyI6IlNoYXJlMlRlYWNoIiwiYXVkIjoiU2hhcmUyVGVhY2hVc2VycyJ9.0nvYPdsmUlv_MdtYMyt3I58z7zBnmjPMYnWy0xsjnmM' // Add your token here
-                },
-                body: JSON.stringify({ subject: subject }) // You can modify the body if needed
-            })
-            .then(response => {
-                console.log('Response status:', response.status); // Debug log
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Document for', subject, data); // Debug log
-                document.getElementById('documentDisplay').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-            })
-            .catch(error => {
-                console.error('Error fetching document:', error); // More detailed logging
-                alert(`Failed to fetch document for ${subject}: ${error.message}`);
+        const result = await response.json();
+        
+        // Show success message
+        showFeedback(`Report submitted successfully! ID: ${result.id}`, 'success');
+        
+        // Reset form and close modal
+        reasonSelect.value = 'Inappropriate Content'; // Reset to default option
+        closeReportModal();
+
+    } catch (error) {
+        console.error('Report submission error:', error);
+        showFeedback(error.message, 'error');
+    }
+}
+
+// Function to display documents for a selected subject
+function displayDocuments(subject) {
+    const documents = documentsBySubject[subject] || [];
+    const displayDiv = document.getElementById('documentDisplay');
+
+    if (documents.length === 0) {
+        displayDiv.innerHTML = `
+            <div class="no-documents-message">
+                No documents available for ${subject}
+            </div>
+        `;
+        return;
+    }
+
+    // Create a unique ID for the documents section
+    const sectionId = `documents-section-${subject.replace(/[^a-zA-Z0-9]/g, '-')}`;
+
+    // Create the document display HTML
+    let html = `
+        <div class="documents-container" id="${sectionId}">
+            <h2 class="documents-title">${subject} Documents</h2>
+            <div class="documents-grid">
+    `;
+
+    documents.forEach(doc => {
+        const uploadDate = new Date(doc.date_Uploaded).toLocaleDateString();
+        const fileSize = formatFileSize(doc.file_Size);
+
+        html += `
+            <div class="document-card">
+                <div class="document-header">
+                    <h3 class="document-card-title">${doc.title}</h3>
+                </div>
+                <div class="document-content">
+                    <div class="document-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Title:</span>
+                            <span class="detail-value">${doc.title}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Description:</span>
+                            <span class="detail-value">${doc.description || 'No description available'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Grade:</span>
+                            <span class="detail-value">${doc.grade}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Size:</span>
+                            <span class="detail-value">${fileSize} mb</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Uploaded:</span>
+                            <span class="detail-value">${uploadDate}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="document-tags">
+                        ${(doc.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                </div>
+                
+                <div class="document-actions">
+                    <button class="button preview-button" onclick="window.open('${doc.preview_Url || '#'}', '_blank')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        Preview
+                    </button>
+                    
+                    <a href="${doc.file_Url}" class="button download-button" target="_blank">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Download
+                    </a>
+                    
+                    <button class="button report-button" onclick="handleReport('${doc.id}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/>
+                        </svg>
+                        Report
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += `
+            </div>
+        </div>
+    `;
+
+    displayDiv.innerHTML = html;
+
+    // Scroll to the newly created section
+    const documentsSection = document.getElementById(sectionId);
+    if (documentsSection) {
+        // Wait for the DOM to be fully updated
+        requestAnimationFrame(() => {
+            documentsSection.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+                inline: 'nearest'
             });
+        });
+    }
+}
+
+
+
+// Function to update subject blocks with document counts and click handlers
+function updateSubjectBlocks() {
+    const subjectBlocks = document.querySelectorAll('.subject-block');
+    
+    subjectBlocks.forEach(block => {
+        const subject = block.textContent;
+        const documents = documentsBySubject[subject] || [];
+        
+        // Update block appearance
+        block.innerHTML = `
+            <div class="subject-title">${subject}</div>
+            <div class="document-count">${documents.length} documents</div>
+        `;
+        
+        // Add click event listener with visual feedback
+        block.addEventListener('click', (e) => {
+            // Add visual feedback on click
+            block.classList.add('clicking');
+            
+            // Display documents and scroll
+            displayDocuments(subject);
+            
+            // Remove the visual feedback after animation
+            setTimeout(() => {
+                block.classList.remove('clicking');
+            }, 200);
+        });
+        
+        // Add styling classes
+        block.classList.add('subject-block-interactive');
+        if (documents.length > 0) {
+            block.classList.add('has-documents');
         } else {
-            alert('No document available for ' + subject);
+            block.classList.add('no-documents');
         }
     });
-});
+}
+
+// Function to format file size
+function formatFileSize(size) {
+    return parseFloat(size).toFixed(2);
+}
+
+// Function to show error messages
+function showError(message) {
+    const displayDiv = document.getElementById('documentDisplay');
+    displayDiv.innerHTML = `
+        <div class="error-message">
+            <p>${message}</p>
+        </div>
+    `;
+}
+
+// Initialize the view when the document is loaded
+document.addEventListener('DOMContentLoaded', fetchModeratedDocuments);
+

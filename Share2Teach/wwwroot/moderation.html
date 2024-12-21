@@ -7,6 +7,10 @@
     <title>Document Moderation</title>
 </head>
 <body>
+     <!-- Back Button -->
+     <div class="back-button-container">
+        <button class="back-button" onclick="goBack()">&#8592; Back</button>
+    </div>
     <div class="container">
         <h2 class="moderation-heading">Moderation</h2> 
         <table id="documentsTable">
@@ -44,7 +48,8 @@
         <p id="documentTitle"></p>
 
         <!-- More Info Button -->
-        <button id="moreInfoButton" onclick="toggleMoreInfo()">More Info</button>
+        <button id="moreInfoButton"onclick="toggleMoreInfo()">More Info</button>
+
 
         <!-- Hidden Additional Info -->
         <div id="additionalInfo" style="display: none;">
